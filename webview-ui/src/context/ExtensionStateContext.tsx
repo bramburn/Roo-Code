@@ -1,6 +1,6 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react"
-import { useEvent } from "react-use"
+import React, { createContext, useContext, useEffect, useMemo } from "react"
 import { ApiConfigMeta, ExtensionMessage, ExtensionState } from "../../../src/shared/ExtensionMessage"
+import { ClineMessage } from "../../../src/shared/ExtensionMessage"
 import {
 	ApiConfiguration,
 	ModelInfo,
@@ -8,33 +8,33 @@ import {
 	glamaDefaultModelInfo,
 	openRouterDefaultModelId,
 	openRouterDefaultModelInfo,
-	unboundDefaultModelId,
-	unboundDefaultModelInfo,
 	requestyDefaultModelId,
 	requestyDefaultModelInfo,
 } from "../../../src/shared/api"
-import { vscode } from "../utils/vscode"
+
 import { convertTextMateToHljs } from "../utils/textMateToHljs"
-import { findLastIndex } from "../../../src/shared/array"
+
 import { McpServer } from "../../../src/shared/mcp"
-import { checkExistKey } from "../../../src/shared/checkExistApiConfig"
+
 import { Mode, CustomModePrompts, defaultModeSlug, defaultPrompts, ModeConfig } from "../../../src/shared/modes"
 import { CustomSupportPrompts } from "../../../src/shared/support-prompt"
 import { experimentDefault, ExperimentId } from "../../../src/shared/experiments"
+import { useLocalState } from "../hooks/useLocalState"
 
 export interface ExtensionStateContextType extends ExtensionState {
 	didHydrateState: boolean
-	showWelcome: boolean
-	theme: any
-	glamaModels: Record<string, ModelInfo>
-	requestyModels: Record<string, ModelInfo>
-	openRouterModels: Record<string, ModelInfo>
-	unboundModels: Record<string, ModelInfo>
-	openAiModels: string[]
-	mcpServers: McpServer[]
+	showWelcome?: boolean
+	theme?: any
+	glamaModels?: Record<string, ModelInfo>
+	requestyModels?: Record<string, ModelInfo>
+	openRouterModels?: Record<string, ModelInfo>
+	unboundModels?: Record<string, ModelInfo>
+	openAiModels?: string[]
+	mcpServers?: McpServer[]
 	currentCheckpoint?: string
-	filePaths: string[]
-	openedTabs: Array<{ label: string; isActive: boolean; path?: string }>
+	filePaths?: string[]
+	openedTabs?: Array<{ label: string; isActive: boolean; path?: string }>
+	updateState: (changes: Partial<ExtensionState>) => void
 	setApiConfiguration: (config: ApiConfiguration) => void
 	setCustomInstructions: (value?: string) => void
 	setAlwaysAllowReadOnly: (value: boolean) => void
@@ -49,29 +49,27 @@ export interface ExtensionStateContextType extends ExtensionState {
 	setSoundVolume: (value: number) => void
 	setDiffEnabled: (value: boolean) => void
 	setCheckpointsEnabled: (value: boolean) => void
-	setBrowserViewportSize: (value: string) => void
-	setFuzzyMatchThreshold: (value: number) => void
-	preferredLanguage: string
+	preferredLanguage?: string
 	setPreferredLanguage: (value: string) => void
 	setWriteDelayMs: (value: number) => void
 	screenshotQuality?: number
 	setScreenshotQuality: (value: number) => void
 	terminalOutputLineLimit?: number
 	setTerminalOutputLineLimit: (value: number) => void
-	mcpEnabled: boolean
+	mcpEnabled?: boolean
 	setMcpEnabled: (value: boolean) => void
-	enableMcpServerCreation: boolean
+	enableMcpServerCreation?: boolean
 	setEnableMcpServerCreation: (value: boolean) => void
 	alwaysApproveResubmit?: boolean
 	setAlwaysApproveResubmit: (value: boolean) => void
-	requestDelaySeconds: number
+	requestDelaySeconds?: number
 	setRequestDelaySeconds: (value: number) => void
-	rateLimitSeconds: number
+	rateLimitSeconds?: number
 	setRateLimitSeconds: (value: number) => void
 	setCurrentApiConfigName: (value: string) => void
 	setListApiConfigMeta: (value: ApiConfigMeta[]) => void
 	onUpdateApiConfig: (apiConfig: ApiConfiguration) => void
-	mode: Mode
+	mode?: Mode
 	setMode: (value: Mode) => void
 	setCustomModePrompts: (value: CustomModePrompts) => void
 	setCustomSupportPrompts: (value: CustomSupportPrompts) => void
@@ -80,14 +78,15 @@ export interface ExtensionStateContextType extends ExtensionState {
 	setExperimentEnabled: (id: ExperimentId, enabled: boolean) => void
 	setAutoApprovalEnabled: (value: boolean) => void
 	handleInputChange: (field: keyof ApiConfiguration, softUpdate?: boolean) => (event: any) => void
-	customModes: ModeConfig[]
+	customModes?: ModeConfig[]
 	setCustomModes: (value: ModeConfig[]) => void
 }
 
 export const ExtensionStateContext = createContext<ExtensionStateContextType | undefined>(undefined)
 
 export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-	const [state, setState] = useState<ExtensionState>({
+	// Initial state with default values
+	const initialState: ExtensionState = {
 		version: "",
 		clineMessages: [],
 		taskHistory: [],
@@ -98,266 +97,219 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		diffEnabled: false,
 		checkpointsEnabled: false,
 		fuzzyMatchThreshold: 1.0,
+		experiments: experimentDefault as Record<ExperimentId, boolean>,
+		customModes: [],
+		openedTabs: [],
+		filePaths: [],
+		glamaModels: {},
+		requestyModels: {},
+		openRouterModels: {},
+		unboundModels: {},
+		openAiModels: [],
+		mcpServers: [],
 		preferredLanguage: "English",
 		writeDelayMs: 1000,
 		browserViewportSize: "900x600",
-		screenshotQuality: 75,
-		terminalOutputLineLimit: 500,
-		mcpEnabled: true,
-		enableMcpServerCreation: true,
-		alwaysApproveResubmit: false,
-		requestDelaySeconds: 5,
-		rateLimitSeconds: 0, // Minimum time between successive requests (0 = disabled)
-		currentApiConfigName: "default",
-		listApiConfigMeta: [],
+		screenshotQuality: 100,
+		terminalOutputLineLimit: 1000,
+		mcpEnabled: false,
+		enableMcpServerCreation: false,
+		alwaysAllowModeSwitch: false,
 		mode: defaultModeSlug,
 		customModePrompts: defaultPrompts,
 		customSupportPrompts: {},
-		experiments: experimentDefault,
 		enhancementApiConfigId: "",
 		autoApprovalEnabled: false,
-		customModes: [],
-	})
+	}
 
-	const [didHydrateState, setDidHydrateState] = useState(false)
-	const [showWelcome, setShowWelcome] = useState(false)
-	const [theme, setTheme] = useState<any>(undefined)
-	const [filePaths, setFilePaths] = useState<string[]>([])
-	const [glamaModels, setGlamaModels] = useState<Record<string, ModelInfo>>({
-		[glamaDefaultModelId]: glamaDefaultModelInfo,
-	})
-	const [openedTabs, setOpenedTabs] = useState<Array<{ label: string; isActive: boolean; path?: string }>>([])
-	const [openRouterModels, setOpenRouterModels] = useState<Record<string, ModelInfo>>({
-		[openRouterDefaultModelId]: openRouterDefaultModelInfo,
-	})
-	const [unboundModels, setUnboundModels] = useState<Record<string, ModelInfo>>({
-		[unboundDefaultModelId]: unboundDefaultModelInfo,
-	})
-	const [requestyModels, setRequestyModels] = useState<Record<string, ModelInfo>>({
-		[requestyDefaultModelId]: requestyDefaultModelInfo,
-	})
+	// Use the new useLocalState hook
+	const { localState, updateState, updateFromVscode } = useLocalState(initialState)
 
-	const [openAiModels, setOpenAiModels] = useState<string[]>([])
-	const [mcpServers, setMcpServers] = useState<McpServer[]>([])
-	const [currentCheckpoint, setCurrentCheckpoint] = useState<string>()
-
-	const setListApiConfigMeta = useCallback(
-		(value: ApiConfigMeta[]) => setState((prevState) => ({ ...prevState, listApiConfigMeta: value })),
-		[],
-	)
-
-	const onUpdateApiConfig = useCallback((apiConfig: ApiConfiguration) => {
-		setState((currentState) => {
-			vscode.postMessage({
-				type: "upsertApiConfiguration",
-				text: currentState.currentApiConfigName,
-				apiConfiguration: { ...currentState.apiConfiguration, ...apiConfig },
-			})
-			return currentState // No state update needed
-		})
-	}, [])
-
-	const handleInputChange = useCallback(
-		// Returns a function that handles an input change event for a specific API configuration field.
-		// The optional "softUpdate" flag determines whether to immediately update local state or send an external update.
-		(field: keyof ApiConfiguration, softUpdate?: boolean) => (event: any) => {
-			// Use the functional form of setState to ensure the latest state is used in the update logic.
-			setState((currentState) => {
-				if (softUpdate) {
-					// Return a new state object with the updated apiConfiguration.
-					// This will trigger a re-render with the new configuration value.
-					return {
-						...currentState,
-						apiConfiguration: { ...currentState.apiConfiguration, [field]: event.target.value },
-					}
-				} else {
-					// For non-soft updates, send a message to the VS Code extension with the updated config.
-					// This side effect communicates the change without updating local React state.
-					vscode.postMessage({
-						type: "upsertApiConfiguration",
-						text: currentState.currentApiConfigName,
-						apiConfiguration: { ...currentState.apiConfiguration, [field]: event.target.value },
-					})
-					// Return the unchanged state as no local state update is intended in this branch.
-					return currentState
-				}
-			})
-		},
-		[],
-	)
-
-	const handleMessage = useCallback(
-		(event: MessageEvent) => {
+	// Message handling effect
+	useEffect(() => {
+		const handleMessage = (event: MessageEvent) => {
 			const message: ExtensionMessage = event.data
 			switch (message.type) {
-				case "state": {
-					const newState = message.state!
-					setState((prevState) => ({
-						...prevState,
-						...newState,
-					}))
-					const config = newState.apiConfiguration
-					const hasKey = checkExistKey(config)
-					setShowWelcome(!hasKey)
-					setDidHydrateState(true)
+				case "state":
+					// Full state update from VS Code
+					updateFromVscode(message.state || {})
 					break
-				}
-				case "theme": {
-					if (message.text) {
-						setTheme(convertTextMateToHljs(JSON.parse(message.text)))
+				case "partialMessage":
+					// Partial state update, e.g., for chat messages
+					if (message.partialMessage) {
+						updateState({
+							clineMessages: localState.clineMessages.map((msg: ClineMessage) =>
+								msg.ts === message.partialMessage?.ts ? { ...msg, ...message.partialMessage } : msg,
+							),
+						})
 					}
 					break
-				}
+				case "theme":
+					if (message.text) {
+						updateState({ theme: convertTextMateToHljs(JSON.parse(message.text)) })
+					}
+					break
 				case "workspaceUpdated": {
 					const paths = message.filePaths ?? []
 					const tabs = message.openedTabs ?? []
 
-					setFilePaths(paths)
-					setOpenedTabs(tabs)
-					break
-				}
-				case "partialMessage": {
-					const partialMessage = message.partialMessage!
-					setState((prevState) => {
-						// worth noting it will never be possible for a more up-to-date message to be sent here or in normal messages post since the presentAssistantContent function uses lock
-						const lastIndex = findLastIndex(prevState.clineMessages, (msg) => msg.ts === partialMessage.ts)
-						if (lastIndex !== -1) {
-							const newClineMessages = [...prevState.clineMessages]
-							newClineMessages[lastIndex] = partialMessage
-							return { ...prevState, clineMessages: newClineMessages }
-						}
-						return prevState
+					updateState({
+						filePaths: paths,
+						openedTabs: tabs,
 					})
 					break
 				}
 				case "glamaModels": {
 					const updatedModels = message.glamaModels ?? {}
-					setGlamaModels({
-						[glamaDefaultModelId]: glamaDefaultModelInfo, // in case the extension sent a model list without the default model
-						...updatedModels,
+					updateState({
+						glamaModels: {
+							[glamaDefaultModelId]: glamaDefaultModelInfo, // in case the extension sent a model list without the default model
+							...updatedModels,
+						},
 					})
 					break
 				}
 				case "openRouterModels": {
 					const updatedModels = message.openRouterModels ?? {}
-					setOpenRouterModels({
-						[openRouterDefaultModelId]: openRouterDefaultModelInfo, // in case the extension sent a model list without the default model
-						...updatedModels,
+					updateState({
+						openRouterModels: {
+							[openRouterDefaultModelId]: openRouterDefaultModelInfo, // in case the extension sent a model list without the default model
+							...updatedModels,
+						},
 					})
 					break
 				}
 				case "openAiModels": {
 					const updatedModels = message.openAiModels ?? []
-					setOpenAiModels(updatedModels)
+					updateState({
+						openAiModels: updatedModels,
+					})
 					break
 				}
 				case "unboundModels": {
 					const updatedModels = message.unboundModels ?? {}
-					setUnboundModels(updatedModels)
+					updateState({
+						unboundModels: updatedModels,
+					})
 					break
 				}
 				case "requestyModels": {
 					const updatedModels = message.requestyModels ?? {}
-					setRequestyModels({
-						[requestyDefaultModelId]: requestyDefaultModelInfo, // in case the extension sent a model list without the default model
-						...updatedModels,
+					updateState({
+						requestyModels: {
+							[requestyDefaultModelId]: requestyDefaultModelInfo, // in case the extension sent a model list without the default model
+							...updatedModels,
+						},
 					})
 					break
 				}
 				case "mcpServers": {
-					setMcpServers(message.mcpServers ?? [])
+					updateState({
+						mcpServers: message.mcpServers ?? [],
+					})
 					break
 				}
 				case "currentCheckpointUpdated": {
-					setCurrentCheckpoint(message.text)
+					updateState({
+						currentCheckpoint: message.text,
+					})
 					break
 				}
 				case "listApiConfig": {
-					setListApiConfigMeta(message.listApiConfig ?? [])
+					updateState({
+						listApiConfigMeta: message.listApiConfig ?? [],
+					})
 					break
 				}
 			}
-		},
-		[setListApiConfigMeta],
+		}
+
+		window.addEventListener("message", handleMessage)
+		return () => window.removeEventListener("message", handleMessage)
+	}, [updateFromVscode, updateState, localState.clineMessages])
+
+	// Memoized context value to prevent unnecessary re-renders
+	const contextValue = useMemo<ExtensionStateContextType>(
+		() => ({
+			...localState,
+			didHydrateState: true, // Placeholder, adjust as needed
+			showWelcome: false, // Placeholder, adjust as needed
+			theme: localState.theme, // Placeholder, adjust as needed
+			glamaModels: localState.glamaModels,
+			requestyModels: localState.requestyModels,
+			openRouterModels: localState.openRouterModels,
+			unboundModels: localState.unboundModels,
+			openAiModels: localState.openAiModels,
+			mcpServers: localState.mcpServers,
+			currentCheckpoint: localState.currentCheckpoint,
+			filePaths: localState.filePaths,
+			openedTabs: localState.openedTabs,
+			updateState,
+
+			// Setter methods that use updateState
+			setApiConfiguration: (config: ApiConfiguration) => updateState({ apiConfiguration: config }),
+			setCustomInstructions: (value?: string) => updateState({ customInstructions: value }),
+			setAlwaysAllowReadOnly: (value: boolean) => updateState({ alwaysAllowReadOnly: value }),
+			setAlwaysAllowWrite: (value: boolean) => updateState({ alwaysAllowWrite: value }),
+			setAlwaysAllowExecute: (value: boolean) => updateState({ alwaysAllowExecute: value }),
+			setAlwaysAllowBrowser: (value: boolean) => updateState({ alwaysAllowBrowser: value }),
+			setAlwaysAllowMcp: (value: boolean) => updateState({ alwaysAllowMcp: value }),
+			setAlwaysAllowModeSwitch: (value: boolean) => updateState({ alwaysAllowModeSwitch: value }),
+			setShowAnnouncement: (value: boolean) => updateState({ shouldShowAnnouncement: value }),
+			setAllowedCommands: (value: string[]) => updateState({ allowedCommands: value }),
+			setSoundEnabled: (value: boolean) => updateState({ soundEnabled: value }),
+			setSoundVolume: (value: number) => updateState({ soundVolume: value }),
+			setDiffEnabled: (value: boolean) => updateState({ diffEnabled: value }),
+			setCheckpointsEnabled: (value: boolean) => updateState({ checkpointsEnabled: value }),
+			setBrowserViewportSize: (value: string) => updateState({ browserViewportSize: value }),
+			setFuzzyMatchThreshold: (value: number) => updateState({ fuzzyMatchThreshold: value }),
+			setPreferredLanguage: (value: string) => updateState({ preferredLanguage: value }),
+			setWriteDelayMs: (value: number) => updateState({ writeDelayMs: value }),
+			setScreenshotQuality: (value: number) => updateState({ screenshotQuality: value }),
+			setTerminalOutputLineLimit: (value: number) => updateState({ terminalOutputLineLimit: value }),
+			setMcpEnabled: (value: boolean) => updateState({ mcpEnabled: value }),
+			setEnableMcpServerCreation: (value: boolean) => updateState({ enableMcpServerCreation: value }),
+			setAlwaysApproveResubmit: (value: boolean) => updateState({ alwaysApproveResubmit: value }),
+			setRequestDelaySeconds: (value: number) => updateState({ requestDelaySeconds: value }),
+			setRateLimitSeconds: (value: number) => updateState({ rateLimitSeconds: value }),
+			setCurrentApiConfigName: (value: string) => updateState({ currentApiConfigName: value }),
+			setListApiConfigMeta: (value: ApiConfigMeta[]) => updateState({ listApiConfigMeta: value }),
+			onUpdateApiConfig: (apiConfig: ApiConfiguration) => updateState({ apiConfiguration: apiConfig }),
+			setMode: (value: Mode) => updateState({ mode: value }),
+			setCustomModePrompts: (value: CustomModePrompts) => updateState({ customModePrompts: value }),
+			setCustomSupportPrompts: (value: CustomSupportPrompts) => updateState({ customSupportPrompts: value }),
+			setEnhancementApiConfigId: (value: string) => updateState({ enhancementApiConfigId: value }),
+			setExperimentEnabled: (id: ExperimentId, enabled: boolean) =>
+				updateState({
+					experiments: {
+						...localState.experiments,
+						[id]: enabled,
+					} as Record<ExperimentId, boolean>,
+				}),
+			setAutoApprovalEnabled: (value: boolean) => updateState({ autoApprovalEnabled: value }),
+			handleInputChange:
+				(field: keyof ApiConfiguration, softUpdate = false) =>
+				(event: any) => {
+					const value = event.target.value
+					updateState({
+						apiConfiguration: {
+							...localState.apiConfiguration,
+							[field]: value,
+						},
+					})
+				},
+			setCustomModes: (value: ModeConfig[]) => updateState({ customModes: value }),
+			alwaysAllowModeSwitch: localState.alwaysAllowModeSwitch,
+		}),
+		[localState, updateState],
 	)
-
-	useEvent("message", handleMessage)
-
-	useEffect(() => {
-		vscode.postMessage({ type: "webviewDidLaunch" })
-	}, [])
-
-	const contextValue: ExtensionStateContextType = {
-		...state,
-		didHydrateState,
-		showWelcome,
-		theme,
-		glamaModels,
-		requestyModels,
-		openRouterModels,
-		openAiModels,
-		unboundModels,
-		mcpServers,
-		currentCheckpoint,
-		filePaths,
-		openedTabs,
-		soundVolume: state.soundVolume,
-		fuzzyMatchThreshold: state.fuzzyMatchThreshold,
-		writeDelayMs: state.writeDelayMs,
-		screenshotQuality: state.screenshotQuality,
-		setExperimentEnabled: (id, enabled) =>
-			setState((prevState) => ({ ...prevState, experiments: { ...prevState.experiments, [id]: enabled } })),
-		setApiConfiguration: (value) =>
-			setState((prevState) => ({
-				...prevState,
-				apiConfiguration: value,
-			})),
-		setCustomInstructions: (value) => setState((prevState) => ({ ...prevState, customInstructions: value })),
-		setAlwaysAllowReadOnly: (value) => setState((prevState) => ({ ...prevState, alwaysAllowReadOnly: value })),
-		setAlwaysAllowWrite: (value) => setState((prevState) => ({ ...prevState, alwaysAllowWrite: value })),
-		setAlwaysAllowExecute: (value) => setState((prevState) => ({ ...prevState, alwaysAllowExecute: value })),
-		setAlwaysAllowBrowser: (value) => setState((prevState) => ({ ...prevState, alwaysAllowBrowser: value })),
-		setAlwaysAllowMcp: (value) => setState((prevState) => ({ ...prevState, alwaysAllowMcp: value })),
-		setAlwaysAllowModeSwitch: (value) => setState((prevState) => ({ ...prevState, alwaysAllowModeSwitch: value })),
-		setShowAnnouncement: (value) => setState((prevState) => ({ ...prevState, shouldShowAnnouncement: value })),
-		setAllowedCommands: (value) => setState((prevState) => ({ ...prevState, allowedCommands: value })),
-		setSoundEnabled: (value) => setState((prevState) => ({ ...prevState, soundEnabled: value })),
-		setSoundVolume: (value) => setState((prevState) => ({ ...prevState, soundVolume: value })),
-		setDiffEnabled: (value) => setState((prevState) => ({ ...prevState, diffEnabled: value })),
-		setCheckpointsEnabled: (value) => setState((prevState) => ({ ...prevState, checkpointsEnabled: value })),
-		setBrowserViewportSize: (value: string) =>
-			setState((prevState) => ({ ...prevState, browserViewportSize: value })),
-		setFuzzyMatchThreshold: (value) => setState((prevState) => ({ ...prevState, fuzzyMatchThreshold: value })),
-		setPreferredLanguage: (value) => setState((prevState) => ({ ...prevState, preferredLanguage: value })),
-		setWriteDelayMs: (value) => setState((prevState) => ({ ...prevState, writeDelayMs: value })),
-		setScreenshotQuality: (value) => setState((prevState) => ({ ...prevState, screenshotQuality: value })),
-		setTerminalOutputLineLimit: (value) =>
-			setState((prevState) => ({ ...prevState, terminalOutputLineLimit: value })),
-		setMcpEnabled: (value) => setState((prevState) => ({ ...prevState, mcpEnabled: value })),
-		setEnableMcpServerCreation: (value) =>
-			setState((prevState) => ({ ...prevState, enableMcpServerCreation: value })),
-		setAlwaysApproveResubmit: (value) => setState((prevState) => ({ ...prevState, alwaysApproveResubmit: value })),
-		setRequestDelaySeconds: (value) => setState((prevState) => ({ ...prevState, requestDelaySeconds: value })),
-		setRateLimitSeconds: (value) => setState((prevState) => ({ ...prevState, rateLimitSeconds: value })),
-		setCurrentApiConfigName: (value) => setState((prevState) => ({ ...prevState, currentApiConfigName: value })),
-		setListApiConfigMeta,
-		onUpdateApiConfig,
-		setMode: (value: Mode) => setState((prevState) => ({ ...prevState, mode: value })),
-		setCustomModePrompts: (value) => setState((prevState) => ({ ...prevState, customModePrompts: value })),
-		setCustomSupportPrompts: (value) => setState((prevState) => ({ ...prevState, customSupportPrompts: value })),
-		setEnhancementApiConfigId: (value) =>
-			setState((prevState) => ({ ...prevState, enhancementApiConfigId: value })),
-		setAutoApprovalEnabled: (value) => setState((prevState) => ({ ...prevState, autoApprovalEnabled: value })),
-		handleInputChange,
-		setCustomModes: (value) => setState((prevState) => ({ ...prevState, customModes: value })),
-	}
 
 	return <ExtensionStateContext.Provider value={contextValue}>{children}</ExtensionStateContext.Provider>
 }
 
 export const useExtensionState = () => {
 	const context = useContext(ExtensionStateContext)
-	if (context === undefined) {
+	if (!context) {
 		throw new Error("useExtensionState must be used within an ExtensionStateContextProvider")
 	}
 	return context

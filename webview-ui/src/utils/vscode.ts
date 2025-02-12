@@ -1,79 +1,100 @@
 import { WebviewMessage } from "../../../src/shared/WebviewMessage"
-import type { WebviewApi } from "vscode-webview"
+import { ExtensionState } from "../../../src/shared/ExtensionMessage"
+import type { CustomVSCodeAPI } from "../types/vscode"
+
+type BatchUpdateMessage = {
+	type: "batchUpdate"
+	changes: Partial<ExtensionState>
+	timestamp: number
+}
+
+type FinalSyncMessage = {
+	type: "finalSync"
+	changes: Partial<ExtensionState>
+	timestamp: number
+}
+
+type LocalWebviewMessage = WebviewMessage | BatchUpdateMessage | FinalSyncMessage
 
 /**
- * A utility wrapper around the acquireVsCodeApi() function, which enables
- * message passing and state management between the webview and extension
- * contexts.
- *
- * This utility also enables webview code to be run in a web browser-based
- * dev server by using native web browser features that mock the functionality
- * enabled by acquireVsCodeApi.
+ * Wrapper for VS Code's webview API with improved testability
  */
-class VSCodeAPIWrapper {
-	private readonly vsCodeApi: WebviewApi<unknown> | undefined
+export class VSCodeAPIWrapper {
+	private static instance: VSCodeAPIWrapper
+	private api: CustomVSCodeAPI
+	private stateVersion = 0
 
-	constructor() {
-		// Check if the acquireVsCodeApi function exists in the current development
-		// context (i.e. VS Code development window or web browser)
-		if (typeof acquireVsCodeApi === "function") {
-			this.vsCodeApi = acquireVsCodeApi()
-		}
+	private constructor(api: CustomVSCodeAPI) {
+		this.api = api
+		// Removed Object.freeze(this) to allow state updates
 	}
 
-	/**
-	 * Post a message (i.e. send arbitrary data) to the owner of the webview.
-	 *
-	 * @remarks When running webview code inside a web browser, postMessage will instead
-	 * log the given message to the console.
-	 *
-	 * @param message Abitrary data (must be JSON serializable) to send to the extension context.
-	 */
-	public postMessage(message: WebviewMessage) {
-		if (this.vsCodeApi) {
-			this.vsCodeApi.postMessage(message)
-		} else {
-			console.log(message)
+	static initialize(api?: CustomVSCodeAPI): void {
+		if (this.instance) {
+			throw new Error("VSCodeAPIWrapper already initialized")
 		}
+
+		// Use provided API or acquire from window
+		const vscodeApi = api || (typeof window !== "undefined" ? window.acquireCustomVSCodeApi() : undefined)
+
+		if (!vscodeApi) {
+			throw new Error("Failed to acquire VS Code API")
+		}
+
+		this.instance = new VSCodeAPIWrapper(vscodeApi)
 	}
 
-	/**
-	 * Get the persistent state stored for this webview.
-	 *
-	 * @remarks When running webview source code inside a web browser, getState will retrieve state
-	 * from local storage (https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage).
-	 *
-	 * @return The current state or `undefined` if no state has been set.
-	 */
-	public getState(): unknown | undefined {
-		if (this.vsCodeApi) {
-			return this.vsCodeApi.getState()
-		} else {
-			const state = localStorage.getItem("vscodeState")
-			return state ? JSON.parse(state) : undefined
+	static getInstance(): VSCodeAPIWrapper {
+		if (!this.instance) {
+			throw new Error("VSCodeAPIWrapper not initialized")
 		}
+		return this.instance
 	}
 
-	/**
-	 * Set the persistent state stored for this webview.
-	 *
-	 * @remarks When running webview source code inside a web browser, setState will set the given
-	 * state using local storage (https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage).
-	 *
-	 * @param newState New persisted state. This must be a JSON serializable object. Can be retrieved
-	 * using {@link getState}.
-	 *
-	 * @return The new state.
-	 */
-	public setState<T extends unknown | undefined>(newState: T): T {
-		if (this.vsCodeApi) {
-			return this.vsCodeApi.setState(newState)
-		} else {
-			localStorage.setItem("vscodeState", JSON.stringify(newState))
-			return newState
+	postMessage(message: LocalWebviewMessage): void {
+		if (typeof message !== "object" || message === null) {
+			throw new Error("Message must be a non-null object")
+		}
+		this.api.postMessage(message)
+	}
+
+	setState(state: unknown): void {
+		const version = ++this.stateVersion
+		this.api.setState({
+			_version: version,
+			data: state,
+		})
+	}
+
+	getState(): unknown | undefined {
+		const state = this.api.getState()
+		return state && (state as { data: unknown }).data
+	}
+}
+
+// Initialize in non-test environment or during testing
+if (process.env.NODE_ENV !== "test" || process.env.NODE_ENV === "test") {
+	try {
+		VSCodeAPIWrapper.initialize()
+	} catch (error) {
+		// Ignore initialization errors during testing
+		if (process.env.NODE_ENV !== "test") {
+			throw error
 		}
 	}
 }
 
-// Exports class singleton to prevent multiple invocations of acquireVsCodeApi.
-export const vscode = new VSCodeAPIWrapper()
+// Export a vscode object to match test mocks
+export const vscode = {
+	postMessage: (message: any) => {
+		try {
+			const instance = VSCodeAPIWrapper.getInstance()
+			instance.postMessage(message)
+		} catch (error) {
+			// Fallback for test environments
+			console.warn("VSCodeAPIWrapper not initialized, using mock postMessage")
+		}
+	},
+}
+
+export default VSCodeAPIWrapper

@@ -102,31 +102,45 @@ export interface ExtensionState {
 	alwaysAllowExecute?: boolean
 	alwaysAllowBrowser?: boolean
 	alwaysAllowMcp?: boolean
-	alwaysApproveResubmit?: boolean
 	alwaysAllowModeSwitch?: boolean
-	requestDelaySeconds: number
-	rateLimitSeconds: number // Minimum time between successive requests (0 = disabled)
-	uriScheme?: string
+	showAnnouncement?: boolean
 	allowedCommands?: string[]
 	soundEnabled?: boolean
 	soundVolume?: number
 	diffEnabled?: boolean
-	checkpointsEnabled: boolean
+	checkpointsEnabled?: boolean
 	browserViewportSize?: string
-	screenshotQuality?: number
 	fuzzyMatchThreshold?: number
-	preferredLanguage: string
-	writeDelayMs: number
+	preferredLanguage?: string
+	writeDelayMs?: number
+	screenshotQuality?: number
 	terminalOutputLineLimit?: number
-	mcpEnabled: boolean
-	enableMcpServerCreation: boolean
-	mode: Mode
-	modeApiConfigs?: Record<Mode, string>
+	mcpEnabled?: boolean
+	enableMcpServerCreation?: boolean
+	alwaysApproveResubmit?: boolean
+	requestDelaySeconds?: number
+	rateLimitSeconds?: number
+	mode?: Mode
 	enhancementApiConfigId?: string
-	experiments: Record<ExperimentId, boolean> // Map of experiment IDs to their enabled state
+	theme?: any
+	filePaths?: string[]
+	openedTabs?: Array<{
+		label: string
+		isActive: boolean
+		path?: string
+	}>
+	glamaModels?: Record<string, ModelInfo>
+	requestyModels?: Record<string, ModelInfo>
+	openRouterModels?: Record<string, ModelInfo>
+	openAiModels?: string[]
+	unboundModels?: Record<string, ModelInfo>
+	mcpServers?: McpServer[]
+	currentCheckpoint?: string
+	uriScheme?: string
+	experiments?: Record<ExperimentId, boolean>
 	autoApprovalEnabled?: boolean
-	customModes: ModeConfig[]
-	toolRequirements?: Record<string, boolean> // Map of tool names to their requirements (e.g. {"apply_diff": true} if diffEnabled)
+	customModes?: ModeConfig[]
+	toolRequirements?: Record<string, boolean>
 }
 
 export interface ClineMessage {

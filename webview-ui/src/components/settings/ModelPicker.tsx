@@ -64,10 +64,10 @@ export const ModelPicker = ({
 
 	const { apiConfiguration, [modelsKey]: models, onUpdateApiConfig, setApiConfiguration } = useExtensionState()
 
-	const modelIds = useMemo(
-		() => (Array.isArray(models) ? models : Object.keys(models)).sort((a, b) => a.localeCompare(b)),
-		[models],
-	)
+	const modelIds = useMemo(() => {
+		if (!models) return []
+		return (Array.isArray(models) ? models : Object.keys(models)).sort((a, b) => a.localeCompare(b))
+	}, [models])
 
 	const { selectedModelId, selectedModelInfo } = useMemo(
 		() => normalizeApiConfiguration(apiConfiguration),
@@ -90,6 +90,7 @@ export const ModelPicker = ({
 
 	const onSelect = useCallback(
 		(modelId: string) => {
+			if (!models) return // Add this null check
 			const modelInfo = Array.isArray(models)
 				? { id: modelId } // For OpenAI models which are just strings
 				: models[modelId] // For other models that have full info objects
