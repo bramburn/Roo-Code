@@ -20,7 +20,7 @@ type McpViewProps = {
 
 const McpView = ({ onDone }: McpViewProps) => {
 	const {
-		mcpServers: servers,
+		mcpServers: servers = [],
 		alwaysAllowMcp,
 		mcpEnabled,
 		enableMcpServerCreation,

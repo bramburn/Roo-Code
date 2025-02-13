@@ -91,6 +91,7 @@ export interface ExtensionState {
 	clineMessages: ClineMessage[]
 	taskHistory: HistoryItem[]
 	shouldShowAnnouncement: boolean
+	unsavedChanges?: Record<string, any>
 	apiConfiguration?: ApiConfiguration
 	currentApiConfigName?: string
 	listApiConfigMeta?: ApiConfigMeta[]

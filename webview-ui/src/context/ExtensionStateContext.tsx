@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo } from "react"
 import { ApiConfigMeta, ExtensionMessage, ExtensionState } from "../../../src/shared/ExtensionMessage"
 import { ClineMessage } from "../../../src/shared/ExtensionMessage"
+import { HistoryItem } from "../../../src/shared/HistoryItem"
 import {
 	ApiConfiguration,
 	ModelInfo,
@@ -25,6 +26,8 @@ export interface ExtensionStateContextType extends ExtensionState {
 	didHydrateState: boolean
 	showWelcome?: boolean
 	theme?: any
+	currentTaskItem?: HistoryItem
+	unsavedChanges?: Record<string, any>
 	glamaModels?: Record<string, ModelInfo>
 	requestyModels?: Record<string, ModelInfo>
 	openRouterModels?: Record<string, ModelInfo>
@@ -234,9 +237,11 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 	const contextValue = useMemo<ExtensionStateContextType>(
 		() => ({
 			...localState,
-			didHydrateState: true, // Placeholder, adjust as needed
-			showWelcome: false, // Placeholder, adjust as needed
-			theme: localState.theme, // Placeholder, adjust as needed
+			didHydrateState: true,
+			showWelcome: false,
+			theme: localState.theme,
+			currentTaskItem: localState.taskHistory?.[0],
+			unsavedChanges: localState.unsavedChanges || {},
 			glamaModels: localState.glamaModels,
 			requestyModels: localState.requestyModels,
 			openRouterModels: localState.openRouterModels,
