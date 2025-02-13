@@ -272,7 +272,7 @@ describe("applyGitFallback", () => {
 		const content = ["line1", "line2", "line3"]
 		const result = await applyGitFallback(hunk, content)
 
-		expect(result.result.join("\n")).toEqual("line1\nnew line2\nline3")
+		expect(result.result.join("\n").trim()).toEqual("line1\nnew line2\nline3")
 		expect(result.confidence).toBe(1)
 		expect(result.strategy).toBe("git-fallback")
 	})

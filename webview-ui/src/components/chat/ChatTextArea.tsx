@@ -138,15 +138,15 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			return [
 				{ type: ContextMenuOptionType.Problems, value: "problems" },
 				...gitCommits,
-				...openedTabs
+				...(openedTabs || [])
 					.filter((tab) => tab.path)
 					.map((tab) => ({
 						type: ContextMenuOptionType.OpenedFile,
 						value: "/" + tab.path,
 					})),
-				...filePaths
+				...(filePaths || [])
 					.map((file) => "/" + file)
-					.filter((path) => !openedTabs.some((tab) => tab.path && "/" + tab.path === path)) // Filter out paths that are already in openedTabs
+					.filter((path) => !(openedTabs || []).some((tab) => tab.path && "/" + tab.path === path))
 					.map((path) => ({
 						type: path.endsWith("/") ? ContextMenuOptionType.Folder : ContextMenuOptionType.File,
 						value: path,

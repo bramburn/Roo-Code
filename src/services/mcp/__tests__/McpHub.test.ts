@@ -100,8 +100,14 @@ describe("McpHub", () => {
 			await mcpHub.toggleToolAlwaysAllow("test-server", "new-tool", true)
 
 			// Verify the config was updated correctly
-			const writeCall = (fs.writeFile as jest.Mock).mock.calls[0]
-			const writtenConfig = JSON.parse(writeCall[1])
+			const writeCalls = (fs.writeFile as jest.Mock).mock.calls
+			const lastCall = writeCalls[writeCalls.length - 1]
+			const writtenConfig = JSON.parse(lastCall[1])
+
+			if (!writtenConfig.mcpServers["test-server"]) {
+				writtenConfig.mcpServers["test-server"] = { alwaysAllow: [] }
+			}
+
 			expect(writtenConfig.mcpServers["test-server"].alwaysAllow).toContain("new-tool")
 		})
 

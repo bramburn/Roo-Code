@@ -80,6 +80,8 @@ export interface ExtensionStateContextType extends ExtensionState {
 	handleInputChange: (field: keyof ApiConfiguration, softUpdate?: boolean) => (event: any) => void
 	customModes?: ModeConfig[]
 	setCustomModes: (value: ModeConfig[]) => void
+	setBrowserViewportSize: (size: { width: number; height: number }) => void
+	setFuzzyMatchThreshold: (threshold: number) => void
 }
 
 export const ExtensionStateContext = createContext<ExtensionStateContextType | undefined>(undefined)
@@ -248,7 +250,10 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 
 			// Setter methods that use updateState
 			setApiConfiguration: (config: ApiConfiguration) => updateState({ apiConfiguration: config }),
-			setCustomInstructions: (value?: string) => updateState({ customInstructions: value }),
+			setCustomInstructions: (value?: string) => {
+				console.log("[DEBUG] setCustomInstructions called with:", value)
+				updateState({ customInstructions: value === "" ? undefined : value })
+			},
 			setAlwaysAllowReadOnly: (value: boolean) => updateState({ alwaysAllowReadOnly: value }),
 			setAlwaysAllowWrite: (value: boolean) => updateState({ alwaysAllowWrite: value }),
 			setAlwaysAllowExecute: (value: boolean) => updateState({ alwaysAllowExecute: value }),
@@ -261,8 +266,9 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 			setSoundVolume: (value: number) => updateState({ soundVolume: value }),
 			setDiffEnabled: (value: boolean) => updateState({ diffEnabled: value }),
 			setCheckpointsEnabled: (value: boolean) => updateState({ checkpointsEnabled: value }),
-			setBrowserViewportSize: (value: string) => updateState({ browserViewportSize: value }),
-			setFuzzyMatchThreshold: (value: number) => updateState({ fuzzyMatchThreshold: value }),
+			setBrowserViewportSize: (size: { width: number; height: number }) =>
+				updateState({ browserViewportSize: `${size.width}x${size.height}` }),
+			setFuzzyMatchThreshold: (threshold: number) => updateState({ fuzzyMatchThreshold: threshold }),
 			setPreferredLanguage: (value: string) => updateState({ preferredLanguage: value }),
 			setWriteDelayMs: (value: number) => updateState({ writeDelayMs: value }),
 			setScreenshotQuality: (value: number) => updateState({ screenshotQuality: value }),

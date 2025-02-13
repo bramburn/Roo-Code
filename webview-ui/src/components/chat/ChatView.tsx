@@ -1139,7 +1139,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 						scrollToBottomAuto()
 					}
 				}}
-				mode={mode}
+				mode={mode || ""}
 				setMode={setMode}
 			/>
 

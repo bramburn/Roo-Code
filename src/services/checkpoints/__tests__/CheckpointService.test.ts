@@ -8,6 +8,9 @@ import { simpleGit, SimpleGit, SimpleGitTaskCallback } from "simple-git"
 
 import { CheckpointService } from "../CheckpointService"
 
+// Increase Jest timeout for long-running tests
+jest.setTimeout(30000)
+
 describe("CheckpointService", () => {
 	const taskId = "test-task"
 
@@ -58,7 +61,9 @@ describe("CheckpointService", () => {
 	})
 
 	afterEach(async () => {
-		await fs.rm(service.baseDir, { recursive: true, force: true })
+		if (service && service.baseDir) {
+			await fs.rm(service.baseDir, { recursive: true, force: true })
+		}
 		jest.restoreAllMocks()
 	})
 

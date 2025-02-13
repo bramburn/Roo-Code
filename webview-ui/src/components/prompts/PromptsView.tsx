@@ -70,7 +70,7 @@ const PromptsView = ({ onDone }: PromptsViewProps) => {
 	// Direct update functions
 	const updateAgentPrompt = useCallback(
 		(mode: Mode, promptData: PromptComponent) => {
-			const existingPrompt = customModePrompts?.[mode] as PromptComponent
+			const existingPrompt = mode ? (customModePrompts?.[mode] as PromptComponent) : undefined
 			const updatedPrompt = { ...existingPrompt, ...promptData }
 
 			// Only include properties that differ from defaults
@@ -95,10 +95,10 @@ const PromptsView = ({ onDone }: PromptsViewProps) => {
 		})
 	}, [])
 
-	// Helper function to find a mode by slug
+	// Helper function to safely find mode
 	const findModeBySlug = useCallback(
-		(searchSlug: string, modes: readonly ModeConfig[] | undefined): ModeConfig | undefined => {
-			if (!modes) return undefined
+		(searchSlug: string | undefined, modes: readonly ModeConfig[] | undefined): ModeConfig | undefined => {
+			if (!searchSlug || !modes) return undefined
 			const isModeWithSlug = (mode: ModeConfig): mode is ModeConfig => mode.slug === searchSlug
 			return modes.find(isModeWithSlug)
 		},
@@ -274,7 +274,7 @@ const PromptsView = ({ onDone }: PromptsViewProps) => {
 
 	const handleAgentReset = (modeSlug: string, type: "roleDefinition" | "customInstructions") => {
 		// Only reset for built-in modes
-		const existingPrompt = customModePrompts?.[modeSlug] as PromptComponent
+		const existingPrompt = mode ? (customModePrompts?.[mode] as PromptComponent) : undefined
 		const updatedPrompt = { ...existingPrompt }
 		delete updatedPrompt[type] // Remove the field entirely to ensure it reloads from defaults
 
@@ -391,10 +391,11 @@ const PromptsView = ({ onDone }: PromptsViewProps) => {
 							const value =
 								(e as CustomEvent)?.detail?.target?.value ||
 								((e as any).target as HTMLTextAreaElement).value
-							setCustomInstructions(value || undefined)
+							const trimmedValue = value.trim()
+							setCustomInstructions(trimmedValue || undefined)
 							vscode.postMessage({
 								type: "customInstructions",
-								text: value.trim() || undefined,
+								text: trimmedValue || undefined,
 							})
 						}}
 						rows={4}
@@ -576,25 +577,32 @@ const PromptsView = ({ onDone }: PromptsViewProps) => {
 						</div>
 						<VSCodeTextArea
 							value={(() => {
+								if (!mode) return ""
 								const customMode = findModeBySlug(mode, customModes)
-								const prompt = customModePrompts?.[mode] as PromptComponent
-								return customMode?.roleDefinition ?? prompt?.roleDefinition ?? getRoleDefinition(mode)
+								const existingPrompt = customModePrompts?.[mode] as PromptComponent
+								return (
+									(customMode?.roleDefinition ??
+										existingPrompt?.roleDefinition ??
+										getRoleDefinition(mode)) ||
+									""
+								)
 							})()}
 							onChange={(e) => {
+								if (!mode) return
 								const value =
 									(e as CustomEvent)?.detail?.target?.value ||
 									((e as any).target as HTMLTextAreaElement).value
 								const customMode = findModeBySlug(mode, customModes)
 								if (customMode) {
-									// For custom modes, update the JSON file
-									updateCustomMode(mode, {
+									updateCustomMode(mode!, {
 										...customMode,
 										roleDefinition: value.trim() || "",
 									})
 								} else {
-									// For built-in modes, update the prompts
-									updateAgentPrompt(mode, {
-										roleDefinition: value.trim() || undefined,
+									const existingPrompt = customModePrompts?.[mode] as PromptComponent
+									updateAgentPrompt(mode!, {
+										...(existingPrompt || {}),
+										roleDefinition: value.trim() || "",
 									})
 								}
 							}}
@@ -781,11 +789,12 @@ const PromptsView = ({ onDone }: PromptsViewProps) => {
 						<VSCodeTextArea
 							value={(() => {
 								const customMode = findModeBySlug(mode, customModes)
-								const prompt = customModePrompts?.[mode] as PromptComponent
+								const existingPrompt = mode ? (customModePrompts?.[mode] as PromptComponent) : undefined
 								return (
-									customMode?.customInstructions ??
-									prompt?.customInstructions ??
-									getCustomInstructions(mode, customModes)
+									(customMode?.customInstructions ??
+										existingPrompt?.customInstructions ??
+										getCustomInstructions(mode || "", customModes)) ||
+									""
 								)
 							})()}
 							onChange={(e) => {
@@ -795,16 +804,18 @@ const PromptsView = ({ onDone }: PromptsViewProps) => {
 								const customMode = findModeBySlug(mode, customModes)
 								if (customMode) {
 									// For custom modes, update the JSON file
-									updateCustomMode(mode, {
+									updateCustomMode(mode!, {
 										...customMode,
-										customInstructions: value.trim() || undefined,
+										customInstructions: value.trim() || "",
 									})
 								} else {
 									// For built-in modes, update the prompts
-									const existingPrompt = customModePrompts?.[mode] as PromptComponent
-									updateAgentPrompt(mode, {
-										...existingPrompt,
-										customInstructions: value.trim(),
+									const existingPrompt = mode
+										? (customModePrompts?.[mode] as PromptComponent)
+										: undefined
+									updateAgentPrompt(mode!, {
+										...(existingPrompt || {}),
+										customInstructions: value.trim() || "",
 									})
 								}
 							}}
@@ -958,7 +969,7 @@ const PromptsView = ({ onDone }: PromptsViewProps) => {
 									(e as CustomEvent)?.detail?.target?.value ||
 									((e as any).target as HTMLTextAreaElement).value
 								const trimmedValue = value.trim()
-								updateSupportPrompt(activeSupportTab, trimmedValue || undefined)
+								updateSupportPrompt(activeSupportTab, trimmedValue || "")
 							}}
 							rows={6}
 							resize="vertical"

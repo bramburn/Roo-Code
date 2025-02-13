@@ -641,20 +641,28 @@ export class McpHub {
 			const content = await fs.readFile(settingsPath, "utf-8")
 			const config = JSON.parse(content)
 
-			// Initialize alwaysAllow if it doesn't exist
-			if (!config.mcpServers[serverName].alwaysAllow) {
+			// Ensure the configuration structure exists for the specified server.
+			if (!config.mcpServers) {
+				config.mcpServers = {}
+			}
+
+			if (!config.mcpServers[serverName]) {
+				config.mcpServers[serverName] = { alwaysAllow: [] }
+			} else if (!config.mcpServers[serverName].alwaysAllow) {
 				config.mcpServers[serverName].alwaysAllow = []
 			}
 
 			const alwaysAllow = config.mcpServers[serverName].alwaysAllow
-			const toolIndex = alwaysAllow.indexOf(toolName)
 
-			if (shouldAllow && toolIndex === -1) {
-				// Add tool to always allow list
-				alwaysAllow.push(toolName)
-			} else if (!shouldAllow && toolIndex !== -1) {
-				// Remove tool from always allow list
-				alwaysAllow.splice(toolIndex, 1)
+			if (shouldAllow) {
+				if (!alwaysAllow.includes(toolName)) {
+					alwaysAllow.push(toolName)
+				}
+			} else {
+				const index = alwaysAllow.indexOf(toolName)
+				if (index !== -1) {
+					alwaysAllow.splice(index, 1)
+				}
 			}
 
 			// Write updated config back to file

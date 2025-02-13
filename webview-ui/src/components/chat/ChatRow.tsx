@@ -866,7 +866,7 @@ export const ChatRowContent = ({
 					)
 				case "use_mcp_server":
 					const useMcpServer = JSON.parse(message.text || "{}") as ClineAskUseMcpServer
-					const server = mcpServers.find((server) => server.name === useMcpServer.serverName)
+					const server = mcpServers?.find((server) => server.name === useMcpServer.serverName)
 					return (
 						<>
 							<div style={headerStyle}>

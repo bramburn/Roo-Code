@@ -152,106 +152,65 @@ export async function applyGitFallback(hunk: Hunk, content: string[]): Promise<E
 
 	try {
 		tmpDir = tmp.dirSync({ unsafeCleanup: true })
-		const git: SimpleGit = simpleGit(tmpDir.name)
-
-		await git.init()
-		await git.addConfig("user.name", "Temp")
-		await git.addConfig("user.email", "temp@example.com")
-
 		const filePath = path.join(tmpDir.name, "file.txt")
 
-		const searchLines = hunk.changes
-			.filter((change) => change.type === "context" || change.type === "remove")
-			.map((change) => change.originalLine || change.indent + change.content)
+		// Create a map of line numbers to their content for easier lookup
+		const contentMap = new Map<number, string>()
+		content.forEach((line, index) => contentMap.set(index, line))
 
-		const replaceLines = hunk.changes
+		// Track current position in the content
+		let currentPosition = 0
+		const newLines: string[] = []
+
+		// Process each change in sequence
+		for (const change of hunk.changes) {
+			const line = change.indent ? change.indent + change.content : change.content
+
+			switch (change.type) {
+				case "context":
+					// Verify context matches
+					if (contentMap.get(currentPosition) !== line) {
+						return { confidence: 0, result: content, strategy: "git-fallback" }
+					}
+					newLines.push(line)
+					currentPosition++
+					break
+
+				case "add":
+					// Add new lines
+					newLines.push(line)
+					break
+
+				case "remove":
+					// Verify removed line matches
+					if (contentMap.get(currentPosition) !== line) {
+						return { confidence: 0, result: content, strategy: "git-fallback" }
+					}
+					currentPosition++
+					break
+			}
+		}
+
+		// Add remaining lines
+		while (currentPosition < content.length) {
+			newLines.push(content[currentPosition])
+			currentPosition++
+		}
+
+		// Verify the result matches expectations
+		const expectedAfterText = hunk.changes
 			.filter((change) => change.type === "context" || change.type === "add")
-			.map((change) => change.originalLine || change.indent + change.content)
+			.map((change) => (change.indent ? change.indent + change.content : change.content))
+			.join("\n")
 
-		const searchText = searchLines.join("\n")
-		const replaceText = replaceLines.join("\n")
-		const originalText = content.join("\n")
+		const resultText = newLines.join("\n")
+		const similarity = getDMPSimilarity(expectedAfterText, resultText)
 
-		try {
-			fs.writeFileSync(filePath, originalText)
-			await git.add("file.txt")
-			const originalCommit = await git.commit("original")
-			console.log("Strategy 1 - Original commit:", originalCommit.commit)
-
-			fs.writeFileSync(filePath, searchText)
-			await git.add("file.txt")
-			const searchCommit1 = await git.commit("search")
-			console.log("Strategy 1 - Search commit:", searchCommit1.commit)
-
-			fs.writeFileSync(filePath, replaceText)
-			await git.add("file.txt")
-			const replaceCommit = await git.commit("replace")
-			console.log("Strategy 1 - Replace commit:", replaceCommit.commit)
-
-			console.log("Strategy 1 - Attempting checkout of:", originalCommit.commit)
-			await git.raw(["checkout", originalCommit.commit])
-			try {
-				console.log("Strategy 1 - Attempting cherry-pick of:", replaceCommit.commit)
-				await git.raw(["cherry-pick", "--minimal", replaceCommit.commit])
-
-				const newText = fs.readFileSync(filePath, "utf-8")
-				const newLines = newText.split("\n")
-				return {
-					confidence: 1,
-					result: newLines,
-					strategy: "git-fallback",
-				}
-			} catch (cherryPickError) {
-				console.error("Strategy 1 failed with merge conflict")
-			}
-		} catch (error) {
-			console.error("Strategy 1 failed:", error)
+		return {
+			confidence: similarity >= 0.9 ? 1 : 0,
+			result: newLines,
+			strategy: "git-fallback",
 		}
-
-		try {
-			await git.init()
-			await git.addConfig("user.name", "Temp")
-			await git.addConfig("user.email", "temp@example.com")
-
-			fs.writeFileSync(filePath, searchText)
-			await git.add("file.txt")
-			const searchCommit = await git.commit("search")
-			const searchHash = searchCommit.commit.replace(/^HEAD /, "")
-			console.log("Strategy 2 - Search commit:", searchHash)
-
-			fs.writeFileSync(filePath, replaceText)
-			await git.add("file.txt")
-			const replaceCommit = await git.commit("replace")
-			const replaceHash = replaceCommit.commit.replace(/^HEAD /, "")
-			console.log("Strategy 2 - Replace commit:", replaceHash)
-
-			console.log("Strategy 2 - Attempting checkout of:", searchHash)
-			await git.raw(["checkout", searchHash])
-			fs.writeFileSync(filePath, originalText)
-			await git.add("file.txt")
-			const originalCommit2 = await git.commit("original")
-			console.log("Strategy 2 - Original commit:", originalCommit2.commit)
-
-			try {
-				console.log("Strategy 2 - Attempting cherry-pick of:", replaceHash)
-				await git.raw(["cherry-pick", "--minimal", replaceHash])
-
-				const newText = fs.readFileSync(filePath, "utf-8")
-				const newLines = newText.split("\n")
-				return {
-					confidence: 1,
-					result: newLines,
-					strategy: "git-fallback",
-				}
-			} catch (cherryPickError) {
-				console.error("Strategy 2 failed with merge conflict")
-			}
-		} catch (error) {
-			console.error("Strategy 2 failed:", error)
-		}
-
-		console.error("Git fallback failed")
-		return { confidence: 0, result: content, strategy: "git-fallback" }
 	} catch (error) {
 		console.error("Git fallback strategy failed:", error)
 		return { confidence: 0, result: content, strategy: "git-fallback" }
@@ -260,6 +219,42 @@ export async function applyGitFallback(hunk: Hunk, content: string[]): Promise<E
 			tmpDir.removeCallback()
 		}
 	}
+}
+
+// Helper function to create a unified diff patch
+function createPatchFromHunk(hunk: Hunk, content: string[]): string {
+	const beforeLines = hunk.changes
+		.filter((change) => change.type === "context" || change.type === "remove")
+		.map((change) => (change.indent ? change.indent + change.content : change.content))
+
+	const afterLines = hunk.changes
+		.filter((change) => change.type === "context" || change.type === "add")
+		.map((change) => (change.indent ? change.indent + change.content : change.content))
+
+	const patch = [
+		"diff --git a/file.txt b/file.txt",
+		"--- a/file.txt",
+		"+++ b/file.txt",
+		"@@ -1," + beforeLines.length + " +1," + afterLines.length + " @@",
+	]
+
+	// Add the changes with proper prefixes
+	hunk.changes.forEach((change) => {
+		const line = change.indent ? change.indent + change.content : change.content
+		switch (change.type) {
+			case "context":
+				patch.push(" " + line)
+				break
+			case "add":
+				patch.push("+" + line)
+				break
+			case "remove":
+				patch.push("-" + line)
+				break
+		}
+	})
+
+	return patch.join("\n") + "\n"
 }
 
 // Main edit function that tries strategies sequentially
