@@ -2822,45 +2822,45 @@ export class Cline {
 			}
 
 			const abortStream = async (cancelReason: ClineApiReqCancelReason, streamingFailedMessage?: string) => {
-				console.log(`[Cline#abortStream] cancelReason = ${cancelReason}`)
+				try {
+					if (this.diffViewProvider.isEditing) {
+						await this.diffViewProvider.revertChanges() // closes diff view
+					}
 
-				if (this.diffViewProvider.isEditing) {
-					await this.diffViewProvider.revertChanges() // closes diff view
+					// if last message is a partial we need to update and save it
+					const lastMessage = this.clineMessages.at(-1)
+					if (lastMessage && lastMessage.partial) {
+						lastMessage.partial = false
+						console.log("updating partial message", lastMessage)
+					}
+
+					// Let assistant know their response was interrupted for when task is resumed
+					await this.addToApiConversationHistory({
+						role: "assistant",
+						content: [
+							{
+								type: "text",
+								text:
+									assistantMessage +
+									`\n\n[${
+										cancelReason === "streaming_failed"
+											? "Response interrupted by API Error"
+											: "Response interrupted by user"
+									}]`,
+							},
+						],
+					})
+
+					// update api_req_started to have cancelled and cost, so that we can display the cost of the partial stream
+					updateApiReqMsg(cancelReason, streamingFailedMessage)
+					await this.saveClineMessages()
+
+					// signals to provider that it can retrieve the saved messages from disk, as abortTask can not be awaited on in nature
+					this.didFinishAbortingStream = true
+				} finally {
+					// Ensure we set this flag even if something fails
+					this.didFinishAbortingStream = true
 				}
-
-				// if last message is a partial we need to update and save it
-				const lastMessage = this.clineMessages.at(-1)
-				if (lastMessage && lastMessage.partial) {
-					// lastMessage.ts = Date.now() DO NOT update ts since it is used as a key for virtuoso list
-					lastMessage.partial = false
-					// instead of streaming partialMessage events, we do a save and post like normal to persist to disk
-					console.log("updating partial message", lastMessage)
-					// await this.saveClineMessages()
-				}
-
-				// Let assistant know their response was interrupted for when task is resumed
-				await this.addToApiConversationHistory({
-					role: "assistant",
-					content: [
-						{
-							type: "text",
-							text:
-								assistantMessage +
-								`\n\n[${
-									cancelReason === "streaming_failed"
-										? "Response interrupted by API Error"
-										: "Response interrupted by user"
-								}]`,
-						},
-					],
-				})
-
-				// update api_req_started to have cancelled and cost, so that we can display the cost of the partial stream
-				updateApiReqMsg(cancelReason, streamingFailedMessage)
-				await this.saveClineMessages()
-
-				// signals to provider that it can retrieve the saved messages from disk, as abortTask can not be awaited on in nature
-				this.didFinishAbortingStream = true
 			}
 
 			// reset streaming state

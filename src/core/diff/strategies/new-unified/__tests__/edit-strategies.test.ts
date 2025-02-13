@@ -292,4 +292,9 @@ describe("applyGitFallback", () => {
 		expect(result.confidence).toBe(0)
 		expect(result.strategy).toBe("git-fallback")
 	})
+
+	afterAll(async () => {
+		// Clean up any temporary directories that might have been created
+		await new Promise((resolve) => setTimeout(resolve, 100))
+	})
 })

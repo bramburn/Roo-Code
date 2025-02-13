@@ -80,24 +80,58 @@ function normalizePath(p: string): string {
 
 export function getReadablePath(cwd: string, relPath?: string): string {
 	relPath = relPath || ""
-	// path.resolve is flexible in that it will resolve relative paths like '../../' to the cwd and even ignore the cwd if the relPath is actually an absolute path
-	const absolutePath = path.resolve(cwd, relPath)
-	if (arePathsEqual(cwd, path.join(os.homedir(), "Desktop"))) {
-		// User opened vscode without a workspace, so cwd is the Desktop. Show the full absolute path to keep the user aware of where files are being created
-		return absolutePath.toPosix()
-	}
-	if (arePathsEqual(path.normalize(absolutePath), path.normalize(cwd))) {
-		return path.basename(absolutePath).toPosix()
-	} else {
-		// show the relative path to the cwd
-		const normalizedRelPath = path.relative(cwd, absolutePath)
-		if (absolutePath.includes(cwd)) {
-			return normalizedRelPath.toPosix()
-		} else {
-			// we are outside the cwd, so show the absolute path (useful for when cline passes in '../../' for example)
-			return absolutePath.toPosix()
+
+	// Convert to posix format first for consistent handling
+	const posixCwd = cwd.replace(/\\/g, "/")
+	const posixRelPath = relPath.replace(/\\/g, "/")
+
+	// Resolve the absolute path
+	let absolutePath = path.resolve(posixCwd, posixRelPath).replace(/\\/g, "/")
+
+	// Handle drive letter on Windows
+	if (process.platform === "win32") {
+		const match = absolutePath.match(/^([A-Za-z]):(.+)$/)
+		if (match) {
+			absolutePath = match[2] // Remove drive letter
 		}
 	}
+
+	// Handle Desktop path specially
+	const desktopPath = path.join(os.homedir(), "Desktop").replace(/\\/g, "/")
+	if (arePathsEqual(posixCwd, desktopPath)) {
+		return absolutePath
+	}
+
+	// If path equals cwd, return just the basename
+	const normalizedCwd = posixCwd.replace(/^[A-Za-z]:/, "")
+	const normalizedPath = absolutePath.replace(/^[A-Za-z]:/, "")
+
+	if (arePathsEqual(normalizedPath, normalizedCwd)) {
+		return path.basename(normalizedCwd)
+	}
+
+	// For paths within cwd
+	if (normalizedPath.startsWith(normalizedCwd + "/")) {
+		return normalizedPath.substring(normalizedCwd.length + 1)
+	}
+
+	// For absolute paths or paths outside cwd
+	if (path.isAbsolute(posixRelPath) || !normalizedPath.startsWith(normalizedCwd)) {
+		// For Windows paths with different drive letters
+		if (process.platform === "win32") {
+			const relMatch = posixRelPath.match(/^[A-Za-z]:/)
+			const cwdMatch = posixCwd.match(/^[A-Za-z]:/)
+
+			// If paths are on different drives or relPath has a drive letter
+			if (relMatch && (!cwdMatch || relMatch[0] !== cwdMatch[0])) {
+				return normalizedPath
+			}
+		}
+		return normalizedPath
+	}
+
+	// For relative paths
+	return path.relative(normalizedCwd, normalizedPath)
 }
 
 export const toRelativePath = (filePath: string, cwd: string) => {

@@ -92,44 +92,104 @@ describe("Path Utilities", () => {
 	describe("getReadablePath", () => {
 		const homeDir = os.homedir()
 		const desktop = path.join(homeDir, "Desktop")
+		const originalPlatform = process.platform
 
-		it("should return basename when path equals cwd", () => {
-			const cwd = "/Users/test/project"
-			expect(getReadablePath(cwd, cwd)).toBe("project")
+		beforeEach(() => {
+			// Mock platform as posix for consistent test behavior
+			Object.defineProperty(process, "platform", {
+				value: "darwin",
+			})
 		})
 
-		it("should return relative path when inside cwd", () => {
-			const cwd = "/Users/test/project"
-			const filePath = "/Users/test/project/src/file.txt"
-			expect(getReadablePath(cwd, filePath)).toBe("src/file.txt")
+		afterEach(() => {
+			Object.defineProperty(process, "platform", {
+				value: originalPlatform,
+			})
 		})
 
-		it("should return absolute path when outside cwd", () => {
-			const cwd = "/Users/test/project"
-			const filePath = "/Users/test/other/file.txt"
-			expect(getReadablePath(cwd, filePath)).toBe("/Users/test/other/file.txt")
+		describe("POSIX behavior", () => {
+			beforeEach(() => {
+				Object.defineProperty(process, "platform", {
+					value: "darwin",
+				})
+			})
+
+			it("should return basename when path equals cwd", () => {
+				const cwd = "/Users/test/project"
+				expect(getReadablePath(cwd, cwd)).toBe("project")
+			})
+
+			it("should return relative path when inside cwd", () => {
+				const cwd = "/Users/test/project"
+				const filePath = "/Users/test/project/src/file.txt"
+				expect(getReadablePath(cwd, filePath)).toBe("src/file.txt")
+			})
+
+			it("should return absolute path when outside cwd", () => {
+				const cwd = "/Users/test/project"
+				const filePath = "/Users/test/other/file.txt"
+				expect(getReadablePath(cwd, filePath)).toBe("/Users/test/other/file.txt")
+			})
+
+			it("should handle Desktop as cwd", () => {
+				const filePath = path.join(desktop, "file.txt")
+				expect(getReadablePath(desktop, filePath)).toBe(filePath.toPosix())
+			})
+
+			it("should handle undefined relative path", () => {
+				const cwd = "/Users/test/project"
+				expect(getReadablePath(cwd)).toBe("project")
+			})
+
+			it("should handle parent directory traversal", () => {
+				const cwd = "/Users/test/project"
+				const filePath = "../../other/file.txt"
+				expect(getReadablePath(cwd, filePath)).toBe("/Users/other/file.txt")
+			})
+
+			it("should normalize paths with redundant segments", () => {
+				const cwd = "/Users/test/project"
+				const filePath = "/Users/test/project/./src/../src/file.txt"
+				expect(getReadablePath(cwd, filePath)).toBe("src/file.txt")
+			})
 		})
 
-		it("should handle Desktop as cwd", () => {
-			const filePath = path.join(desktop, "file.txt")
-			expect(getReadablePath(desktop, filePath)).toBe(filePath.toPosix())
-		})
+		describe("Windows behavior", () => {
+			beforeEach(() => {
+				Object.defineProperty(process, "platform", {
+					value: "win32",
+				})
+			})
 
-		it("should handle undefined relative path", () => {
-			const cwd = "/Users/test/project"
-			expect(getReadablePath(cwd)).toBe("project")
-		})
+			it("should convert Windows paths to posix format", () => {
+				const cwd = "C:\\Users\\test\\project"
+				const filePath = "C:\\Users\\test\\other\\file.txt"
+				expect(getReadablePath(cwd, filePath)).toBe("/Users/test/other/file.txt")
+			})
 
-		it("should handle parent directory traversal", () => {
-			const cwd = "/Users/test/project"
-			const filePath = "../../other/file.txt"
-			expect(getReadablePath(cwd, filePath)).toBe("/Users/other/file.txt")
-		})
+			it("should handle Windows paths with forward slashes", () => {
+				const cwd = "C:/Users/test/project"
+				const filePath = "C:/Users/test/project/src/file.txt"
+				expect(getReadablePath(cwd, filePath)).toBe("src/file.txt")
+			})
 
-		it("should normalize paths with redundant segments", () => {
-			const cwd = "/Users/test/project"
-			const filePath = "/Users/test/project/./src/../src/file.txt"
-			expect(getReadablePath(cwd, filePath)).toBe("src/file.txt")
+			it("should handle relative paths on Windows", () => {
+				const cwd = "C:\\Users\\test\\project"
+				const filePath = "..\\other\\file.txt"
+				expect(getReadablePath(cwd, filePath)).toBe("/Users/test/other/file.txt")
+			})
+
+			it("should handle Windows paths with different drive letters", () => {
+				const cwd = "C:\\Users\\test\\project"
+				const filePath = "D:\\other\\file.txt"
+				expect(getReadablePath(cwd, filePath)).toBe("/other/file.txt")
+			})
+
+			it("should handle Windows UNC paths", () => {
+				const cwd = "\\\\server\\share\\project"
+				const filePath = "\\\\server\\share\\project\\file.txt"
+				expect(getReadablePath(cwd, filePath)).toBe("file.txt")
+			})
 		})
 	})
 })
