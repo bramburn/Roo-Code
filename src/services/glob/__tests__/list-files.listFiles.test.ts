@@ -27,8 +27,8 @@ describe('listFiles', () => {
 
   describe('special directories', () => {
     it('should return root directory when path is root', async () => {
-      const [files, isLimited] = await listFiles('/', false, 10);
-      expect(files).toEqual(['/']);
+      const [files, isLimited] = await listFiles(path.sep, false, 10);
+      expect(files).toEqual([path.sep]);
       expect(isLimited).toBe(false);
     });
 
@@ -51,8 +51,8 @@ describe('listFiles', () => {
       mockGlobby.mockResolvedValue(['node_modules/file1', '__pycache__/file2']);
       const [files, isLimited] = await listFiles(tempFolderPath, false, 10);
       expect(files).toEqual(expect.arrayContaining([
-        expect.stringMatching(/node_modules\/file1/),
-        expect.stringMatching(/__pycache__\/file2/)
+        expect.stringMatching(new RegExp(`node_modules${path.sep}file1`)),
+        expect.stringMatching(new RegExp(`__pycache__${path.sep}file2`))
       ]));
       expect(isLimited).toBe(false);
     });
@@ -81,8 +81,8 @@ describe('listFiles', () => {
     it('should handle directory markers correctly', async () => {
       mockGlobby.mockResolvedValue(['dir1/', 'dir2/', 'file1']);
       const [files] = await listFiles(tempFolderPath, true, 5);
-      expect(files).toContain(expect.stringMatching(/dir1\//));
-      expect(files).toContain(expect.stringMatching(/dir2\//));
+      expect(files).toContain(expect.stringMatching(new RegExp(`dir1${path.sep}`)));
+      expect(files).toContain(expect.stringMatching(new RegExp(`dir2${path.sep}`)));
       expect(files).toContain(expect.stringMatching(/file1/));
     });
   });
