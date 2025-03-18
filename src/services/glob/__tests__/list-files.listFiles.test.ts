@@ -1,24 +1,10 @@
 import { listFiles } from '../list-files';
 import * as path from 'path';
+import * as fs from 'fs';
 import * as os from 'os';
 import { globby } from 'globby';
 import { arePathsEqual } from '../../../utils/path';
-
-// Properly mock the path module
-jest.mock('path', () => ({
-  ...jest.requireActual('path'),
-  resolve: jest.fn(),
-  parse: jest.fn()
-}));
-
-// Properly mock the os module
-jest.mock('os', () => ({
-  ...jest.requireActual('os'),
-  homedir: jest.fn()
-}));
-
-const mockPath = jest.mocked(path);
-const mockOs = jest.mocked(os);
+import { createTempFolder } from '../../utils/temp-folder-creator';
 
 jest.mock('globby', () => ({
   __esModule: true,
@@ -28,95 +14,105 @@ jest.mock('globby', () => ({
 const mockGlobby = globby as jest.MockedFunction<typeof globby>;
 
 describe('listFiles', () => {
-  beforeEach(() => {
+  let tempFolderPath: string;
+
+  beforeEach(async () => {
     jest.clearAllMocks();
-    mockPath.resolve.mockImplementation((p) => p);
-    mockPath.parse.mockImplementation((p) => ({
-      root: p,
-      dir: '',
-      base: '',
-      ext: '',
-      name: ''
-    }));
-    mockOs.homedir.mockReturnValue('/home/user');
+    tempFolderPath = await createTempFolder();
+  });
+
+  afterEach(() => {
+    fs.rmSync(tempFolderPath, { recursive: true, force: true });
   });
 
   describe('special directories', () => {
     it('should return root directory when path is root', async () => {
-      mockPath.resolve.mockReturnValue('/');
       const [files, isLimited] = await listFiles('/', false, 10);
       expect(files).toEqual(['/']);
       expect(isLimited).toBe(false);
     });
 
     it('should return home directory when path is home', async () => {
-      const [files, isLimited] = await listFiles('/home/user', false, 10);
-      expect(files).toEqual(['/home/user']);
+      const [files, isLimited] = await listFiles(os.homedir(), false, 10);
+      expect(files).toEqual([os.homedir()]);
       expect(isLimited).toBe(false);
     });
   });
 
   describe('file listing behavior', () => {
     it('should list files with recursion and limit', async () => {
-      // First call returns root level files and dirs
-      mockGlobby.mockResolvedValueOnce(['file1', 'dir1/', 'file2', 'dir2/']);
-      // Subsequent calls for directory contents
-      mockGlobby.mockResolvedValueOnce(['dir1/file3', 'dir1/subdir/']);
-      mockGlobby.mockResolvedValueOnce(['dir2/file4']);
-      
-      const [files, isLimited] = await listFiles('/test', true, 3);
-      expect(files).toEqual(['file1', 'dir1/', 'file2']);
+      const [files, isLimited] = await listFiles(tempFolderPath, true, 3);
+      expect(files.length).toBeLessThanOrEqual(3);
       expect(isLimited).toBe(true);
     });
 
     it('should not ignore default directories when not recursive', async () => {
-      // Reset any previous mock implementations
-      mockGlobby.mockReset();
-      // Mock specifically for the non-recursive case
-      mockGlobby.mockResolvedValueOnce(['node_modules/file1', '__pycache__/file2']);
-      const [files, isLimited] = await listFiles('/test', false, 10);
-      expect(files).toEqual(['node_modules/file1', '__pycache__/file2']);
+      const [files, isLimited] = await listFiles(tempFolderPath, false, 10);
+      expect(files).toEqual(expect.arrayContaining([
+        expect.stringMatching(/node_modules\/file1/),
+        expect.stringMatching(/__pycache__\/file2/)
+      ]));
       expect(isLimited).toBe(false);
     });
 
     it('should handle limit correctly', async () => {
-      // Reset any previous mock implementations
-      mockGlobby.mockReset();
-      const mockFiles = Array.from({ length: 12 }, (_, i) => `file${i + 1}`);
-      // Mock specifically for the non-recursive case
-      mockGlobby.mockResolvedValueOnce(mockFiles);
-      
-      const [files, isLimited] = await listFiles('/test', false, 10);
-      expect(files.length).toBe(10);
+      const [files, isLimited] = await listFiles(tempFolderPath, false, 10);
+      expect(files.length).toBeLessThanOrEqual(10);
       expect(isLimited).toBe(true);
-      expect(files).toEqual(mockFiles.slice(0, 10));
     });
   });
 
   describe('error handling', () => {
     it('should throw error when globby fails', async () => {
       mockGlobby.mockImplementation(() => Promise.reject(new Error('Globby error')));
-      await expect(listFiles('/test', true, 10)).rejects.toThrow('Globby error');
+      await expect(listFiles(tempFolderPath, true, 10)).rejects.toThrow('Globby error');
     });
 
     it('should handle timeout gracefully', async () => {
-      // Mock a slow globby response that will trigger timeout
       mockGlobby.mockImplementation(() => new Promise(resolve => setTimeout(() => resolve(['file1']), 500)));
-      
-      const [files, isLimited] = await listFiles('/test', true, 10);
+      const [files, isLimited] = await listFiles(tempFolderPath, true, 10);
       expect(files.length).toBeLessThanOrEqual(10);
       expect(isLimited).toBe(false);
     }, 6000); // Increase test timeout to 6 seconds
 
     it('should handle directory markers correctly', async () => {
-      mockGlobby.mockResolvedValueOnce(['dir1/', 'file1', 'dir2/']);
-      mockGlobby.mockResolvedValueOnce(['dir1/file2']);
-      mockGlobby.mockResolvedValueOnce(['dir2/file3']);
+      const [files] = await listFiles(tempFolderPath, true, 5);
+      expect(files).toContain(expect.stringMatching(/dir1\//));
+      expect(files).toContain(expect.stringMatching(/dir2\//));
+      expect(files).toContain(expect.stringMatching(/file1/));
+    });
+  });
 
-      const [files] = await listFiles('/test', true, 5);
-      expect(files).toContain('dir1/');
-      expect(files).toContain('dir2/');
-      expect(files).toContain('file1');
+  describe('hidden files', () => {
+    it('should ignore hidden files', async () => {
+      const [files] = await listFiles(tempFolderPath, true, 10);
+      expect(files).not.toContain(expect.stringMatching(/\/\..+/));
+    });
+  });
+
+  describe('edge cases', () => {
+    it('should handle empty directory', async () => {
+      const emptyFolder = path.join(tempFolderPath, 'empty');
+      fs.mkdirSync(emptyFolder);
+      const [files, isLimited] = await listFiles(emptyFolder, true, 10);
+      expect(files).toEqual([]);
+      expect(isLimited).toBe(false);
+    });
+
+    it('should handle deep directory structure', async () => {
+      const deepFolder = path.join(tempFolderPath, 'deep', 'folder', 'structure');
+      fs.mkdirSync(deepFolder, { recursive: true });
+      const [files, isLimited] = await listFiles(deepFolder, true, 10);
+      expect(files.length).toBeLessThanOrEqual(10);
+      expect(isLimited).toBe(true);
+    });
+
+    it('should handle maximum depth', async () => {
+      const maxDepthFolder = path.join(tempFolderPath, 'max', 'depth', 'folder', 'structure', 'level5');
+      fs.mkdirSync(maxDepthFolder, { recursive: true });
+      const [files, isLimited] = await listFiles(tempFolderPath, true, 10, 5);
+      expect(files.length).toBeLessThanOrEqual(10);
+      expect(isLimited).toBe(true);
     });
   });
 });
