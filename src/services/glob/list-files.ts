@@ -1,4 +1,5 @@
-import { glob } from "glob-gitignore" // @ts-ignore: ignoring missing types
+// @ts-ignore
+import { glob } from "glob-gitignore" // @ts-ignore: ignoring missing types for now
 import os from "os"
 import * as path from "path"
 import * as fs from "fs"
