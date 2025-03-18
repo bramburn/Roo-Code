@@ -82,8 +82,8 @@ describe('listFiles', () => {
     it('should handle directory markers correctly', async () => {
       mockGlob.mockResolvedValue(['dir1/', 'dir2/', 'file1']);
       const [files] = await listFiles(tempFolderPath, true, 5);
-      expect(files).toContain(expect.stringMatching(new RegExp(`dir1${path.sep}`)));
-      expect(files).toContain(expect.stringMatching(new RegExp(`dir2${path.sep}`)));
+      expect(files).toContain(expect.stringMatching(new RegExp(`dir1${path.sep.replace(/\\/g, '\\\\')}`)));
+      expect(files).toContain(expect.stringMatching(new RegExp(`dir2${path.sep.replace(/\\/g, '\\\\')}`)));
       expect(files).toContain(expect.stringMatching(/file1/));
     });
   });
