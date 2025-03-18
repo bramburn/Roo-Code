@@ -27,8 +27,9 @@ describe('listFiles', () => {
 
   describe('special directories', () => {
     it('should return root directory when path is root', async () => {
+      const expectedFiles = process.platform === 'win32' ? [path.win32.resolve('')] : [path.posix.resolve('')];
       const [files, isLimited] = await listFiles(path.sep, false, 10);
-      expect(files).toEqual([path.sep]);
+      expect(files).toEqual(expectedFiles);
       expect(isLimited).toBe(false);
     });
 
