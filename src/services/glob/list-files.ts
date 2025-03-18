@@ -3,6 +3,9 @@ import os from "os"
 import * as path from "path"
 import { arePathsEqual } from "../../utils/path"
 
+/**
+ * Error thrown when globbing operation exceeds the timeout limit
+ */
 class GlobbingTimeoutError extends Error {
     constructor() {
         super("Globbing timeout")
@@ -13,23 +16,23 @@ class GlobbingTimeoutError extends Error {
 const IS_TEST_MODE = process.env.NODE_ENV === 'test'
 const GLOBBING_TIMEOUT_MS = 10_000
 const DIRS_TO_IGNORE = [
-    "node_modules",
-    "**/__pycache__",
-    "**/env",
-    "**/venv", 
-    "**/target/dependency",
-    "**/build/dependencies",
-    "**/dist",
-    "**/out",
-    "**/bundle",
-    "**/vendor",
-    "**/tmp",
-    "**/temp",
-    "**/deps",
-    "**/pkg",
-    "**/Pods",
-    ".*", // '!**/.*' excludes hidden directories, while '!**/.*/**' excludes only their contents
-]
+    "**/node_modules/**",  // Match contents of node_modules anywhere in path
+    "**/__pycache__/**",
+    "**/env/**",
+    "**/venv/**", 
+    "**/target/dependency/**",
+    "**/build/dependencies/**",
+    "**/dist/**",
+    "**/out/**",
+    "**/bundle/**",
+    "**/vendor/**",
+    "**/tmp/**",
+    "**/temp/**",
+    "**/deps/**",
+    "**/pkg/**",
+    "**/Pods/**",
+    "**/.*/**", // Match contents of hidden directories
+] as const
 export async function listFiles(dirPath: string, recursive: boolean, limit: number): Promise<[string[], boolean]> {
 	/**
 	 * Lists files in a directory, optionally searching recursively up to a specified limit.
@@ -54,7 +57,17 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 
 	const dirsToIgnore = DIRS_TO_IGNORE.map(pattern => `${dirPath}/${pattern}`)
 
-	const options: Options = {
+	interface GlobOptions extends Options {
+		cwd: string
+		dot: boolean
+		absolute: true
+		markDirectories: true
+		gitignore: boolean
+		ignore?: string[]
+		onlyFiles: false
+	}
+
+	const options: GlobOptions = {
 		cwd: dirPath,
 		dot: true, // do not ignore hidden files/directories
 		absolute: true,
@@ -90,7 +103,7 @@ Breadth-first traversal of directory structure level by level up to a limit:
    - Potential for loops if symbolic links reference back to parent (we could use followSymlinks: false but that may not be ideal for some projects and it's pointless if they're not using symlinks wrong)
    - Timeout mechanism prevents infinite loops
 */
-async function globbyLevelByLevel(limit: number, options?: Options) {
+async function globbyLevelByLevel(limit: number, options?: GlobOptions): Promise<string[]> {
 	const results: Set<string> = new Set()
 	const queue: string[] = ["*"]
 	const seen: Set<string> = new Set()
