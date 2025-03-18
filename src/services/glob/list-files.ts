@@ -56,6 +56,9 @@ interface GlobOptions extends Options {
 }
 
 export async function listFiles(dirPath: string, recursive: boolean, limit: number): Promise<[string[], boolean]> {
+    // Ensure limit is positive
+    limit = Math.max(1, Math.floor(limit))
+    
     const absolutePath = path.resolve(dirPath)
     // Do not allow listing files in root or home directory, which cline tends to want to do when the user's prompt is vague.
     const root = process.platform === "win32" ? path.parse(absolutePath).root : "/"
@@ -73,24 +76,25 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 	}
 
 	// Only block exact matches to root/home, allow subdirectories
-	if (arePathsEqual(absolutePath, root) || arePathsEqual(absolutePath, homeDir)) {
-		// In test mode, allow listing files but still return the directory itself if empty
-		if (!IS_TEST_MODE) {
-			return [[absolutePath], false]
-		}
-		try {
-			const files = await globby("*", {
-				...options,
-				cwd: absolutePath,
-			})
-			files.sort() // Ensure consistent ordering
-			const slicedFiles = files.slice(0, limit)
-			return files.length ? [slicedFiles, files.length >= limit] : [[absolutePath], false]
-		} catch (error) {
-			// If we can't list files (e.g., due to permissions), fall back to returning the directory
-			return [[absolutePath], false]
-		}
-	}
+    if (arePathsEqual(absolutePath, root) || arePathsEqual(absolutePath, homeDir)) {
+        if (!IS_TEST_MODE) {
+            return [[absolutePath], false]
+        }
+        try {
+            const patterns = ["*", "*/"]  // Explicitly match both files and directories
+            const files = await globby(patterns, {
+                ...options,
+                cwd: absolutePath,
+                onlyFiles: false,
+                unique: true,
+            })
+            files.sort((a, b) => a.localeCompare(b, undefined, {numeric: true}))
+            const slicedFiles = files.slice(0, limit)
+            return [slicedFiles, files.length > limit]  // Changed >= to > for more accurate limit flag
+        } catch (error) {
+            return [[absolutePath], false]
+        }
+    }
 	// * globs all files in one dir, ** globs files in nested directories
 	try {
 		if (!recursive) {
@@ -136,33 +140,37 @@ async function globbyLevelByLevel(limit: number, options?: GlobOptions): Promise
 		setTimeout(() => reject(new GlobbingTimeoutError()), GLOBBING_TIMEOUT_MS)
 	})
 
-	const globbingProcess = async () => {
-		while (queue.length > 0 && results.size < limit) {
-			const pattern = queue.shift()!
-			if (seen.has(pattern)) continue
-			seen.add(pattern)
+    const globbingProcess = async () => {
+        while (queue.length > 0 && results.size < limit) {
+            const pattern = queue.shift()!
+            if (seen.has(pattern)) continue
+            seen.add(pattern)
 
-			const filesAtLevel = await globby(pattern, options)
-			// Sort to ensure consistent ordering
-			filesAtLevel.sort()
-			
-			for (const file of filesAtLevel) {
-				if (results.size >= limit) break
+            // Try both with and without the trailing slash
+            const filesAtLevel = await globby([pattern, pattern.toString().replace(/\/$/, '')], options)
+            filesAtLevel.sort((a, b) => {
+                // Sort directories first, then by name
+                const aIsDir = a.endsWith('/')
+                const bIsDir = b.endsWith('/')
+                if (aIsDir !== bIsDir) return aIsDir ? -1 : 1
+                return a.localeCompare(b)
+            })
+            
+            for (const file of filesAtLevel) {
+                if (results.size >= limit) break
+                results.add(file)
 
-				// Add file to results
-				results.add(file)
-
-				// Only queue new directory if we haven't hit the limit
-				if (file.endsWith("/") && results.size < limit) {
-					const nextPattern = `${file}*`
-					if (!seen.has(nextPattern)) {
-						queue.push(nextPattern)
-					}
-				}
-			}
-		}
-		return Array.from(results).slice(0, limit)
-	}
+                if (file.endsWith("/")) {
+                    const nextPattern = path.join(file, "*")
+                    if (!seen.has(nextPattern)) {
+                        // Add to front of queue to prioritize depth-first within each level
+                        queue.unshift(nextPattern)
+                    }
+                }
+            }
+        }
+        return Array.from(results).slice(0, limit)
+    }
 
 	try {
 		return await Promise.race([globbingProcess(), timeoutPromise])
