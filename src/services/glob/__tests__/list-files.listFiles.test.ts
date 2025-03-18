@@ -70,8 +70,8 @@ describe('listFiles', () => {
     });
 
     it('should not ignore default directories when not recursive', async () => {
-      mockGlobby.mockImplementation((pattern) => {
-        if (pattern === "*") {
+      mockGlobby.mockImplementation((pattern, opts) => {
+        if (pattern === "*" && !opts.gitignore) {
           return Promise.resolve(['node_modules/file1', '__pycache__/file2']);
         }
         return Promise.resolve([]);
@@ -83,8 +83,8 @@ describe('listFiles', () => {
 
     it('should handle limit correctly', async () => {
       const mockFiles = Array.from({ length: 12 }, (_, i) => `file${i + 1}`);
-      mockGlobby.mockImplementation((pattern) => {
-        if (pattern === "*") {
+      mockGlobby.mockImplementation((pattern, opts) => {
+        if (pattern === "*" && !opts.gitignore) {
           return Promise.resolve(mockFiles);
         }
         return Promise.resolve([]);
@@ -93,6 +93,7 @@ describe('listFiles', () => {
       const [files, isLimited] = await listFiles('/test', false, 10);
       expect(files.length).toBe(10);
       expect(isLimited).toBe(true);
+      expect(files).toEqual(mockFiles.slice(0, 10));
     });
   });
 

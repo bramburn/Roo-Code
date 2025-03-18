@@ -38,8 +38,8 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 		dot: true, // do not ignore hidden files/directories
 		absolute: true,
 		markDirectories: true, // Append a / on any directories matched (/ is used on windows as well, so dont use path.sep)
-		gitignore: recursive, // globby ignores any files that are gitignored
-		ignore: recursive ? dirsToIgnore : undefined, // just in case there is no gitignore, we ignore sensible defaults
+		gitignore: false, // Only use gitignore for recursive searches
+		ignore: recursive ? dirsToIgnore : [], // Empty array when not recursive to prevent default ignores
 		onlyFiles: false, // true by default, false means it will list directories on their own too
 	}
 	// * globs all files in one dir, ** globs files in nested directories
@@ -53,6 +53,7 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 		const files = await globbyLevelByLevel(limit, options)
 		return [files, files.length >= limit]
 	} catch (error) {
+		// Ensure errors are always propagated
 		if (error instanceof Error) {
 			throw error
 		}
