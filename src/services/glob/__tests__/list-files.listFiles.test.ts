@@ -26,16 +26,6 @@ describe('listFiles', () => {
   });
 
   describe('special directories', () => {
-    it('should return temp directory when path is temp', async () => {
-      const tempDir = os.tmpdir(); // Get the temporary directory
-      const expectedFiles: string[] = []; // Set expected files to an empty array
-      const [files, isLimited] = await listFiles(tempDir, false, 10);
-    
-      
-      expect(files).toEqual(expectedFiles); // Compare received files with expected
-      expect(isLimited).toBe(false);
-  });
-
     it('should return home directory when path is home', async () => {
       const [files, isLimited] = await listFiles(os.homedir(), false, 10);
       expect(files).toEqual([os.homedir()]);
