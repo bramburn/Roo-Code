@@ -2,13 +2,23 @@ import { globby, Options } from "globby"
 import os from "os"
 import * as path from "path"
 import { arePathsEqual } from "../../utils/path"
-
 export async function listFiles(dirPath: string, recursive: boolean, limit: number): Promise<[string[], boolean]> {
+	/**
+	 * Lists files in a directory, optionally searching recursively up to a specified limit.
+	 *
+	 * @param dirPath - The directory path to search within.
+	 * @param recursive - A boolean indicating whether to search recursively.
+	 * @param limit - The maximum number of files to return.
+	 * @returns A promise that resolves to a tuple containing an array of file paths and a boolean indicating
+	 *          whether the number of returned files exceeds the specified limit.
+	 *
+	 * @throws Error if there is an issue during the file listing process.
+	 */
 	const absolutePath = path.resolve(dirPath)
 	// Do not allow listing files in root or home directory, which cline tends to want to do when the user's prompt is vague.
 	const root = process.platform === "win32" ? path.parse(absolutePath).root : "/"
 	const homeDir = os.homedir()
-	
+
 	// Only block exact matches to root/home, allow subdirectories
 	if ((arePathsEqual(absolutePath, root) || arePathsEqual(absolutePath, homeDir)) && !dirPath.includes("/test")) {
 		return [[absolutePath], false]
@@ -49,7 +59,7 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 			const slicedFiles = files.slice(0, limit)
 			return [slicedFiles, files.length > limit]
 		}
-		
+
 		const files = await globbyLevelByLevel(limit, options)
 		return [files, files.length >= limit]
 	} catch (error) {
@@ -92,7 +102,7 @@ async function globbyLevelByLevel(limit: number, options?: Options) {
 			for (const file of filesAtLevel) {
 				if (results.size >= limit) break
 				results.add(file)
-				
+
 				if (file.endsWith("/")) {
 					const nextPattern = `${file}*`
 					if (!seen.has(nextPattern)) {
