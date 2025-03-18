@@ -33,18 +33,18 @@ const DIRS_TO_IGNORE = [
     "**/Pods/**",
     "**/.*/**", // Match contents of hidden directories
 ] as const
+/**
+ * Lists files in a directory, optionally searching recursively up to a specified limit.
+ *
+ * @param dirPath - The directory path to search within.
+ * @param recursive - A boolean indicating whether to search recursively.
+ * @param limit - The maximum number of files to return.
+ * @returns A promise that resolves to a tuple containing an array of file paths and a boolean indicating
+ *          whether the number of returned files exceeds the specified limit.
+ *
+ * @throws Error if there is an issue during the file listing process.
+ */
 export async function listFiles(dirPath: string, recursive: boolean, limit: number): Promise<[string[], boolean]> {
-	/**
-	 * Lists files in a directory, optionally searching recursively up to a specified limit.
-	 *
-	 * @param dirPath - The directory path to search within.
-	 * @param recursive - A boolean indicating whether to search recursively.
-	 * @param limit - The maximum number of files to return.
-	 * @returns A promise that resolves to a tuple containing an array of file paths and a boolean indicating
-	 *          whether the number of returned files exceeds the specified limit.
-	 *
-	 * @throws Error if there is an issue during the file listing process.
-	 */
 	const absolutePath = path.resolve(dirPath)
 	// Do not allow listing files in root or home directory, which cline tends to want to do when the user's prompt is vague.
 	const root = process.platform === "win32" ? path.parse(absolutePath).root : "/"
@@ -60,7 +60,7 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 		onlyFiles: false
 	}
 
-	const dirsToIgnore = DIRS_TO_IGNORE.map(pattern => `${dirPath}/${pattern}`)
+	const dirsToIgnore = DIRS_TO_IGNORE.map(pattern => path.join(dirPath, pattern))
 	const options: GlobOptions = {
 		cwd: dirPath,
 		dot: true, // do not ignore hidden files/directories
@@ -115,6 +115,14 @@ Breadth-first traversal of directory structure level by level up to a limit:
    - Potential for loops if symbolic links reference back to parent (we could use followSymlinks: false but that may not be ideal for some projects and it's pointless if they're not using symlinks wrong)
    - Timeout mechanism prevents infinite loops
 */
+/**
+ * Performs a breadth-first traversal of directory structure level by level up to a limit.
+ * 
+ * @param limit - Maximum number of files to return
+ * @param options - Globby options for file searching
+ * @returns Promise resolving to array of file paths
+ * @throws {GlobbingTimeoutError} When operation exceeds timeout
+ */
 async function globbyLevelByLevel(limit: number, options?: GlobOptions): Promise<string[]> {
 	const results: Set<string> = new Set()
 	const queue: string[] = ["*"]
