@@ -58,9 +58,14 @@ describe('listFiles', () => {
 
   describe('file listing behavior', () => {
     it('should list files with recursion and limit', async () => {
-      mockGlobby.mockResolvedValue(['file1', 'file2', 'file3']);
-      const [files, isLimited] = await listFiles('/test', true, 2);
-      expect(files).toEqual(['file1', 'file2']);
+      // First call returns root level files and dirs
+      mockGlobby.mockResolvedValueOnce(['file1', 'dir1/', 'file2', 'dir2/']);
+      // Subsequent calls for directory contents
+      mockGlobby.mockResolvedValueOnce(['dir1/file3', 'dir1/subdir/']);
+      mockGlobby.mockResolvedValueOnce(['dir2/file4']);
+      
+      const [files, isLimited] = await listFiles('/test', true, 3);
+      expect(files).toEqual(['file1', 'dir1/', 'file2']);
       expect(isLimited).toBe(true);
     });
 
@@ -84,6 +89,26 @@ describe('listFiles', () => {
     it('should throw error when globby fails', async () => {
       mockGlobby.mockRejectedValue(new Error('Globby error'));
       await expect(listFiles('/test', true, 10)).rejects.toThrow('Globby error');
+    });
+
+    it('should handle timeout gracefully', async () => {
+      // Mock a slow globby response
+      mockGlobby.mockImplementation(() => new Promise(resolve => setTimeout(() => resolve(['file1']), 11000)));
+      
+      const [files, isLimited] = await listFiles('/test', true, 10);
+      expect(files.length).toBeLessThanOrEqual(10);
+      expect(isLimited).toBe(false);
+    });
+
+    it('should handle directory markers correctly', async () => {
+      mockGlobby.mockResolvedValueOnce(['dir1/', 'file1', 'dir2/']);
+      mockGlobby.mockResolvedValueOnce(['dir1/file2']);
+      mockGlobby.mockResolvedValueOnce(['dir2/file3']);
+
+      const [files] = await listFiles('/test', true, 5);
+      expect(files).toContain('dir1/');
+      expect(files).toContain('dir2/');
+      expect(files).toContain('file1');
     });
   });
 });
