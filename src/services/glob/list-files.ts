@@ -47,13 +47,16 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 		if (!recursive) {
 			const files = await globby("*", options)
 			const slicedFiles = files.slice(0, limit)
-			return [slicedFiles, slicedFiles.length >= limit]
+			return [slicedFiles, files.length > limit]
 		}
 		
 		const files = await globbyLevelByLevel(limit, options)
 		return [files, files.length >= limit]
 	} catch (error) {
-		throw error // Ensure errors propagate
+		if (error instanceof Error) {
+			throw error
+		}
+		throw new Error(String(error))
 	}
 }
 

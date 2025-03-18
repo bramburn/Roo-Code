@@ -70,16 +70,25 @@ describe('listFiles', () => {
     });
 
     it('should not ignore default directories when not recursive', async () => {
-      mockGlobby.mockResolvedValue(['node_modules/file1', '__pycache__/file2']);
+      mockGlobby.mockImplementation((pattern) => {
+        if (pattern === "*") {
+          return Promise.resolve(['node_modules/file1', '__pycache__/file2']);
+        }
+        return Promise.resolve([]);
+      });
       const [files, isLimited] = await listFiles('/test', false, 10);
       expect(files).toEqual(['node_modules/file1', '__pycache__/file2']);
       expect(isLimited).toBe(false);
     });
 
     it('should handle limit correctly', async () => {
-      // First call returns more files than the limit
-      mockGlobby.mockResolvedValueOnce(['file1', 'file2', 'file3', 'file4', 'file5', 
-        'file6', 'file7', 'file8', 'file9', 'file10', 'file11', 'file12']);
+      const mockFiles = Array.from({ length: 12 }, (_, i) => `file${i + 1}`);
+      mockGlobby.mockImplementation((pattern) => {
+        if (pattern === "*") {
+          return Promise.resolve(mockFiles);
+        }
+        return Promise.resolve([]);
+      });
       
       const [files, isLimited] = await listFiles('/test', false, 10);
       expect(files.length).toBe(10);
@@ -89,7 +98,7 @@ describe('listFiles', () => {
 
   describe('error handling', () => {
     it('should throw error when globby fails', async () => {
-      mockGlobby.mockRejectedValue(new Error('Globby error'));
+      mockGlobby.mockImplementation(() => Promise.reject(new Error('Globby error')));
       await expect(listFiles('/test', true, 10)).rejects.toThrow('Globby error');
     });
 
