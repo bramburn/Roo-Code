@@ -1,4 +1,4 @@
-import { glob } from "glob-gitignore"
+import { glob } from "glob-gitignore" // @ts-ignore: ignoring missing types
 import os from "os"
 import * as path from "path"
 import * as fs from "fs"
@@ -82,7 +82,9 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 	if (fs.existsSync(rooIgnorePath)) {
 		const rooIgnoreRules = fs.readFileSync(rooIgnorePath, "utf-8")
 		const ig = ignore().add(rooIgnoreRules)
-		options.ignore = options.ignore ? options.ignore.concat(ig.rules) : ig.rules
+		const pathnames = [dirPath, ...dirsToIgnore]
+		const filteredPaths: string[] = ig.filter(pathnames) as string[] // Ensure the type is string[]
+		options.ignore = options.ignore ? options.ignore.concat(filteredPaths) : filteredPaths // Use filtered paths
 	}
 
 	// Only block exact matches to root/home, allow subdirectories
@@ -98,7 +100,7 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 				onlyFiles: false,
 				unique: true,
 			})
-			files.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+			files.sort((a: string, b: string) => a.localeCompare(b, undefined, { numeric: true }))
 			const slicedFiles = files.slice(0, limit)
 			return [slicedFiles, files.length > limit] // Changed >= to > for more accurate limit flag
 		} catch (error) {
@@ -160,7 +162,7 @@ async function globbyLevelByLevel(limit: number, options?: GlobOptions): Promise
 			seen.add(pattern)
 
 			const filesAtLevel = await glob(pattern, options)
-			filesAtLevel.sort((a, b) => {
+			filesAtLevel.sort((a: string, b: string) => {
 				// Sort directories first, then by name
 				const aIsDir = a.endsWith("/")
 				const bIsDir = b.endsWith("/")
