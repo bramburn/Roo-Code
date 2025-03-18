@@ -50,6 +50,27 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 	const root = process.platform === "win32" ? path.parse(absolutePath).root : "/"
 	const homeDir = os.homedir()
 
+	interface GlobOptions extends Options {
+		cwd: string
+		dot: boolean
+		absolute: true
+		markDirectories: true
+		gitignore: boolean
+		ignore?: string[]
+		onlyFiles: false
+	}
+
+	const dirsToIgnore = DIRS_TO_IGNORE.map(pattern => `${dirPath}/${pattern}`)
+	const options: GlobOptions = {
+		cwd: dirPath,
+		dot: true, // do not ignore hidden files/directories
+		absolute: true,
+		markDirectories: true, // Append a / on any directories matched (/ is used on windows as well, so dont use path.sep)
+		gitignore: recursive, // Only use gitignore for recursive searches
+		ignore: recursive ? dirsToIgnore : undefined, // undefined when not recursive to prevent any ignores
+		onlyFiles: false, // true by default, false means it will list directories on their own too
+	}
+
 	// Only block exact matches to root/home, allow subdirectories
 	if (arePathsEqual(absolutePath, root) || arePathsEqual(absolutePath, homeDir)) {
 		// In test mode, allow listing files but still return the directory itself if empty
@@ -66,28 +87,6 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 			// If we can't list files (e.g., due to permissions), fall back to returning the directory
 			return [[absolutePath], false]
 		}
-	}
-
-	const dirsToIgnore = DIRS_TO_IGNORE.map(pattern => `${dirPath}/${pattern}`)
-
-	interface GlobOptions extends Options {
-		cwd: string
-		dot: boolean
-		absolute: true
-		markDirectories: true
-		gitignore: boolean
-		ignore?: string[]
-		onlyFiles: false
-	}
-
-	const options: GlobOptions = {
-		cwd: dirPath,
-		dot: true, // do not ignore hidden files/directories
-		absolute: true,
-		markDirectories: true, // Append a / on any directories matched (/ is used on windows as well, so dont use path.sep)
-		gitignore: recursive, // Only use gitignore for recursive searches
-		ignore: recursive ? dirsToIgnore : undefined, // undefined when not recursive to prevent any ignores
-		onlyFiles: false, // true by default, false means it will list directories on their own too
 	}
 	// * globs all files in one dir, ** globs files in nested directories
 	try {
