@@ -44,21 +44,21 @@ const DIRS_TO_IGNORE = [
  *
  * @throws Error if there is an issue during the file listing process.
  */
-export async function listFiles(dirPath: string, recursive: boolean, limit: number): Promise<[string[], boolean]> {
-	const absolutePath = path.resolve(dirPath)
-	// Do not allow listing files in root or home directory, which cline tends to want to do when the user's prompt is vague.
-	const root = process.platform === "win32" ? path.parse(absolutePath).root : "/"
-	const homeDir = os.homedir()
+interface GlobOptions extends Options {
+    cwd: string
+    dot: boolean
+    absolute: true
+    markDirectories: true
+    gitignore: boolean
+    ignore?: string[]
+    onlyFiles: false
+}
 
-	interface GlobOptions extends Options {
-		cwd: string
-		dot: boolean
-		absolute: true
-		markDirectories: true
-		gitignore: boolean
-		ignore?: string[]
-		onlyFiles: false
-	}
+export async function listFiles(dirPath: string, recursive: boolean, limit: number): Promise<[string[], boolean]> {
+    const absolutePath = path.resolve(dirPath)
+    // Do not allow listing files in root or home directory, which cline tends to want to do when the user's prompt is vague.
+    const root = process.platform === "win32" ? path.parse(absolutePath).root : "/"
+    const homeDir = os.homedir()
 
 	const dirsToIgnore = DIRS_TO_IGNORE.map(pattern => path.join(dirPath, pattern))
 	const options: GlobOptions = {
@@ -103,20 +103,21 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 	}
 }
 
-/*
-Breadth-first traversal of directory structure level by level up to a limit:
-   - Queue-based approach ensures proper breadth-first traversal
-   - Processes directory patterns level by level
-   - Captures a representative sample of the directory structure up to the limit
-   - Minimizes risk of missing deeply nested files
+type GlobPattern = string | readonly string[]
 
-- Notes:
-   - Relies on globby to mark directories with /
-   - Potential for loops if symbolic links reference back to parent (we could use followSymlinks: false but that may not be ideal for some projects and it's pointless if they're not using symlinks wrong)
-   - Timeout mechanism prevents infinite loops
-*/
 /**
- * Performs a breadth-first traversal of directory structure level by level up to a limit.
+ * Breadth-first traversal of directory structure level by level up to a limit.
+ * 
+ * Features:
+ * - Queue-based approach ensures proper breadth-first traversal
+ * - Processes directory patterns level by level
+ * - Captures a representative sample of the directory structure up to the limit
+ * - Minimizes risk of missing deeply nested files
+ * 
+ * Implementation Notes:
+ * - Relies on globby to mark directories with /
+ * - Potential for loops if symbolic links reference back to parent
+ * - Timeout mechanism prevents infinite loops
  * 
  * @param limit - Maximum number of files to return
  * @param options - Globby options for file searching
@@ -124,9 +125,9 @@ Breadth-first traversal of directory structure level by level up to a limit:
  * @throws {GlobbingTimeoutError} When operation exceeds timeout
  */
 async function globbyLevelByLevel(limit: number, options?: GlobOptions): Promise<string[]> {
-	const results: Set<string> = new Set()
-	const queue: string[] = ["*"]
-	const seen: Set<string> = new Set()
+    const results: Set<string> = new Set()
+    const queue: GlobPattern[] = ["*"]
+    const seen: Set<string> = new Set()
 
 	const timeoutPromise = new Promise<string[]>((_, reject) => {
 		setTimeout(() => reject(new GlobbingTimeoutError()), GLOBBING_TIMEOUT_MS)
