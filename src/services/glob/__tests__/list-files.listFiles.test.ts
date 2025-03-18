@@ -82,9 +82,12 @@ describe('listFiles', () => {
     it('should handle directory markers correctly', async () => {
       mockGlob.mockResolvedValue(['dir1/', 'dir2/', 'file1']);
       const [files] = await listFiles(tempFolderPath, true, 5);
-      expect(files).toContain(expect.stringMatching(new RegExp(`dir1${path.sep.replace(/\\/g, '\\\\')}`)));
-      expect(files).toContain(expect.stringMatching(new RegExp(`dir2${path.sep.replace(/\\/g, '\\\\')}`)));
-      expect(files).toContain(expect.stringMatching(/file1/));
+      
+      // Escape backslashes for Windows paths
+      const escapedSep = path.sep.replace(/\\/g, '\\\\');
+      expect(files).toContain(expect.stringMatching(new RegExp(`dir1${escapedSep}$`)));
+      expect(files).toContain(expect.stringMatching(new RegExp(`dir2${escapedSep}$`)));
+      expect(files).toContain(expect.stringMatching(/file1$/));
     });
   });
 
@@ -100,6 +103,10 @@ describe('listFiles', () => {
     it('should handle empty directory', async () => {
       const emptyFolder = path.join(tempFolderPath, 'empty');
       fs.mkdirSync(emptyFolder);
+      
+      // Mock glob to return empty array for empty directory
+      mockGlob.mockResolvedValueOnce([]);
+      
       const [files, isLimited] = await listFiles(emptyFolder, true, 10);
       expect(files).toEqual([]);
       expect(isLimited).toBe(false);
