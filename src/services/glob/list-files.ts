@@ -3,8 +3,33 @@ import os from "os"
 import * as path from "path"
 import { arePathsEqual } from "../../utils/path"
 
+class GlobbingTimeoutError extends Error {
+    constructor() {
+        super("Globbing timeout")
+        this.name = "GlobbingTimeoutError"
+    }
+}
+
 const IS_TEST_MODE = process.env.NODE_ENV === 'test'
 const GLOBBING_TIMEOUT_MS = 10_000
+const DIRS_TO_IGNORE = [
+    "node_modules",
+    "**/__pycache__",
+    "**/env",
+    "**/venv", 
+    "**/target/dependency",
+    "**/build/dependencies",
+    "**/dist",
+    "**/out",
+    "**/bundle",
+    "**/vendor",
+    "**/tmp",
+    "**/temp",
+    "**/deps",
+    "**/pkg",
+    "**/Pods",
+    ".*", // '!**/.*' excludes hidden directories, while '!**/.*/**' excludes only their contents
+]
 export async function listFiles(dirPath: string, recursive: boolean, limit: number): Promise<[string[], boolean]> {
 	/**
 	 * Lists files in a directory, optionally searching recursively up to a specified limit.
@@ -27,26 +52,9 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 		return [[absolutePath], false]
 	}
 
-	const dirsToIgnore = [
-		"node_modules",
-		"__pycache__",
-		"env",
-		"venv",
-		"target/dependency",
-		"build/dependencies",
-		"dist",
-		"out",
-		"bundle",
-		"vendor",
-		"tmp",
-		"temp",
-		"deps",
-		"pkg",
-		"Pods",
-		".*", // '!**/.*' excludes hidden directories, while '!**/.*/**' excludes only their contents. This way we are at least aware of the existence of hidden directories.
-	].map((dir) => `${dirPath}/**/${dir}/**`)
+	const dirsToIgnore = DIRS_TO_IGNORE.map(pattern => `${dirPath}/${pattern}`)
 
-	const options = {
+	const options: Options = {
 		cwd: dirPath,
 		dot: true, // do not ignore hidden files/directories
 		absolute: true,
@@ -88,7 +96,7 @@ async function globbyLevelByLevel(limit: number, options?: Options) {
 	const seen: Set<string> = new Set()
 
 	const timeoutPromise = new Promise<string[]>((_, reject) => {
-		setTimeout(() => reject(new Error("Globbing timeout")), GLOBBING_TIMEOUT_MS)
+		setTimeout(() => reject(new GlobbingTimeoutError()), GLOBBING_TIMEOUT_MS)
 	})
 
 	const globbingProcess = async () => {
@@ -116,7 +124,7 @@ async function globbyLevelByLevel(limit: number, options?: Options) {
 	try {
 		return await Promise.race([globbingProcess(), timeoutPromise])
 	} catch (error) {
-		if (error instanceof Error && error.message === "Globbing timeout") {
+		if (error instanceof GlobbingTimeoutError) {
 			console.warn("Globbing timed out, returning partial results")
 			return Array.from(results).slice(0, limit)
 		}
