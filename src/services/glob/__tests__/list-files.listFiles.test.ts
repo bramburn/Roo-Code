@@ -2,7 +2,8 @@ import { listFiles } from "../list-files"
 import * as path from "path"
 import * as fs from "fs"
 import * as os from "os"
-import { glob } from "glob-gitignore"
+// @ts-ignore
+import { glob } from "glob-gitignore" // no types found but need to build at some point but not critical
 import { arePathsEqual } from "../../../utils/path"
 import { createTempFolder } from "../../utils/temp-folder-creator"
 
