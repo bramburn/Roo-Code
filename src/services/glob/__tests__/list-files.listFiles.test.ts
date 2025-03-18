@@ -70,25 +70,21 @@ describe('listFiles', () => {
     });
 
     it('should not ignore default directories when not recursive', async () => {
-      mockGlobby.mockImplementation((pattern, opts) => {
-        if (pattern === "*" && !opts.gitignore) {
-          return Promise.resolve(['node_modules/file1', '__pycache__/file2']);
-        }
-        return Promise.resolve([]);
-      });
+      // Reset any previous mock implementations
+      mockGlobby.mockReset();
+      // Mock specifically for the non-recursive case
+      mockGlobby.mockResolvedValueOnce(['node_modules/file1', '__pycache__/file2']);
       const [files, isLimited] = await listFiles('/test', false, 10);
       expect(files).toEqual(['node_modules/file1', '__pycache__/file2']);
       expect(isLimited).toBe(false);
     });
 
     it('should handle limit correctly', async () => {
+      // Reset any previous mock implementations
+      mockGlobby.mockReset();
       const mockFiles = Array.from({ length: 12 }, (_, i) => `file${i + 1}`);
-      mockGlobby.mockImplementation((pattern, opts) => {
-        if (pattern === "*" && !opts.gitignore) {
-          return Promise.resolve(mockFiles);
-        }
-        return Promise.resolve([]);
-      });
+      // Mock specifically for the non-recursive case
+      mockGlobby.mockResolvedValueOnce(mockFiles);
       
       const [files, isLimited] = await listFiles('/test', false, 10);
       expect(files.length).toBe(10);
