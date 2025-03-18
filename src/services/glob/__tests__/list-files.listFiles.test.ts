@@ -2,16 +2,16 @@ import { listFiles } from '../list-files';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
-import { globby } from 'globby';
+import { glob } from 'glob-gitignore';
 import { arePathsEqual } from '../../../utils/path';
 import { createTempFolder } from '../../utils/temp-folder-creator';
 
-jest.mock('globby', () => ({
+jest.mock('glob-gitignore', () => ({
   __esModule: true,
-  globby: jest.fn()
+  glob: jest.fn()
 }));
 
-const mockGlobby = globby as jest.MockedFunction<typeof globby>;
+const mockGlob = glob as jest.MockedFunction<typeof glob>;
 
 describe('listFiles', () => {
   let tempFolderPath: string;
@@ -41,14 +41,14 @@ describe('listFiles', () => {
 
   describe('file listing behavior', () => {
     it('should list files with recursion and limit', async () => {
-      mockGlobby.mockResolvedValue(['file1', 'file2', 'file3', 'file4']);
+      mockGlob.mockResolvedValue(['file1', 'file2', 'file3', 'file4']);
       const [files, isLimited] = await listFiles(tempFolderPath, true, 3);
       expect(files.length).toBeLessThanOrEqual(3);
       expect(isLimited).toBe(true);
     });
 
     it('should not ignore default directories when not recursive', async () => {
-      mockGlobby.mockResolvedValue(['node_modules/file1', '__pycache__/file2']);
+      mockGlob.mockResolvedValue(['node_modules/file1', '__pycache__/file2']);
       const [files, isLimited] = await listFiles(tempFolderPath, false, 10);
       expect(files).toEqual(expect.arrayContaining([
         expect.stringMatching(new RegExp(`node_modules${path.sep}file1`)),
@@ -58,7 +58,7 @@ describe('listFiles', () => {
     });
 
     it('should handle limit correctly', async () => {
-      mockGlobby.mockResolvedValue(['file1', 'file2', 'file3', 'file4', 'file5', 'file6', 'file7', 'file8', 'file9', 'file10']);
+      mockGlob.mockResolvedValue(['file1', 'file2', 'file3', 'file4', 'file5', 'file6', 'file7', 'file8', 'file9', 'file10']);
       const [files, isLimited] = await listFiles(tempFolderPath, false, 10);
       expect(files.length).toBeLessThanOrEqual(10);
       expect(isLimited).toBe(true);
@@ -67,19 +67,19 @@ describe('listFiles', () => {
 
   describe('error handling', () => {
     it('should throw error when globby fails', async () => {
-      mockGlobby.mockImplementation(() => Promise.reject(new Error('Globby error')));
+      mockGlob.mockImplementation(() => Promise.reject(new Error('Globby error')));
       await expect(listFiles(tempFolderPath, true, 10)).rejects.toThrow('Globby error');
     });
 
     it('should handle timeout gracefully', async () => {
-      mockGlobby.mockImplementation(() => new Promise(resolve => setTimeout(() => resolve(['file1']), 500)));
+      mockGlob.mockImplementation(() => new Promise(resolve => setTimeout(() => resolve(['file1']), 500)));
       const [files, isLimited] = await listFiles(tempFolderPath, true, 10);
       expect(files.length).toBeLessThanOrEqual(10);
       expect(isLimited).toBe(false);
     }, 6000); // Increase test timeout to 6 seconds
 
     it('should handle directory markers correctly', async () => {
-      mockGlobby.mockResolvedValue(['dir1/', 'dir2/', 'file1']);
+      mockGlob.mockResolvedValue(['dir1/', 'dir2/', 'file1']);
       const [files] = await listFiles(tempFolderPath, true, 5);
       expect(files).toContain(expect.stringMatching(new RegExp(`dir1${path.sep}`)));
       expect(files).toContain(expect.stringMatching(new RegExp(`dir2${path.sep}`)));
@@ -89,7 +89,7 @@ describe('listFiles', () => {
 
   describe('hidden files', () => {
     it('should ignore hidden files', async () => {
-      mockGlobby.mockResolvedValue(['file1', '.hiddenFile', 'file2']);
+      mockGlob.mockResolvedValue(['file1', '.hiddenFile', 'file2']);
       const [files] = await listFiles(tempFolderPath, true, 10);
       expect(files).not.toContain(expect.stringMatching(/\/\..+/));
     });
@@ -107,7 +107,7 @@ describe('listFiles', () => {
     it('should handle deep directory structure', async () => {
       const deepFolder = path.join(tempFolderPath, 'deep', 'folder', 'structure');
       fs.mkdirSync(deepFolder, { recursive: true });
-      mockGlobby.mockResolvedValue(['file1', 'file2', 'file3', 'file4', 'file5', 'file6', 'file7', 'file8', 'file9', 'file10']);
+      mockGlob.mockResolvedValue(['file1', 'file2', 'file3', 'file4', 'file5', 'file6', 'file7', 'file8', 'file9', 'file10']);
       const [files, isLimited] = await listFiles(deepFolder, true, 10);
       expect(files.length).toBeLessThanOrEqual(10);
       expect(isLimited).toBe(true);
@@ -116,7 +116,7 @@ describe('listFiles', () => {
     it('should handle maximum depth', async () => {
       const maxDepthFolder = path.join(tempFolderPath, 'max', 'depth', 'folder', 'structure', 'level5');
       fs.mkdirSync(maxDepthFolder, { recursive: true });
-      mockGlobby.mockResolvedValue(['file1', 'file2', 'file3', 'file4', 'file5', 'file6', 'file7', 'file8', 'file9', 'file10']);
+      mockGlob.mockResolvedValue(['file1', 'file2', 'file3', 'file4', 'file5', 'file6', 'file7', 'file8', 'file9', 'file10']);
       const [files, isLimited] = await listFiles(tempFolderPath, true, 10, 5);
       expect(files.length).toBeLessThanOrEqual(10);
       expect(isLimited).toBe(true);
