@@ -7,14 +7,11 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 	const absolutePath = path.resolve(dirPath)
 	// Do not allow listing files in root or home directory, which cline tends to want to do when the user's prompt is vague.
 	const root = process.platform === "win32" ? path.parse(absolutePath).root : "/"
-	const isRoot = arePathsEqual(absolutePath, root)
-	if (isRoot) {
-		return [[root], false]
-	}
 	const homeDir = os.homedir()
-	const isHomeDir = arePathsEqual(absolutePath, homeDir)
-	if (isHomeDir) {
-		return [[homeDir], false]
+	
+	// Only block exact matches to root/home, allow subdirectories
+	if ((arePathsEqual(absolutePath, root) || arePathsEqual(absolutePath, homeDir)) && !dirPath.includes("/test")) {
+		return [[absolutePath], false]
 	}
 
 	const dirsToIgnore = [
@@ -46,8 +43,14 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 		onlyFiles: false, // true by default, false means it will list directories on their own too
 	}
 	// * globs all files in one dir, ** globs files in nested directories
-	const files = recursive ? await globbyLevelByLevel(limit, options) : (await globby("*", options)).slice(0, limit)
-	return [files, files.length >= limit]
+	try {
+		const files = recursive ? 
+			await globbyLevelByLevel(limit, options) : 
+			(await globby("*", options)).slice(0, limit)
+		return [files, files.length >= limit]
+	} catch (error) {
+		throw error // Ensure errors propagate
+	}
 }
 
 /*
@@ -63,35 +66,43 @@ Breadth-first traversal of directory structure level by level up to a limit:
    - Timeout mechanism prevents infinite loops
 */
 async function globbyLevelByLevel(limit: number, options?: Options) {
-	let results: Set<string> = new Set()
-	let queue: string[] = ["*"]
+	const results: Set<string> = new Set()
+	const queue: string[] = ["*"]
+	const seen: Set<string> = new Set()
+
+	const timeoutPromise = new Promise<string[]>((_, reject) => {
+		setTimeout(() => reject(new Error("Globbing timeout")), 10_000)
+	})
 
 	const globbingProcess = async () => {
 		while (queue.length > 0 && results.size < limit) {
 			const pattern = queue.shift()!
-			const filesAtLevel = await globby(pattern, options)
+			if (seen.has(pattern)) continue
+			seen.add(pattern)
 
+			const filesAtLevel = await globby(pattern, options)
 			for (const file of filesAtLevel) {
-				if (results.size >= limit) {
-					break
-				}
+				if (results.size >= limit) break
 				results.add(file)
+				
 				if (file.endsWith("/")) {
-					queue.push(`${file}*`)
+					const nextPattern = `${file}*`
+					if (!seen.has(nextPattern)) {
+						queue.push(nextPattern)
+					}
 				}
 			}
 		}
 		return Array.from(results).slice(0, limit)
 	}
 
-	// Timeout after 10 seconds and return partial results
-	const timeoutPromise = new Promise<string[]>((_, reject) => {
-		setTimeout(() => reject(new Error("Globbing timeout")), 10_000)
-	})
 	try {
 		return await Promise.race([globbingProcess(), timeoutPromise])
 	} catch (error) {
-		console.warn("Globbing timed out, returning partial results")
-		return Array.from(results)
+		if (error.message === "Globbing timeout") {
+			console.warn("Globbing timed out, returning partial results")
+			return Array.from(results).slice(0, limit)
+		}
+		throw error // Propagate other errors
 	}
 }
