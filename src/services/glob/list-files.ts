@@ -51,8 +51,21 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 	const homeDir = os.homedir()
 
 	// Only block exact matches to root/home, allow subdirectories
-	if ((arePathsEqual(absolutePath, root) || arePathsEqual(absolutePath, homeDir)) && !IS_TEST_MODE) {
-		return [[absolutePath], false]
+	if (arePathsEqual(absolutePath, root) || arePathsEqual(absolutePath, homeDir)) {
+		// In test mode, allow listing files but still return the directory itself if empty
+		if (!IS_TEST_MODE) {
+			return [[absolutePath], false]
+		}
+		try {
+			const files = await globby("*", {
+				...options,
+				cwd: absolutePath,
+			})
+			return files.length ? [files, files.length >= limit] : [[absolutePath], false]
+		} catch (error) {
+			// If we can't list files (e.g., due to permissions), fall back to returning the directory
+			return [[absolutePath], false]
+		}
 	}
 
 	const dirsToIgnore = DIRS_TO_IGNORE.map(pattern => `${dirPath}/${pattern}`)
