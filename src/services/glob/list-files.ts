@@ -4,6 +4,7 @@ import * as path from "path"
 import { arePathsEqual } from "../../utils/path"
 
 const IS_TEST_MODE = process.env.NODE_ENV === 'test'
+const GLOBBING_TIMEOUT_MS = 10_000
 export async function listFiles(dirPath: string, recursive: boolean, limit: number): Promise<[string[], boolean]> {
 	/**
 	 * Lists files in a directory, optionally searching recursively up to a specified limit.
@@ -65,11 +66,7 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 		const files = await globbyLevelByLevel(limit, options)
 		return [files, files.length >= limit]
 	} catch (error) {
-		// Ensure errors are always propagated
-		if (error instanceof Error) {
-			throw error
-		}
-		throw new Error(String(error))
+		throw error instanceof Error ? error : new Error(String(error))
 	}
 }
 
@@ -91,7 +88,7 @@ async function globbyLevelByLevel(limit: number, options?: Options) {
 	const seen: Set<string> = new Set()
 
 	const timeoutPromise = new Promise<string[]>((_, reject) => {
-		setTimeout(() => reject(new Error("Globbing timeout")), 10_000)
+		setTimeout(() => reject(new Error("Globbing timeout")), GLOBBING_TIMEOUT_MS)
 	})
 
 	const globbingProcess = async () => {
