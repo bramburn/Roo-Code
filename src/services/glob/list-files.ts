@@ -33,17 +33,6 @@ const DIRS_TO_IGNORE = [
     "**/Pods/**",
     "**/.*/**", // Match contents of hidden directories
 ] as const
-/**
- * Lists files in a directory, optionally searching recursively up to a specified limit.
- *
- * @param dirPath - The directory path to search within.
- * @param recursive - A boolean indicating whether to search recursively.
- * @param limit - The maximum number of files to return.
- * @returns A promise that resolves to a tuple containing an array of file paths and a boolean indicating
- *          whether the number of returned files exceeds the specified limit.
- *
- * @throws Error if there is an issue during the file listing process.
- */
 interface GlobOptions extends Options {
     cwd: string
     dot: boolean
@@ -82,7 +71,9 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 				...options,
 				cwd: absolutePath,
 			})
-			return files.length ? [files, files.length >= limit] : [[absolutePath], false]
+			files.sort() // Ensure consistent ordering
+			const slicedFiles = files.slice(0, limit)
+			return files.length ? [slicedFiles, files.length >= limit] : [[absolutePath], false]
 		} catch (error) {
 			// If we can't list files (e.g., due to permissions), fall back to returning the directory
 			return [[absolutePath], false]
@@ -140,11 +131,17 @@ async function globbyLevelByLevel(limit: number, options?: GlobOptions): Promise
 			seen.add(pattern)
 
 			const filesAtLevel = await globby(pattern, options)
+			// Sort to ensure consistent ordering
+			filesAtLevel.sort()
+			
 			for (const file of filesAtLevel) {
 				if (results.size >= limit) break
+
+				// Add file to results
 				results.add(file)
 
-				if (file.endsWith("/")) {
+				// Only queue new directory if we haven't hit the limit
+				if (file.endsWith("/") && results.size < limit) {
 					const nextPattern = `${file}*`
 					if (!seen.has(nextPattern)) {
 						queue.push(nextPattern)
