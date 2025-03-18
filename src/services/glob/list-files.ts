@@ -44,9 +44,13 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 	}
 	// * globs all files in one dir, ** globs files in nested directories
 	try {
-		const files = recursive ? 
-			await globbyLevelByLevel(limit, options) : 
-			(await globby("*", options)).slice(0, limit)
+		if (!recursive) {
+			const files = await globby("*", options)
+			const slicedFiles = files.slice(0, limit)
+			return [slicedFiles, slicedFiles.length >= limit]
+		}
+		
+		const files = await globbyLevelByLevel(limit, options)
 		return [files, files.length >= limit]
 	} catch (error) {
 		throw error // Ensure errors propagate
