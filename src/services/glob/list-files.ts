@@ -1,6 +1,8 @@
 import { glob } from 'glob-gitignore';
 import os from 'os';
 import * as path from 'path';
+import * as fs from 'fs';
+import ignore from 'ignore';
 import { arePathsEqual } from '../../utils/path';
 
 /**
@@ -74,6 +76,14 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
         ignore: recursive ? dirsToIgnore : undefined, // undefined when not recursive to prevent any ignores
         onlyFiles: false, // true by default, false means it will list directories on their own too
     };
+
+    // Load .rooignore rules
+    const rooIgnorePath = path.join(dirPath, '.rooignore');
+    if (fs.existsSync(rooIgnorePath)) {
+        const rooIgnoreRules = fs.readFileSync(rooIgnorePath, 'utf-8');
+        const ig = ignore().add(rooIgnoreRules);
+        options.ignore = options.ignore ? options.ignore.concat(ig) : ig;
+    }
 
     // Only block exact matches to root/home, allow subdirectories
     if (arePathsEqual(absolutePath, root) || arePathsEqual(absolutePath, homeDir)) {
