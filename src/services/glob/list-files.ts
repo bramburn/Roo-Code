@@ -110,7 +110,7 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 	}
 }
 
-type GlobPattern = string | readonly string[]
+type GlobPattern = string | string[]
 
 /**
  * Breadth-first traversal of directory structure level by level up to a limit.
@@ -133,7 +133,7 @@ type GlobPattern = string | readonly string[]
  */
 async function globbyLevelByLevel(limit: number, options?: GlobOptions): Promise<string[]> {
     const results: Set<string> = new Set()
-    const queue: GlobPattern[] = ["*"]
+    const queue: string[] = ["*"]
     const seen: Set<string> = new Set()
 
 	const timeoutPromise = new Promise<string[]>((_, reject) => {
@@ -146,8 +146,7 @@ async function globbyLevelByLevel(limit: number, options?: GlobOptions): Promise
             if (seen.has(pattern)) continue
             seen.add(pattern)
 
-            // Try both with and without the trailing slash
-            const filesAtLevel = await globby([pattern, pattern.toString().replace(/\/$/, '')], options)
+            const filesAtLevel = await globby(pattern, options)
             filesAtLevel.sort((a, b) => {
                 // Sort directories first, then by name
                 const aIsDir = a.endsWith('/')
