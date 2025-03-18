@@ -2,6 +2,8 @@ import { globby, Options } from "globby"
 import os from "os"
 import * as path from "path"
 import { arePathsEqual } from "../../utils/path"
+
+const IS_TEST_MODE = process.env.NODE_ENV === 'test'
 export async function listFiles(dirPath: string, recursive: boolean, limit: number): Promise<[string[], boolean]> {
 	/**
 	 * Lists files in a directory, optionally searching recursively up to a specified limit.
@@ -20,7 +22,7 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 	const homeDir = os.homedir()
 
 	// Only block exact matches to root/home, allow subdirectories
-	if ((arePathsEqual(absolutePath, root) || arePathsEqual(absolutePath, homeDir)) && !dirPath.includes("/test")) {
+	if ((arePathsEqual(absolutePath, root) || arePathsEqual(absolutePath, homeDir)) && !IS_TEST_MODE) {
 		return [[absolutePath], false]
 	}
 
@@ -57,7 +59,7 @@ export async function listFiles(dirPath: string, recursive: boolean, limit: numb
 		if (!recursive) {
 			const files = await globby("*", options)
 			const slicedFiles = files.slice(0, limit)
-			return [slicedFiles, files.length > limit]
+			return [slicedFiles, files.length >= limit]
 		}
 
 		const files = await globbyLevelByLevel(limit, options)
@@ -117,7 +119,7 @@ async function globbyLevelByLevel(limit: number, options?: Options) {
 	try {
 		return await Promise.race([globbingProcess(), timeoutPromise])
 	} catch (error) {
-		if (error.message === "Globbing timeout") {
+		if (error instanceof Error && error.message === "Globbing timeout") {
 			console.warn("Globbing timed out, returning partial results")
 			return Array.from(results).slice(0, limit)
 		}
