@@ -9,7 +9,7 @@ async function decoupleFile(inputFilePath) {
     const sourceCode = await fs.readFile(inputFilePath, 'utf-8');
     
     // Create output directory
-    const outputDir = path.join(path.dirname(inputFilePath), 'decoupled');
+    const outputDir = path.join(path.dirname(inputFilePath), 'decoupled-newRemoteAgent');
     await fs.mkdir(outputDir, { recursive: true });
 
     // Parse the source file
