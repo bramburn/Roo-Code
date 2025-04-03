@@ -53,6 +53,7 @@ import { telemetryService } from "../../services/telemetry/TelemetryService"
 import { getWorkspacePath } from "../../utils/path"
 import { webviewMessageHandler } from "./webviewMessageHandler"
 import { WebviewMessage } from "../../shared/WebviewMessage"
+import { rooEventListener } from "./RooWebViewProvider"
 
 /**
  * https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/default/weather-webview/src/providers/WeatherViewProvider.ts
@@ -731,6 +732,7 @@ export class ClineProvider extends EventEmitter<ClineProviderEvents> implements 
 	private setWebviewMessageListener(webview: vscode.Webview) {
 		const onReceiveMessage = async (message: WebviewMessage) => webviewMessageHandler(this, message)
 
+		webview.onDidReceiveMessage(rooEventListener, null, this.disposables)
 		webview.onDidReceiveMessage(onReceiveMessage, null, this.disposables)
 	}
 
