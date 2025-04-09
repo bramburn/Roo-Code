@@ -1,0 +1,57 @@
+/* Styles for the mention highlighting functionality */
+
+.mention-textarea-container {
+	position: relative;
+	width: 100%;
+	font-family: var(--vscode-font-family);
+	box-sizing: border-box;
+}
+
+/* Apply box-sizing to all elements in the container */
+.mention-textarea-container *,
+.mention-textarea-container *::before,
+.mention-textarea-container *::after {
+	box-sizing: border-box;
+}
+
+/* The highlighted text overlay */
+.mention-highlighted-text {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	padding: inherit;
+	font-size: inherit;
+	line-height: inherit;
+	white-space: pre-wrap;
+	word-break: break-word;
+	pointer-events: none;
+	z-index: 0;
+	overflow: hidden;
+	font-family: inherit;
+	letter-spacing: normal;
+	word-spacing: normal;
+	/* Ensure exact character alignment */
+	text-rendering: geometricPrecision;
+	-webkit-font-smoothing: none;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/* Style for the mention pills */
+.mention-pill {
+	background-color: var(--vscode-editor-inactiveSelectionBackground);
+	color: var(--vscode-editor-foreground);
+	border-radius: 3px;
+	padding: 0 2px;
+	margin: 0 1px;
+	font-weight: 500;
+	display: inline-block;
+	font-family: inherit;
+}
+
+/* Ensure the textarea has transparent text but visible cursor */
+.mention-transparent-text {
+	color: transparent !important;
+	caret-color: var(--vscode-editor-foreground) !important;
+}

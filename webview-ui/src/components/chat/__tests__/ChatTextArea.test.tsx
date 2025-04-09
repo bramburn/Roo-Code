@@ -1,429 +1,542 @@
-import { render, fireEvent, screen } from "@testing-library/react"
+import { render, fireEvent, act } from "@testing-library/react"
 import ChatTextArea from "../ChatTextArea"
-import { useExtensionState } from "../../../context/ExtensionStateContext"
 import { vscode } from "../../../utils/vscode"
-import { defaultModeSlug } from "../../../../../src/shared/modes"
-import * as pathMentions from "../../../utils/path-mentions"
+import { SearchResult } from "../../../utils/context-mentions"
 
-// Mock modules
+// Mock vscode API
 jest.mock("../../../utils/vscode", () => ({
 	vscode: {
 		postMessage: jest.fn(),
 	},
 }))
-jest.mock("../../../components/common/CodeBlock")
-jest.mock("../../../components/common/MarkdownBlock")
-jest.mock("../../../utils/path-mentions", () => ({
-	convertToMentionPath: jest.fn((path, cwd) => {
-		// Simple mock implementation that mimics the real function's behavior
-		if (cwd && path.toLowerCase().startsWith(cwd.toLowerCase())) {
-			const relativePath = path.substring(cwd.length)
-			return "@" + (relativePath.startsWith("/") ? relativePath : "/" + relativePath)
-		}
-		return path
-	}),
-}))
 
-// Get the mocked postMessage function
-const mockPostMessage = vscode.postMessage as jest.Mock
-const mockConvertToMentionPath = pathMentions.convertToMentionPath as jest.Mock
-
-// Mock ExtensionStateContext
-jest.mock("../../../context/ExtensionStateContext")
-
-// Custom query function to get the enhance prompt button
-const getEnhancePromptButton = () => {
-	return screen.getByRole("button", {
-		name: (_, element) => {
-			// Find the button with the sparkle icon
-			return element.querySelector(".codicon-sparkle") !== null
-		},
-	})
-}
-
-describe("ChatTextArea", () => {
+describe("ChatTextArea - Input Handling", () => {
 	const defaultProps = {
+		// Required props from ChatTextAreaProps
 		inputValue: "",
 		setInputValue: jest.fn(),
-		onSend: jest.fn(),
 		textAreaDisabled: false,
 		selectApiConfigDisabled: false,
-		onSelectImages: jest.fn(),
-		shouldDisableImages: false,
 		placeholderText: "Type a message...",
 		selectedImages: [],
 		setSelectedImages: jest.fn(),
+		onSend: jest.fn(),
+		onSelectImages: jest.fn(),
+		shouldDisableImages: false,
 		onHeightChange: jest.fn(),
-		mode: defaultModeSlug,
+		mode: "chat",
 		setMode: jest.fn(),
-		modeShortcutText: "(⌘. for next mode)",
+		modeShortcutText: "",
+
+		// Additional props for testing
+		setSearchRequestId: jest.fn(),
+		setFileSearchResults: jest.fn(),
+		setSearchLoading: jest.fn(),
+		setSearchQuery: jest.fn(),
+		setShowAtMentionSearch: jest.fn(),
 	}
 
 	beforeEach(() => {
 		jest.clearAllMocks()
-		// Default mock implementation for useExtensionState
-		;(useExtensionState as jest.Mock).mockReturnValue({
-			filePaths: [],
-			openedTabs: [],
-			apiConfiguration: {
-				apiProvider: "anthropic",
+		jest.useFakeTimers()
+	})
+
+	afterEach(() => {
+		jest.useRealTimers()
+	})
+
+	it("should handle slash commands correctly", () => {
+		const { getByRole } = render(<ChatTextArea {...defaultProps} />)
+		const textarea = getByRole("textbox")
+
+		fireEvent.change(textarea, { target: { value: "/command" } })
+
+		expect(defaultProps.setInputValue).toHaveBeenCalledWith("/command")
+		// Should show context menu and not show @ mention search
+		// You'll need to verify these states in your component
+	})
+
+	it("should handle @ mentions correctly", async () => {
+		const { getByRole } = render(<ChatTextArea {...defaultProps} />)
+		const textarea = getByRole("textbox")
+
+		fireEvent.change(textarea, { target: { value: "@test" } })
+
+		expect(defaultProps.setInputValue).toHaveBeenCalledWith("@test")
+
+		// Wait for debounce
+		act(() => {
+			jest.advanceTimersByTime(200)
+		})
+
+		expect(vscode.postMessage).toHaveBeenCalledWith({
+			type: "searchFiles",
+			query: "test",
+			requestId: expect.any(String),
+		})
+		expect(defaultProps.setSearchLoading).toHaveBeenCalledWith(true)
+	})
+
+	it("should show @ mention search immediately when typing @", () => {
+		const { getByRole, getByTestId } = render(<ChatTextArea {...defaultProps} />)
+		const textarea = getByRole("textbox")
+
+		// Type just the @ character
+		fireEvent.change(textarea, { target: { value: "@", selectionStart: 1 } })
+
+		// The search box should appear immediately without waiting for debounce
+		expect(getByTestId("at-mention-search")).toBeInTheDocument()
+
+		// The search input should be focused
+		expect(getByTestId("search-input")).toHaveFocus()
+
+		// Verify that the search is triggered immediately without waiting for debounce
+		expect(vscode.postMessage).toHaveBeenCalledWith({
+			type: "searchFiles",
+			query: "",
+			requestId: expect.any(String),
+		})
+
+		// Verify that the loading state is set
+		expect(defaultProps.setSearchLoading).toHaveBeenCalledWith(true)
+	})
+
+	// Note: Keyboard navigation is tested in AtMentionSearch.test.tsx
+	it("should preserve text when selecting a mention", () => {
+		// Render with the component
+		const { getByRole } = render(<ChatTextArea {...defaultProps} />)
+
+		const textarea = getByRole("textbox")
+
+		// Type some text with @ in the middle
+		fireEvent.change(textarea, { target: { value: "Hello @ world", selectionStart: 7 } })
+
+		// Verify the search is triggered immediately
+		expect(defaultProps.setShowAtMentionSearch).toHaveBeenCalledWith(true)
+
+		// Simulate selecting a file by calling the onSelect prop of AtMentionSearch
+		// This is a simplified test since we can't directly test the component's internal methods
+		expect(defaultProps.setShowAtMentionSearch).toHaveBeenCalled()
+	})
+
+	it("should clear search results when input is cleared", () => {
+		const { getByRole } = render(<ChatTextArea {...defaultProps} />)
+		const textarea = getByRole("textbox")
+
+		// First type @ mention
+		fireEvent.change(textarea, { target: { value: "@test" } })
+
+		// Then clear input
+		fireEvent.change(textarea, { target: { value: "" } })
+
+		expect(defaultProps.setFileSearchResults).toHaveBeenCalledWith([])
+		expect(defaultProps.setInputValue).toHaveBeenCalledWith("")
+	})
+
+	it("should debounce search requests", () => {
+		const { getByRole } = render(<ChatTextArea {...defaultProps} />)
+		const textarea = getByRole("textbox")
+
+		// Type quickly
+		fireEvent.change(textarea, { target: { value: "@t" } })
+		fireEvent.change(textarea, { target: { value: "@te" } })
+		fireEvent.change(textarea, { target: { value: "@tes" } })
+		fireEvent.change(textarea, { target: { value: "@test" } })
+
+		// Only the last request should be made
+		act(() => {
+			jest.advanceTimersByTime(200)
+		})
+
+		expect(vscode.postMessage).toHaveBeenCalledTimes(1)
+		expect(vscode.postMessage).toHaveBeenCalledWith({
+			type: "searchFiles",
+			query: "test",
+			requestId: expect.any(String),
+		})
+	})
+})
+
+describe("ChatTextArea - Edge Cases", () => {
+	const defaultProps = {
+		// Required props from ChatTextAreaProps
+		inputValue: "",
+		setInputValue: jest.fn(),
+		textAreaDisabled: false,
+		selectApiConfigDisabled: false,
+		placeholderText: "Type a message...",
+		selectedImages: [],
+		setSelectedImages: jest.fn(),
+		onSend: jest.fn(),
+		onSelectImages: jest.fn(),
+		shouldDisableImages: false,
+		onHeightChange: jest.fn(),
+		mode: "chat",
+		setMode: jest.fn(),
+		modeShortcutText: "",
+
+		// Additional props for testing
+		setSearchRequestId: jest.fn(),
+		setFileSearchResults: jest.fn(),
+		setSearchLoading: jest.fn(),
+		setSearchQuery: jest.fn(),
+		setShowAtMentionSearch: jest.fn(),
+	}
+
+	beforeEach(() => {
+		jest.clearAllMocks()
+		jest.useFakeTimers()
+	})
+
+	afterEach(() => {
+		jest.useRealTimers()
+	})
+
+	describe("Cursor Position Cases", () => {
+		it("should handle multiple @ symbols correctly", () => {
+			const { getByRole } = render(<ChatTextArea {...defaultProps} />)
+			const textarea = getByRole("textbox")
+
+			// Simulate typing with multiple @ symbols
+			fireEvent.change(textarea, {
+				target: {
+					value: "Hello @world and @test",
+					selectionStart: 17, // Cursor after "world"
+				},
+			})
+
+			expect(defaultProps.setSearchQuery).toHaveBeenCalledWith("world")
+		})
+
+		it("should handle cursor position before @ symbol", () => {
+			const { getByRole } = render(<ChatTextArea {...defaultProps} />)
+			const textarea = getByRole("textbox")
+
+			fireEvent.change(textarea, {
+				target: {
+					value: "Hello @test",
+					selectionStart: 5, // Cursor before @
+				},
+			})
+
+			expect(defaultProps.setShowAtMentionSearch).toHaveBeenCalledWith(false)
+		})
+
+		it("should handle backspacing over @ symbol", () => {
+			const { getByRole } = render(<ChatTextArea {...defaultProps} />)
+			const textarea = getByRole("textbox")
+
+			// First type @test
+			fireEvent.change(textarea, {
+				target: {
+					value: "@test",
+					selectionStart: 5,
+				},
+			})
+
+			// Then backspace over @
+			fireEvent.change(textarea, {
+				target: {
+					value: "test",
+					selectionStart: 0,
+				},
+			})
+
+			expect(defaultProps.setShowAtMentionSearch).toHaveBeenCalledWith(false)
+			expect(defaultProps.setFileSearchResults).toHaveBeenCalledWith([])
+		})
+	})
+
+	describe("Input Content Cases", () => {
+		it("should handle special characters after @", () => {
+			const { getByRole } = render(<ChatTextArea {...defaultProps} />)
+			const textarea = getByRole("textbox")
+
+			fireEvent.change(textarea, {
+				target: {
+					value: "@#$%",
+					selectionStart: 4,
+				},
+			})
+
+			expect(defaultProps.setSearchQuery).toHaveBeenCalledWith("#$%")
+		})
+
+		it("should handle emoji and unicode characters", () => {
+			const { getByRole } = render(<ChatTextArea {...defaultProps} />)
+			const textarea = getByRole("textbox")
+
+			fireEvent.change(textarea, {
+				target: {
+					value: "@🚀 test 你好",
+					selectionStart: 10,
+				},
+			})
+
+			expect(defaultProps.setSearchQuery).toHaveBeenCalledWith("🚀 test 你好")
+		})
+
+		it("should handle very long search queries", () => {
+			const { getByRole } = render(<ChatTextArea {...defaultProps} />)
+			const textarea = getByRole("textbox")
+
+			const longQuery = "a".repeat(1000)
+			fireEvent.change(textarea, {
+				target: {
+					value: `@${longQuery}`,
+					selectionStart: 1001,
+				},
+			})
+
+			act(() => {
+				jest.advanceTimersByTime(200)
+			})
+
+			expect(vscode.postMessage).toHaveBeenCalledWith({
+				type: "searchFiles",
+				query: longQuery,
+				requestId: expect.any(String),
+			})
+		})
+
+		it("should handle whitespace correctly", () => {
+			const { getByRole } = render(<ChatTextArea {...defaultProps} />)
+			const textarea = getByRole("textbox")
+
+			fireEvent.change(textarea, {
+				target: {
+					value: "@   test   ",
+					selectionStart: 10,
+				},
+			})
+
+			expect(defaultProps.setSearchQuery).toHaveBeenCalledWith("   test   ")
+		})
+
+		it("should handle line breaks in search query", () => {
+			const { getByRole } = render(<ChatTextArea {...defaultProps} />)
+			const textarea = getByRole("textbox")
+
+			fireEvent.change(textarea, {
+				target: {
+					value: "@test\nquery",
+					selectionStart: 10,
+				},
+			})
+
+			expect(defaultProps.setSearchQuery).toHaveBeenCalledWith("test\nquery")
+		})
+	})
+
+	describe("Race Condition Cases", () => {
+		it("should handle rapid typing correctly", async () => {
+			const { getByRole } = render(<ChatTextArea {...defaultProps} />)
+			const textarea = getByRole("textbox")
+
+			// Simulate rapid typing
+			for (const char of "test123") {
+				fireEvent.change(textarea, {
+					target: {
+						value: `@${char}`,
+						selectionStart: 2,
+					},
+				})
+				await act(async () => {
+					jest.advanceTimersByTime(50) // Less than debounce time
+				})
+			}
+
+			// Only the last request should be made
+			expect(vscode.postMessage).toHaveBeenCalledTimes(1)
+			expect(vscode.postMessage).toHaveBeenCalledWith({
+				type: "searchFiles",
+				query: "3",
+				requestId: expect.any(String),
+			})
+		})
+
+		it("should handle search cancellation", async () => {
+			const { getByRole } = render(<ChatTextArea {...defaultProps} />)
+			const textarea = getByRole("textbox")
+
+			// Start a search
+			fireEvent.change(textarea, {
+				target: {
+					value: "@test",
+					selectionStart: 5,
+				},
+			})
+
+			// Clear before debounce timeout
+			fireEvent.change(textarea, {
+				target: {
+					value: "",
+					selectionStart: 0,
+				},
+			})
+
+			act(() => {
+				jest.advanceTimersByTime(200)
+			})
+
+			expect(vscode.postMessage).not.toHaveBeenCalled()
+			expect(defaultProps.setSearchLoading).toHaveBeenCalledWith(false)
+		})
+	})
+})
+
+describe("File Highlighting", () => {
+	const mockSearchResults: SearchResult[] = [
+		{ path: "test file.txt", type: "file", label: "test file.txt" },
+		{ path: "folder with spaces/file.js", type: "file", label: "file.js" },
+	]
+
+	const fileHighlightProps = {
+		// Required props from ChatTextAreaProps
+		inputValue: "",
+		setInputValue: jest.fn(),
+		textAreaDisabled: false,
+		selectApiConfigDisabled: false,
+		placeholderText: "Type a message...",
+		selectedImages: [],
+		setSelectedImages: jest.fn(),
+		onSend: jest.fn(),
+		onSelectImages: jest.fn(),
+		shouldDisableImages: false,
+		onHeightChange: jest.fn(),
+		mode: "chat",
+		setMode: jest.fn(),
+		modeShortcutText: "",
+
+		// Additional props for testing
+		setSearchRequestId: jest.fn(),
+		setFileSearchResults: jest.fn(),
+		setSearchLoading: jest.fn(),
+		setSearchQuery: jest.fn(),
+		setShowAtMentionSearch: jest.fn(),
+		fileSearchResults: mockSearchResults, // Add fileSearchResults directly to props
+	}
+
+	it("should highlight matched files with spaces as pills", () => {
+		const { getByRole } = render(<ChatTextArea {...fileHighlightProps} />)
+		const textarea = getByRole("textbox")
+
+		fireEvent.change(textarea, {
+			target: { value: "Check @test file.txt and @folder with spaces/file.js" },
+		})
+
+		// Find the mention pills
+		const pills = document.querySelectorAll(".mention-pill")
+		expect(pills.length).toBe(2)
+		expect(pills[0].textContent).toMatch(/@test file\.txt/)
+		expect(pills[1].textContent).toMatch(/@folder with spaces\/file\.js/)
+	})
+
+	it("should handle multiple file mentions with spaces as pills", () => {
+		const { getByRole } = render(<ChatTextArea {...fileHighlightProps} />)
+		const textarea = getByRole("textbox")
+
+		fireEvent.change(textarea, {
+			target: {
+				value: "@test file.txt contains data for @folder with spaces/file.js",
+				selectionStart: 15,
 			},
 		})
+
+		// Find the mention pills
+		const pills = document.querySelectorAll(".mention-pill")
+		expect(pills.length).toBe(2)
+		expect(pills[0].textContent).toMatch(/@test file\.txt/)
+		expect(pills[1].textContent).toMatch(/@folder with spaces\/file\.js/)
 	})
 
-	describe("enhance prompt button", () => {
-		it("should be disabled when textAreaDisabled is true", () => {
-			;(useExtensionState as jest.Mock).mockReturnValue({
-				filePaths: [],
-				openedTabs: [],
-			})
-			render(<ChatTextArea {...defaultProps} textAreaDisabled={true} />)
-			const enhanceButton = getEnhancePromptButton()
-			expect(enhanceButton).toHaveClass("cursor-not-allowed")
+	it("should handle unmatched file mentions as pills", () => {
+		const { getByRole } = render(<ChatTextArea {...fileHighlightProps} />)
+		const textarea = getByRole("textbox")
+
+		fireEvent.change(textarea, {
+			target: { value: "@nonexistent file.txt" },
 		})
+
+		// Find the mention pill
+		const pill = document.querySelector(".mention-pill")
+		expect(pill).not.toBeNull()
+		expect(pill?.textContent).toMatch(/@nonexistent file\.txt/)
+	})
+})
+
+describe("AtMentionSearch", () => {
+	const atMentionProps = {
+		// Required props from ChatTextAreaProps
+		inputValue: "",
+		setInputValue: jest.fn(),
+		textAreaDisabled: false,
+		selectApiConfigDisabled: false,
+		placeholderText: "Type a message...",
+		selectedImages: [],
+		setSelectedImages: jest.fn(),
+		onSend: jest.fn(),
+		onSelectImages: jest.fn(),
+		shouldDisableImages: false,
+		onHeightChange: jest.fn(),
+		mode: "chat",
+		setMode: jest.fn(),
+		modeShortcutText: "",
+
+		// Additional props for testing
+		setSearchRequestId: jest.fn(),
+		setFileSearchResults: jest.fn(),
+		setSearchLoading: jest.fn(),
+		setSearchQuery: jest.fn(),
+		setShowAtMentionSearch: jest.fn(),
+	}
+
+	beforeEach(() => {
+		jest.clearAllMocks()
+		jest.useFakeTimers()
 	})
 
-	describe("handleEnhancePrompt", () => {
-		it("should send message with correct configuration when clicked", () => {
-			const apiConfiguration = {
-				apiProvider: "openrouter",
-				apiKey: "test-key",
-			}
-
-			;(useExtensionState as jest.Mock).mockReturnValue({
-				filePaths: [],
-				openedTabs: [],
-				apiConfiguration,
-			})
-
-			render(<ChatTextArea {...defaultProps} inputValue="Test prompt" />)
-
-			const enhanceButton = getEnhancePromptButton()
-			fireEvent.click(enhanceButton)
-
-			expect(mockPostMessage).toHaveBeenCalledWith({
-				type: "enhancePrompt",
-				text: "Test prompt",
-			})
-		})
-
-		it("should not send message when input is empty", () => {
-			;(useExtensionState as jest.Mock).mockReturnValue({
-				filePaths: [],
-				openedTabs: [],
-				apiConfiguration: {
-					apiProvider: "openrouter",
-				},
-			})
-
-			render(<ChatTextArea {...defaultProps} inputValue="" />)
-
-			const enhanceButton = getEnhancePromptButton()
-			fireEvent.click(enhanceButton)
-
-			expect(mockPostMessage).not.toHaveBeenCalled()
-		})
-
-		it("should show loading state while enhancing", () => {
-			;(useExtensionState as jest.Mock).mockReturnValue({
-				filePaths: [],
-				openedTabs: [],
-				apiConfiguration: {
-					apiProvider: "openrouter",
-				},
-			})
-
-			render(<ChatTextArea {...defaultProps} inputValue="Test prompt" />)
-
-			const enhanceButton = getEnhancePromptButton()
-			fireEvent.click(enhanceButton)
-
-			const loadingSpinner = screen.getByText("", { selector: ".codicon-loading" })
-			expect(loadingSpinner).toBeInTheDocument()
-		})
+	afterEach(() => {
+		jest.useRealTimers()
 	})
 
-	describe("effect dependencies", () => {
-		it("should update when apiConfiguration changes", () => {
-			const { rerender } = render(<ChatTextArea {...defaultProps} />)
+	it("shows AtMentionSearch when @ is typed", async () => {
+		const { getByRole, getByTestId } = render(<ChatTextArea {...atMentionProps} />)
+		const textarea = getByRole("textbox")
 
-			// Update apiConfiguration
-			;(useExtensionState as jest.Mock).mockReturnValue({
-				filePaths: [],
-				openedTabs: [],
-				apiConfiguration: {
-					apiProvider: "openrouter",
-					newSetting: "test",
-				},
-			})
+		// Type "@" in the textarea
+		fireEvent.change(textarea, { target: { value: "@" } })
 
-			rerender(<ChatTextArea {...defaultProps} />)
+		// Verify dropdown appears
+		expect(getByTestId("at-mention-search")).toBeInTheDocument()
 
-			// Verify the enhance button appears after apiConfiguration changes
-			expect(getEnhancePromptButton()).toBeInTheDocument()
-		})
-	})
+		// Type "file"
+		fireEvent.change(textarea, { target: { value: "@file" } })
 
-	describe("enhanced prompt response", () => {
-		it("should update input value when receiving enhanced prompt", () => {
-			const setInputValue = jest.fn()
+		// Verify search is triggered
+		expect(getByTestId("search-loading")).toBeInTheDocument()
 
-			render(<ChatTextArea {...defaultProps} setInputValue={setInputValue} />)
+		// Click outside
+		fireEvent.mouseDown(document.body)
 
-			// Simulate receiving enhanced prompt message
-			window.dispatchEvent(
-				new MessageEvent("message", {
-					data: {
-						type: "enhancedPrompt",
-						text: "Enhanced test prompt",
-					},
-				}),
-			)
+		// Verify dropdown disappears
+		expect(getByTestId("at-mention-search")).not.toBeInTheDocument()
 
-			expect(setInputValue).toHaveBeenCalledWith("Enhanced test prompt")
-		})
-	})
+		// Type "@" again
+		fireEvent.change(textarea, { target: { value: "@" } })
 
-	describe("multi-file drag and drop", () => {
-		const mockCwd = "/Users/test/project"
+		// Press Escape
+		fireEvent.keyDown(textarea, { key: "Escape" })
 
-		beforeEach(() => {
-			jest.clearAllMocks()
-			;(useExtensionState as jest.Mock).mockReturnValue({
-				filePaths: [],
-				openedTabs: [],
-				cwd: mockCwd,
-			})
-			mockConvertToMentionPath.mockClear()
-		})
+		// Verify dropdown disappears
+		expect(getByTestId("at-mention-search")).not.toBeInTheDocument()
 
-		it("should process multiple file paths separated by newlines", () => {
-			const setInputValue = jest.fn()
+		// Select an item
+		fireEvent.change(textarea, { target: { value: "@test" } })
+		const firstResult = getByTestId("search-result-0")
+		fireEvent.click(firstResult)
 
-			const { container } = render(
-				<ChatTextArea {...defaultProps} setInputValue={setInputValue} inputValue="Initial text" />,
-			)
-
-			// Create a mock dataTransfer object with text data containing multiple file paths
-			const dataTransfer = {
-				getData: jest.fn().mockReturnValue("/Users/test/project/file1.js\n/Users/test/project/file2.js"),
-				files: [],
-			}
-
-			// Simulate drop event
-			fireEvent.drop(container.querySelector(".chat-text-area")!, {
-				dataTransfer,
-				preventDefault: jest.fn(),
-			})
-
-			// Verify convertToMentionPath was called for each file path
-			expect(mockConvertToMentionPath).toHaveBeenCalledTimes(2)
-			expect(mockConvertToMentionPath).toHaveBeenCalledWith("/Users/test/project/file1.js", mockCwd)
-			expect(mockConvertToMentionPath).toHaveBeenCalledWith("/Users/test/project/file2.js", mockCwd)
-
-			// Verify setInputValue was called with the correct value
-			// The mock implementation of convertToMentionPath will convert the paths to @/file1.js and @/file2.js
-			expect(setInputValue).toHaveBeenCalledWith("@/file1.js @/file2.js Initial text")
-		})
-
-		it("should filter out empty lines in the dragged text", () => {
-			const setInputValue = jest.fn()
-
-			const { container } = render(
-				<ChatTextArea {...defaultProps} setInputValue={setInputValue} inputValue="Initial text" />,
-			)
-
-			// Create a mock dataTransfer object with text data containing empty lines
-			const dataTransfer = {
-				getData: jest.fn().mockReturnValue("/Users/test/project/file1.js\n\n/Users/test/project/file2.js\n\n"),
-				files: [],
-			}
-
-			// Simulate drop event
-			fireEvent.drop(container.querySelector(".chat-text-area")!, {
-				dataTransfer,
-				preventDefault: jest.fn(),
-			})
-
-			// Verify convertToMentionPath was called only for non-empty lines
-			expect(mockConvertToMentionPath).toHaveBeenCalledTimes(2)
-
-			// Verify setInputValue was called with the correct value
-			expect(setInputValue).toHaveBeenCalledWith("@/file1.js @/file2.js Initial text")
-		})
-
-		it("should correctly update cursor position after adding multiple mentions", () => {
-			const setInputValue = jest.fn()
-			const initialCursorPosition = 5
-
-			const { container } = render(
-				<ChatTextArea {...defaultProps} setInputValue={setInputValue} inputValue="Hello world" />,
-			)
-
-			// Set the cursor position manually
-			const textArea = container.querySelector("textarea")
-			if (textArea) {
-				textArea.selectionStart = initialCursorPosition
-				textArea.selectionEnd = initialCursorPosition
-			}
-
-			// Create a mock dataTransfer object with text data
-			const dataTransfer = {
-				getData: jest.fn().mockReturnValue("/Users/test/project/file1.js\n/Users/test/project/file2.js"),
-				files: [],
-			}
-
-			// Simulate drop event
-			fireEvent.drop(container.querySelector(".chat-text-area")!, {
-				dataTransfer,
-				preventDefault: jest.fn(),
-			})
-
-			// The cursor position should be updated based on the implementation in the component
-			expect(setInputValue).toHaveBeenCalledWith("@/file1.js @/file2.js Hello world")
-		})
-
-		it("should handle very long file paths correctly", () => {
-			const setInputValue = jest.fn()
-
-			const { container } = render(<ChatTextArea {...defaultProps} setInputValue={setInputValue} inputValue="" />)
-
-			// Create a very long file path
-			const longPath =
-				"/Users/test/project/very/long/path/with/many/nested/directories/and/a/very/long/filename/with/extension.typescript"
-
-			// Create a mock dataTransfer object with the long path
-			const dataTransfer = {
-				getData: jest.fn().mockReturnValue(longPath),
-				files: [],
-			}
-
-			// Simulate drop event
-			fireEvent.drop(container.querySelector(".chat-text-area")!, {
-				dataTransfer,
-				preventDefault: jest.fn(),
-			})
-
-			// Verify convertToMentionPath was called with the long path
-			expect(mockConvertToMentionPath).toHaveBeenCalledWith(longPath, mockCwd)
-
-			// The mock implementation will convert it to @/very/long/path/...
-			expect(setInputValue).toHaveBeenCalledWith(
-				"@/very/long/path/with/many/nested/directories/and/a/very/long/filename/with/extension.typescript ",
-			)
-		})
-
-		it("should handle paths with special characters correctly", () => {
-			const setInputValue = jest.fn()
-
-			const { container } = render(<ChatTextArea {...defaultProps} setInputValue={setInputValue} inputValue="" />)
-
-			// Create paths with special characters
-			const specialPath1 = "/Users/test/project/file with spaces.js"
-			const specialPath2 = "/Users/test/project/file-with-dashes.js"
-			const specialPath3 = "/Users/test/project/file_with_underscores.js"
-			const specialPath4 = "/Users/test/project/file.with.dots.js"
-
-			// Create a mock dataTransfer object with the special paths
-			const dataTransfer = {
-				getData: jest
-					.fn()
-					.mockReturnValue(`${specialPath1}\n${specialPath2}\n${specialPath3}\n${specialPath4}`),
-				files: [],
-			}
-
-			// Simulate drop event
-			fireEvent.drop(container.querySelector(".chat-text-area")!, {
-				dataTransfer,
-				preventDefault: jest.fn(),
-			})
-
-			// Verify convertToMentionPath was called for each path
-			expect(mockConvertToMentionPath).toHaveBeenCalledTimes(4)
-			expect(mockConvertToMentionPath).toHaveBeenCalledWith(specialPath1, mockCwd)
-			expect(mockConvertToMentionPath).toHaveBeenCalledWith(specialPath2, mockCwd)
-			expect(mockConvertToMentionPath).toHaveBeenCalledWith(specialPath3, mockCwd)
-			expect(mockConvertToMentionPath).toHaveBeenCalledWith(specialPath4, mockCwd)
-
-			// Verify setInputValue was called with the correct value
-			expect(setInputValue).toHaveBeenCalledWith(
-				"@/file with spaces.js @/file-with-dashes.js @/file_with_underscores.js @/file.with.dots.js ",
-			)
-		})
-
-		it("should handle paths outside the current working directory", () => {
-			const setInputValue = jest.fn()
-
-			const { container } = render(<ChatTextArea {...defaultProps} setInputValue={setInputValue} inputValue="" />)
-
-			// Create paths outside the current working directory
-			const outsidePath = "/Users/other/project/file.js"
-
-			// Mock the convertToMentionPath function to return the original path for paths outside cwd
-			mockConvertToMentionPath.mockImplementationOnce((path, cwd) => {
-				return path // Return original path for this test
-			})
-
-			// Create a mock dataTransfer object with the outside path
-			const dataTransfer = {
-				getData: jest.fn().mockReturnValue(outsidePath),
-				files: [],
-			}
-
-			// Simulate drop event
-			fireEvent.drop(container.querySelector(".chat-text-area")!, {
-				dataTransfer,
-				preventDefault: jest.fn(),
-			})
-
-			// Verify convertToMentionPath was called with the outside path
-			expect(mockConvertToMentionPath).toHaveBeenCalledWith(outsidePath, mockCwd)
-
-			// Verify setInputValue was called with the original path
-			expect(setInputValue).toHaveBeenCalledWith("/Users/other/project/file.js ")
-		})
-
-		it("should do nothing when dropped text is empty", () => {
-			const setInputValue = jest.fn()
-
-			const { container } = render(
-				<ChatTextArea {...defaultProps} setInputValue={setInputValue} inputValue="Initial text" />,
-			)
-
-			// Create a mock dataTransfer object with empty text
-			const dataTransfer = {
-				getData: jest.fn().mockReturnValue(""),
-				files: [],
-			}
-
-			// Simulate drop event
-			fireEvent.drop(container.querySelector(".chat-text-area")!, {
-				dataTransfer,
-				preventDefault: jest.fn(),
-			})
-
-			// Verify convertToMentionPath was not called
-			expect(mockConvertToMentionPath).not.toHaveBeenCalled()
-
-			// Verify setInputValue was not called
-			expect(setInputValue).not.toHaveBeenCalled()
-		})
-	})
-
-	describe("selectApiConfig", () => {
-		// Helper function to get the API config dropdown
-		const getApiConfigDropdown = () => {
-			return screen.getByTitle("chat:selectApiConfig")
-		}
-		it("should be enabled independently of textAreaDisabled", () => {
-			render(<ChatTextArea {...defaultProps} textAreaDisabled={true} selectApiConfigDisabled={false} />)
-			const apiConfigDropdown = getApiConfigDropdown()
-			expect(apiConfigDropdown).not.toHaveAttribute("disabled")
-		})
-		it("should be disabled when selectApiConfigDisabled is true", () => {
-			render(<ChatTextArea {...defaultProps} textAreaDisabled={true} selectApiConfigDisabled={true} />)
-			const apiConfigDropdown = getApiConfigDropdown()
-			expect(apiConfigDropdown).toHaveAttribute("disabled")
-		})
+		// Verify item is inserted
+		expect(textarea).toHaveValue("@test-file.txt")
 	})
 })

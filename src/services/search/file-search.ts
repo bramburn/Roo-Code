@@ -24,6 +24,8 @@ async function executeRipgrepForFiles(
 			"!**/out/**",
 			"-g",
 			"!**/dist/**",
+			// Use null-byte as separator to safely handle paths with spaces
+			"--null",
 			workspacePath,
 		]
 
@@ -37,8 +39,24 @@ async function executeRipgrepForFiles(
 		const dirSet = new Set<string>() // Track unique directory paths
 		let count = 0
 
-		rl.on("line", (line) => {
-			if (count < limit) {
+		// Buffer to store partial lines (when using null-byte separator)
+		let buffer = ""
+
+		rgProcess.stdout.on("data", (data) => {
+			buffer += data.toString()
+
+			// Split on null bytes, keeping the last partial chunk in the buffer
+			const lines = buffer.split("\0")
+			buffer = lines.pop() || ""
+
+			for (const line of lines) {
+				if (count >= limit) {
+					rgProcess.kill()
+					break
+				}
+
+				if (!line.trim()) continue
+
 				try {
 					const relativePath = path.relative(workspacePath, line)
 
@@ -46,12 +64,14 @@ async function executeRipgrepForFiles(
 					fileResults.push({
 						path: relativePath,
 						type: "file",
+						// Preserve spaces in label
 						label: path.basename(relativePath),
 					})
 
 					// Extract and store all parent directory paths
 					let dirPath = path.dirname(relativePath)
 					while (dirPath && dirPath !== "." && dirPath !== "/") {
+						// Preserve spaces in directory paths
 						dirSet.add(dirPath)
 						dirPath = path.dirname(dirPath)
 					}
@@ -60,36 +80,33 @@ async function executeRipgrepForFiles(
 				} catch (error) {
 					// Silently ignore errors processing individual paths
 				}
-			} else {
-				rl.close()
-				rgProcess.kill()
 			}
 		})
 
-		let errorOutput = ""
-		rgProcess.stderr.on("data", (data) => {
-			errorOutput += data.toString()
-		})
-
-		rl.on("close", () => {
-			if (errorOutput && fileResults.length === 0) {
-				reject(new Error(`ripgrep process error: ${errorOutput}`))
-			} else {
-				// Convert directory set to array of directory objects
-				const dirResults = Array.from(dirSet).map((dirPath) => ({
-					path: dirPath,
-					type: "folder" as const,
-					label: path.basename(dirPath),
-				}))
-
-				// Combine files and directories and resolve
-				resolve([...fileResults, ...dirResults])
+		rgProcess.on("close", () => {
+			// Process any remaining data in buffer
+			if (buffer && count < limit) {
+				try {
+					const relativePath = path.relative(workspacePath, buffer)
+					fileResults.push({
+						path: relativePath,
+						type: "file",
+						label: path.basename(relativePath),
+					})
+				} catch {}
 			}
+
+			// Add directory entries
+			const dirResults = Array.from(dirSet).map((dir) => ({
+				path: dir,
+				type: "folder" as const,
+				label: path.basename(dir),
+			}))
+
+			resolve([...fileResults, ...dirResults])
 		})
 
-		rgProcess.on("error", (error) => {
-			reject(new Error(`ripgrep process error: ${error.message}`))
-		})
+		rgProcess.on("error", reject)
 	})
 }
 
@@ -106,7 +123,7 @@ export async function searchWorkspaceFiles(
 			throw new Error("Could not find ripgrep binary")
 		}
 
-		// Get all files and directories (from our modified function)
+		// Get all files and directories
 		const allItems = await executeRipgrepForFiles(rgPath, workspacePath, 5000)
 
 		// If no query, just return the top items
@@ -117,7 +134,8 @@ export async function searchWorkspaceFiles(
 		// Create search items for all files AND directories
 		const searchItems = allItems.map((item) => ({
 			original: item,
-			searchStr: `${item.path} ${item.label || ""}`,
+			// Include both path and label in search, but normalize spaces for matching
+			searchStr: `${item.path.replace(/\s+/g, " ")} ${item.label || ""}`,
 		}))
 
 		// Run fzf search on all items
@@ -125,6 +143,8 @@ export async function searchWorkspaceFiles(
 			selector: (item) => item.searchStr,
 			tiebreakers: [byLengthAsc],
 			limit: limit,
+			// Use v2 fuzzy matching algorithm
+			fuzzy: "v2",
 		})
 
 		// Get all matching results from fzf
@@ -134,7 +154,6 @@ export async function searchWorkspaceFiles(
 		const verifiedResults = await Promise.all(
 			fzfResults.map(async (result) => {
 				const fullPath = path.join(workspacePath, result.path)
-				// Verify if the path exists and is actually a directory
 				if (fs.existsSync(fullPath)) {
 					const isDirectory = fs.lstatSync(fullPath).isDirectory()
 					return {
@@ -142,14 +161,13 @@ export async function searchWorkspaceFiles(
 						type: isDirectory ? ("folder" as const) : ("file" as const),
 					}
 				}
-				// If path doesn't exist, keep original type
 				return result
 			}),
 		)
 
 		return verifiedResults
 	} catch (error) {
-		console.error("Error in searchWorkspaceFiles:", error)
+		console.error("Error searching workspace files:", error)
 		return []
 	}
 }

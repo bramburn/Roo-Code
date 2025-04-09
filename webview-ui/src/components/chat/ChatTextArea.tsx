@@ -1,6 +1,8 @@
 import React, { forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useEvent } from "react-use"
 import DynamicTextArea from "react-textarea-autosize"
+import MentionHighlighter from "./MentionHighlighter"
+import "./MentionHighlighter.css"
 
 import { mentionRegex, mentionRegexGlobal } from "../../../../src/shared/context-mentions"
 import { WebviewMessage } from "../../../../src/shared/WebviewMessage"
@@ -24,6 +26,7 @@ import { SelectDropdown, DropdownOptionType, Button } from "@/components/ui"
 import Thumbnails from "../common/Thumbnails"
 import { MAX_IMAGES_PER_MESSAGE } from "./ChatView"
 import ContextMenu from "./ContextMenu"
+import AtMentionSearch from "./AtMentionSearch"
 import { VolumeX, Pin, Check } from "lucide-react"
 import { IconButton } from "./IconButton"
 import { cn } from "@/lib/utils"
@@ -139,6 +142,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 		const [isDraggingOver, setIsDraggingOver] = useState(false)
 		const [textAreaBaseHeight, setTextAreaBaseHeight] = useState<number | undefined>(undefined)
 		const [showContextMenu, setShowContextMenu] = useState(false)
+		const [showAtMentionSearch, setShowAtMentionSearch] = useState(false)
 		const [cursorPosition, setCursorPosition] = useState(0)
 		const [searchQuery, setSearchQuery] = useState("")
 		const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
@@ -208,17 +212,18 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					!contextMenuContainerRef.current.contains(event.target as Node)
 				) {
 					setShowContextMenu(false)
+					setShowAtMentionSearch(false)
 				}
 			}
 
-			if (showContextMenu) {
+			if (showContextMenu || showAtMentionSearch) {
 				document.addEventListener("mousedown", handleClickOutside)
 			}
 
 			return () => {
 				document.removeEventListener("mousedown", handleClickOutside)
 			}
-		}, [showContextMenu, setShowContextMenu])
+		}, [showContextMenu, showAtMentionSearch])
 
 		const handleMentionSelect = useCallback(
 			(type: ContextMenuOptionType, value?: string) => {
@@ -231,6 +236,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					setMode(value)
 					setInputValue("")
 					setShowContextMenu(false)
+					setShowAtMentionSearch(false)
 					vscode.postMessage({ type: "mode", text: value })
 					return
 				}
@@ -249,6 +255,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				}
 
 				setShowContextMenu(false)
+				setShowAtMentionSearch(false)
 				setSelectedType(null)
 
 				if (textAreaRef.current) {
@@ -266,28 +273,46 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						insertValue = value || ""
 					}
 
-					const { newValue, mentionIndex } = insertMention(
-						textAreaRef.current.value,
-						cursorPosition,
-						insertValue,
-					)
+					// Get the text before and after the cursor
+					const beforeCursor = inputValue.slice(0, cursorPosition)
+					const afterCursor = inputValue.slice(cursorPosition)
+
+					// Find the position of the last '@' symbol before the cursor
+					const lastAtIndex = beforeCursor.lastIndexOf("@")
+
+					let newValue = inputValue
+					let newCursorPosition = cursorPosition
+
+					if (lastAtIndex !== -1) {
+						// Replace everything after @ with the selected item
+						const beforeMention = inputValue.slice(0, lastAtIndex)
+						newValue = beforeMention + "@" + insertValue + " " + afterCursor.replace(/^[^\s]*/, "")
+						newCursorPosition = lastAtIndex + insertValue.length + 2 // +2 for @ and space
+					} else {
+						// Fallback to the original method if no @ is found
+						const result = insertMention(textAreaRef.current.value, cursorPosition, insertValue)
+						newValue = result.newValue
+						newCursorPosition = newValue.indexOf(" ", result.mentionIndex + insertValue.length) + 1
+					}
 
 					setInputValue(newValue)
-					const newCursorPosition = newValue.indexOf(" ", mentionIndex + insertValue.length) + 1
 					setCursorPosition(newCursorPosition)
 					setIntendedCursorPosition(newCursorPosition)
 
-					// Scroll to cursor.
+					// Reset search states
+					setSearchQuery("")
+					setFileSearchResults([])
+
+					// Scroll to cursor and ensure focus is maintained
 					setTimeout(() => {
 						if (textAreaRef.current) {
-							textAreaRef.current.blur()
 							textAreaRef.current.focus()
+							textAreaRef.current.setSelectionRange(newCursorPosition, newCursorPosition)
 						}
 					}, 0)
 				}
 			},
-			// eslint-disable-next-line react-hooks/exhaustive-deps
-			[setInputValue, cursorPosition],
+			[setInputValue, cursorPosition, setMode, inputValue],
 		)
 
 		const handleKeyDown = useCallback(
@@ -431,32 +456,53 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				const newCursorPosition = e.target.selectionStart
 				setInputValue(newValue)
 				setCursorPosition(newCursorPosition)
+
+				// Check if the user just typed @ character
+				const justTypedAt =
+					newValue.length > 0 &&
+					newValue[newCursorPosition - 1] === "@" &&
+					(newCursorPosition === 1 || /\s/.test(newValue[newCursorPosition - 2]))
+
 				const showMenu = shouldShowContextMenu(newValue, newCursorPosition)
 
-				setShowContextMenu(showMenu)
 				if (showMenu) {
 					if (newValue.startsWith("/")) {
-						// Handle slash command
+						// Handle slash command - use the original context menu
+						setShowContextMenu(true)
+						setShowAtMentionSearch(false)
 						const query = newValue
 						setSearchQuery(query)
 						setSelectedMenuIndex(0)
 					} else {
-						// Existing @ mention handling
+						// @ mention handling - use the new search dropdown
+						setShowContextMenu(false)
+						setShowAtMentionSearch(true) // Show search immediately when @ is typed
 						const lastAtIndex = newValue.lastIndexOf("@", newCursorPosition - 1)
 						const query = newValue.slice(lastAtIndex + 1, newCursorPosition)
 						setSearchQuery(query)
 
-						// Send file search request if query is not empty
-						if (query.length > 0) {
-							setSelectedMenuIndex(0)
-							// Don't clear results until we have new ones
-							// This prevents flickering
+						// Always set a default selection index, even if query is empty
+						setSelectedMenuIndex(0)
 
-							// Clear any existing timeout
-							if (searchTimeoutRef.current) {
-								clearTimeout(searchTimeoutRef.current)
-							}
+						// Clear any existing timeout to avoid multiple searches
+						if (searchTimeoutRef.current) {
+							clearTimeout(searchTimeoutRef.current)
+						}
 
+						// If user just typed @, immediately request initial results
+						if (justTypedAt || query.length === 0) {
+							// For empty query (just @), show initial results without loading state
+							const reqId = Math.random().toString(36).substring(2, 9)
+							setSearchRequestId(reqId)
+							setSearchLoading(true)
+
+							// Send message to extension to get initial file list
+							vscode.postMessage({
+								type: "searchFiles",
+								query: "",
+								requestId: reqId,
+							})
+						} else if (query.length > 0) {
 							// Set a timeout to debounce the search requests
 							searchTimeoutRef.current = setTimeout(() => {
 								// Generate a request ID for this search
@@ -471,11 +517,11 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									requestId: reqId,
 								})
 							}, 200) // 200ms debounce
-						} else {
-							setSelectedMenuIndex(3) // Set to "File" option by default
 						}
 					}
 				} else {
+					setShowContextMenu(false)
+					setShowAtMentionSearch(false)
 					setSearchQuery("")
 					setSelectedMenuIndex(-1)
 					setFileSearchResults([]) // Clear file search results
@@ -491,9 +537,10 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 		}, [showContextMenu])
 
 		const handleBlur = useCallback(() => {
-			// Only hide the context menu if the user didn't click on it.
+			// Only hide the menus if the user didn't click on them
 			if (!isMouseDownOnMenu) {
 				setShowContextMenu(false)
+				setShowAtMentionSearch(false)
 			}
 
 			setIsFocused(false)
@@ -575,18 +622,41 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 		}, [])
 
 		const updateHighlights = useCallback(() => {
+			const fileHighlightRegex = /@((?:[\w\-./\\]|\s)+)/g
 			if (!textAreaRef.current || !highlightLayerRef.current) return
 
 			const text = textAreaRef.current.value
+			const searchResults = fileSearchResults // Assuming this is available in scope
 
-			highlightLayerRef.current.innerHTML = text
+			let highlightedText = text
 				.replace(/\n$/, "\n\n")
 				.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c] || c)
-				.replace(mentionRegexGlobal, '<mark class="mention-context-textarea-highlight">$&</mark>')
 
+			// First handle general @ mentions
+			highlightedText = highlightedText.replace(
+				mentionRegexGlobal,
+				'<mark class="mention-context-textarea-highlight">$&</mark>',
+			)
+
+			// Then handle specific file matches
+			highlightedText = highlightedText.replace(fileHighlightRegex, (match, path) => {
+				const isMatchingFile = searchResults?.some(
+					(result) =>
+						result.path.toLowerCase() === path.toLowerCase() ||
+						result.label?.toLowerCase() === path.toLowerCase(),
+				)
+
+				const className = isMatchingFile
+					? "mention-context-textarea-highlight-file"
+					: "mention-context-textarea-highlight"
+
+				return `<mark class="${className}">@${path}</mark>`
+			})
+
+			highlightLayerRef.current.innerHTML = highlightedText
 			highlightLayerRef.current.scrollTop = textAreaRef.current.scrollTop
 			highlightLayerRef.current.scrollLeft = textAreaRef.current.scrollLeft
-		}, [])
+		}, [fileSearchResults])
 
 		useLayoutEffect(() => {
 			updateHighlights()
@@ -764,6 +834,39 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								setIsDraggingOver(false)
 							}
 						}}>
+						{showAtMentionSearch && (
+							<div className="relative">
+								<AtMentionSearch
+									searchQuery={searchQuery}
+									onSelect={handleMentionSelect}
+									searchResults={fileSearchResults}
+									loading={searchLoading}
+									onSearchChange={(query) => {
+										setSearchQuery(query)
+
+										// Clear any existing timeout
+										if (searchTimeoutRef.current) {
+											clearTimeout(searchTimeoutRef.current)
+										}
+
+										// Debounce search requests
+										if (query.length > 0) {
+											searchTimeoutRef.current = setTimeout(() => {
+												const reqId = Math.random().toString(36).substring(2, 9)
+												setSearchRequestId(reqId)
+												setSearchLoading(true)
+
+												vscode.postMessage({
+													type: "searchFiles",
+													query: query,
+													requestId: reqId,
+												})
+											}, 200)
+										}
+									}}
+								/>
+							</div>
+						)}
 						{showContextMenu && (
 							<div
 								ref={contextMenuContainerRef}
@@ -801,15 +904,14 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								"overflow-hidden",
 								"rounded",
 							)}>
-							<div
-								ref={highlightLayerRef}
+							<MentionHighlighter
+								text={inputValue}
 								className={cn(
 									"absolute",
 									"inset-0",
 									"pointer-events-none",
 									"whitespace-pre-wrap",
 									"break-words",
-									"text-transparent",
 									"overflow-hidden",
 									"font-vscode-font-family",
 									"text-vscode-editor-font-size",
@@ -818,9 +920,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									"px-[9px]",
 									"z-10",
 								)}
-								style={{
-									color: "transparent",
-								}}
+								ref={highlightLayerRef}
 							/>
 							<DynamicTextArea
 								ref={(el) => {
@@ -885,6 +985,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 									"flex-none flex-grow",
 									"z-[2]",
 									"scrollbar-none",
+									"mention-transparent-text",
 								)}
 								onScroll={() => updateHighlights()}
 							/>

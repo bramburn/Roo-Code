@@ -243,5 +243,8 @@
 			"scrollUp": "Scroll up",
 			"close": "Close browser"
 		}
-	}
+	},
+	"searchFiles": "Search files...",
+	"loading": "Loading...",
+	"noResultsFound": "No results found"
 }
