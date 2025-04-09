@@ -122,7 +122,11 @@ const ApiOptions = ({
 	)
 
 	const { selectedProvider, selectedModelId, selectedModelInfo } = useMemo(
-		() => normalizeApiConfiguration(apiConfiguration),
+		() => {
+			// Ensure apiConfiguration has at least an apiProvider set
+			const config = apiConfiguration?.apiProvider ? apiConfiguration : { apiProvider: 'anthropic' as ApiProvider, ...apiConfiguration }
+			return normalizeApiConfiguration(config)
+		},
 		[apiConfiguration],
 	)
 

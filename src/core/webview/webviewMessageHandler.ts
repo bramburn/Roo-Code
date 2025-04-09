@@ -69,6 +69,19 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 				})
 			}
 
+			// Initialize AI Commit settings if not already set
+			const useSecondaryModelForCommit = await getGlobalState("useSecondaryModelForCommit")
+			if (useSecondaryModelForCommit === undefined) {
+				await updateGlobalState("useSecondaryModelForCommit", false)
+			}
+
+			// Initialize commitModelConfiguration if not already set
+			const commitModelConfiguration = await getGlobalState("commitModelConfiguration")
+			if (useSecondaryModelForCommit && !commitModelConfiguration) {
+				// If secondary model is enabled but no configuration exists, set a default one
+				await updateGlobalState("commitModelConfiguration", { apiProvider: "anthropic" })
+			}
+
 			// Post last cached models in case the call to endpoint fails.
 			provider.readModelsFromCache(GlobalFileNames.openRouterModels).then((openRouterModels) => {
 				if (openRouterModels) {
@@ -1312,6 +1325,18 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			const isOptedIn = telemetrySetting === "enabled"
 			telemetryService.updateTelemetryState(isOptedIn)
 			await provider.postStateToWebview()
+			break
+		}
+		case "useSecondaryModelForCommit": {
+			await updateGlobalState("useSecondaryModelForCommit", message.bool ?? false)
+			await provider.postStateToWebview()
+			break
+		}
+		case "commitModelConfiguration": {
+			if (message.apiConfiguration) {
+				await updateGlobalState("commitModelConfiguration", message.apiConfiguration)
+				await provider.postStateToWebview()
+			}
 			break
 		}
 	}

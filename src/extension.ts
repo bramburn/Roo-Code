@@ -77,6 +77,37 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	registerCommands({ context, outputChannel, provider })
 
+	// Register AI commit command
+	context.subscriptions.push(
+		/* create a separate code that processes the AI commit
+		it will work similar to the clineProvider.ts but we will call it aiCommmitProvider
+		this will have a way to identify the current repository, then call the selected model for the commit message
+		the selected AI will be the default model the user normally chooses or the secondary one we added below the experimental features.
+		
+		 */
+        vscode.commands.registerCommand('roo-cline.aiCommitButtonClicked', async () => {
+            try {
+				// build function to identify the current repo so that we use that instead of random selection
+				
+                // Get the first repository (assuming single repository)
+                const repositories = vscode.extensions.getExtension('vscode.git')?.exports.getAPI(1).repositories;
+                if (!repositories || repositories.length === 0) {
+                    vscode.window.showErrorMessage('No repository found');
+                    return;
+                }
+                
+                const scmInputBox = repositories[0].inputBox;
+                
+                // For now, just set a placeholder message
+                scmInputBox.value = "feat: placeholder commit message\n\nThis is a placeholder commit message that will be replaced with AI-generated content.";
+                
+            } catch (error) {
+                outputChannel.appendLine(`Error in AI commit command: ${error}`);
+                vscode.window.showErrorMessage('Failed to generate commit message');
+            }
+        })
+    );
+
 	/**
 	 * We use the text document content provider API to show the left side for diff
 	 * view by creating a virtual document for the original content. This makes it

@@ -28,8 +28,10 @@
 		"terminal": "Terminal",
 		"advanced": "Advanced",
 		"experimental": "Experimental Features",
+		"aiCommit": "AI Commit",
 		"language": "Language",
 		"about": "About Roo Code"
+		
 	},
 	"autoApprove": {
 		"description": "Allow Roo to automatically perform operations without requiring approval. Enable these settings only if you fully trust the AI and understand the associated security risks.",
@@ -324,6 +326,12 @@
 			}
 		}
 	},
+	"aiCommit": {
+		"title": "AI Commit Settings",
+		"description": "Configure a separate AI model for commit message generation. When enabled, this model will be used instead of the primary model when generating commit messages.",
+		"useSecondaryModel": "Use secondary model for commit messages",
+		"selectProvider": "Select provider for commit messages"
+	},
 	"experimental": {
 		"warning": "⚠️",
 		"DIFF_STRATEGY_UNIFIED": {
@@ -443,5 +451,11 @@
 	"labels": {
 		"customArn": "Custom ARN",
 		"useCustomArn": "Use custom ARN..."
+	},
+	"aiCommit": {
+		"title": "AI Commit Settings",
+		"description": "Configure a separate AI model for commit message generation. When enabled, this model will be used instead of the primary model when generating commit messages.",
+		"useSecondaryModel": "Use secondary model for commit messages",
+		"selectProvider": "Select provider for commit messages"
 	}
 }

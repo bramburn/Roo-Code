@@ -214,6 +214,7 @@ type GlobalSettings = {
 				[x: string]: boolean
 		  }
 		| undefined
+	useSecondaryModelForCommit?: boolean | undefined
 	lastShownAnnouncementId?: string | undefined
 	customInstructions?: string | undefined
 	taskHistory?:
@@ -336,6 +337,7 @@ type GlobalSettings = {
 		  }
 		| undefined
 	enhancementApiConfigId?: string | undefined
+	commitModelConfiguration?: any | undefined
 }
 
 type ClineMessage = {

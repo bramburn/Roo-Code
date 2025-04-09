@@ -172,6 +172,8 @@ export type ExtensionState = Pick<
 	clineMessages: ClineMessage[]
 	currentTaskItem?: HistoryItem
 	apiConfiguration?: ApiConfiguration
+	commitModelConfiguration?: ApiConfiguration
+	useSecondaryModelForCommit?: boolean
 	uriScheme?: string
 	shouldShowAnnouncement: boolean
 

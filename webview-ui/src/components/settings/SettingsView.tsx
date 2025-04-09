@@ -250,6 +250,22 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			vscode.postMessage({ type: "updateExperimental", values: experiments })
 			vscode.postMessage({ type: "alwaysAllowModeSwitch", bool: alwaysAllowModeSwitch })
 			vscode.postMessage({ type: "alwaysAllowSubtasks", bool: alwaysAllowSubtasks })
+			// Extract these from cachedState to be consistent with other settings
+			const { useSecondaryModelForCommit, commitModelConfiguration } = cachedState
+			vscode.postMessage({ type: "useSecondaryModelForCommit", bool: useSecondaryModelForCommit })
+			// Make sure we're sending the correct structure for the commitModelConfiguration message
+			if (commitModelConfiguration) {
+				vscode.postMessage({
+					type: "commitModelConfiguration",
+					apiConfiguration: commitModelConfiguration
+				})
+			} else if (useSecondaryModelForCommit) {
+				// If secondary model is enabled but no configuration exists, send a default one
+				vscode.postMessage({
+					type: "commitModelConfiguration",
+					apiConfiguration: { apiProvider: "anthropic" }
+				})
+			}
 			vscode.postMessage({ type: "upsertApiConfiguration", text: currentApiConfigName, apiConfiguration })
 			vscode.postMessage({ type: "telemetrySetting", text: telemetrySetting })
 			setChangeDetected(false)
@@ -501,6 +517,9 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 						setCachedStateField={setCachedStateField}
 						setExperimentEnabled={setExperimentEnabled}
 						experiments={experiments}
+						useSecondaryModelForCommit={cachedState.useSecondaryModelForCommit || false}
+						commitModelConfiguration={cachedState.commitModelConfiguration || null}
+						setChangeDetected={setChangeDetected}
 					/>
 				</div>
 

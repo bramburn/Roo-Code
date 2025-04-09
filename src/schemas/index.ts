@@ -484,6 +484,7 @@ export const globalSettingsSchema = z.object({
 	currentApiConfigName: z.string().optional(),
 	listApiConfigMeta: z.array(apiConfigMetaSchema).optional(),
 	pinnedApiConfigs: z.record(z.string(), z.boolean()).optional(),
+	useSecondaryModelForCommit: z.boolean().optional(),
 
 	lastShownAnnouncementId: z.string().optional(),
 	customInstructions: z.string().optional(),
@@ -545,6 +546,7 @@ export const globalSettingsSchema = z.object({
 	customModePrompts: customModePromptsSchema.optional(),
 	customSupportPrompts: customSupportPromptsSchema.optional(),
 	enhancementApiConfigId: z.string().optional(),
+	commitModelConfiguration: z.any().optional(),
 })
 
 export type GlobalSettings = z.infer<typeof globalSettingsSchema>
@@ -555,6 +557,7 @@ const globalSettingsRecord: GlobalSettingsRecord = {
 	currentApiConfigName: undefined,
 	listApiConfigMeta: undefined,
 	pinnedApiConfigs: undefined,
+	useSecondaryModelForCommit: undefined,
 
 	lastShownAnnouncementId: undefined,
 	customInstructions: undefined,
@@ -616,6 +619,7 @@ const globalSettingsRecord: GlobalSettingsRecord = {
 	customSupportPrompts: undefined,
 	enhancementApiConfigId: undefined,
 	cachedChromeHostUrl: undefined,
+	commitModelConfiguration: undefined,
 }
 
 export const GLOBAL_SETTINGS_KEYS = Object.keys(globalSettingsRecord) as Keys<GlobalSettings>[]

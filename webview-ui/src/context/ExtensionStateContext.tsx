@@ -21,6 +21,8 @@ export interface ExtensionStateContextType extends ExtensionState {
 	filePaths: string[]
 	openedTabs: Array<{ label: string; isActive: boolean; path?: string }>
 	setApiConfiguration: (config: ApiConfiguration) => void
+	setCommitModelConfiguration: (config: ApiConfiguration) => void
+	toggleSecondaryModelForCommit: (value: boolean) => void
 	setCustomInstructions: (value?: string) => void
 	setAlwaysAllowReadOnly: (value: boolean) => void
 	setAlwaysAllowReadOnlyOutsideWorkspace: (value: boolean) => void
@@ -161,6 +163,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		renderContext: "sidebar",
 		maxReadFileLine: 500, // Default max read file line limit
 		pinnedApiConfigs: {}, // Empty object for pinned API configs
+		useSecondaryModelForCommit: false, // Default to using primary model for commit messages
 	})
 
 	const [didHydrateState, setDidHydrateState] = useState(false)
@@ -261,6 +264,19 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 					...prevState.apiConfiguration,
 					...value,
 				},
+			})),
+		setCommitModelConfiguration: (value) =>
+			setState((prevState) => ({
+				...prevState,
+				commitModelConfiguration: {
+					...prevState.commitModelConfiguration,
+					...value,
+				},
+			})),
+		toggleSecondaryModelForCommit: (value) =>
+			setState((prevState) => ({
+				...prevState,
+				useSecondaryModelForCommit: value,
 			})),
 		setCustomInstructions: (value) => setState((prevState) => ({ ...prevState, customInstructions: value })),
 		setAlwaysAllowReadOnly: (value) => setState((prevState) => ({ ...prevState, alwaysAllowReadOnly: value })),

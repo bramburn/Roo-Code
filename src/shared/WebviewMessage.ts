@@ -121,6 +121,8 @@ export interface WebviewMessage {
 		| "maxReadFileLine"
 		| "searchFiles"
 		| "toggleApiConfigPin"
+		| "useSecondaryModelForCommit"
+		| "commitModelConfiguration"
 	text?: string
 	disabled?: boolean
 	askResponse?: ClineAskResponse
