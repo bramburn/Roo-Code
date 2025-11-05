@@ -14,6 +14,24 @@ export default defineConfig({
 		environment: "jsdom",
 		include: ["src/**/*.spec.ts", "src/**/*.spec.tsx"],
 		onConsoleLog,
+		// Configure React testing environment
+		environmentOptions: {
+			jsdom: {
+				resources: "usable",
+				runScripts: "dangerously",
+			},
+		},
+		// Ensure proper test timeouts for React components
+		testTimeout: 10_000,
+		hookTimeout: 10_000,
+		// Configure snapshot handling for React components
+		snapshotFormat: {
+			printBasicPrototype: false,
+			escapeString: true,
+		},
+		// Global setup for React Testing Library
+		threads: false,
+		isolate: false,
 	},
 	resolve: {
 		alias: {

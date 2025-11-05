@@ -14,6 +14,14 @@ export default defineConfig({
 		testTimeout: 20_000,
 		hookTimeout: 20_000,
 		onConsoleLog,
+		environment: "node",
+		snapshotFormat: {
+			// Configure snapshot formatting for consistency
+			printBasicPrototype: false,
+			escapeString: true,
+		},
+		// Ensure proper snapshot handling
+		snapshotSerializers: [],
 	},
 	resolve: {
 		alias: {

@@ -15,3 +15,6 @@ export function allowNetConnect(host?: string | RegExp) {
 
 // Global mocks that many tests expect.
 global.structuredClone = global.structuredClone || ((obj: any) => JSON.parse(JSON.stringify(obj)))
+
+// Configure snapshot environment
+process.env.SNAPSHOT_UPDATE = "false"

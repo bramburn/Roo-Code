@@ -24,3 +24,5 @@ export * from "./type-fu.js"
 export * from "./vscode.js"
 
 export * from "./providers/index.js"
+export * from "./extension-message.js"
+export * from "./webview-message.js"

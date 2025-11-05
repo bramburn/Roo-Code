@@ -77,9 +77,20 @@ type TruncateOptions = {
 	condensingApiHandler?: ApiHandler
 	profileThresholds: Record<string, number>
 	currentProfileId: string
+	enableManualReview?: boolean
 }
 
-type TruncateResponse = SummarizeResponse & { prevContextTokens: number }
+type TruncateResponse = SummarizeResponse & {
+	prevContextTokens: number
+	shouldTriggerManualReview?: boolean
+	metadata?: {
+		contextSize: number
+		triggerReason: "manual" | "automatic" | "aggressive"
+		timestamp: number
+	}
+}
+
+export type { TruncateResponse }
 
 /**
  * Conditionally truncates the conversation messages if the total token count
@@ -102,6 +113,7 @@ export async function truncateConversationIfNeeded({
 	condensingApiHandler,
 	profileThresholds,
 	currentProfileId,
+	enableManualReview,
 }: TruncateOptions): Promise<TruncateResponse> {
 	let error: string | undefined
 	let cost = 0
@@ -142,6 +154,27 @@ export async function truncateConversationIfNeeded({
 	}
 	// If no specific threshold is found for the profile, fall back to global setting
 
+	// Check if manual review is enabled and should be triggered instead of automatic compression
+	if (enableManualReview) {
+		const contextPercent = (100 * prevContextTokens) / contextWindow
+		if (contextPercent >= effectiveThreshold || prevContextTokens > allowedTokens) {
+			// Return response indicating manual review should be triggered with metadata
+			return {
+				messages,
+				summary: "",
+				cost,
+				prevContextTokens,
+				error,
+				shouldTriggerManualReview: true,
+				metadata: {
+					contextSize: prevContextTokens,
+					triggerReason: "manual",
+					timestamp: Date.now(),
+				},
+			}
+		}
+	}
+
 	if (autoCondenseContext) {
 		const contextPercent = (100 * prevContextTokens) / contextWindow
 		if (contextPercent >= effectiveThreshold || prevContextTokens > allowedTokens) {
@@ -160,7 +193,15 @@ export async function truncateConversationIfNeeded({
 				error = result.error
 				cost = result.cost
 			} else {
-				return { ...result, prevContextTokens }
+				return {
+					...result,
+					prevContextTokens,
+					metadata: {
+						contextSize: prevContextTokens,
+						triggerReason: "automatic",
+						timestamp: Date.now(),
+					},
+				}
 			}
 		}
 	}
@@ -168,8 +209,30 @@ export async function truncateConversationIfNeeded({
 	// Fall back to sliding window truncation if needed
 	if (prevContextTokens > allowedTokens) {
 		const truncatedMessages = truncateConversation(messages, 0.5, taskId)
-		return { messages: truncatedMessages, prevContextTokens, summary: "", cost, error }
+		return {
+			messages: truncatedMessages,
+			prevContextTokens,
+			summary: "",
+			cost,
+			error,
+			metadata: {
+				contextSize: prevContextTokens,
+				triggerReason: "aggressive",
+				timestamp: Date.now(),
+			},
+		}
 	}
 	// No truncation or condensation needed
-	return { messages, summary: "", cost, prevContextTokens, error }
+	return {
+		messages,
+		summary: "",
+		cost,
+		prevContextTokens,
+		error,
+		metadata: {
+			contextSize: prevContextTokens,
+			triggerReason: "automatic",
+			timestamp: Date.now(),
+		},
+	}
 }

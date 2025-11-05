@@ -2590,6 +2590,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			maxConcurrentFileReads,
 			maxReadFileLine,
 			apiConfiguration,
+			enableManualReview,
 		} = state ?? {}
 
 		return await (async () => {
@@ -2674,6 +2675,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 		)
 
 		// Force aggressive truncation by keeping only 75% of the conversation history
+		const compressionState = await this.providerRef.deref()?.getState()
 		const truncateResult = await truncateConversationIfNeeded({
 			messages: this.apiConversationHistory,
 			totalTokens: contextTokens || 0,
@@ -2686,6 +2688,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 			taskId: this.taskId,
 			profileThresholds,
 			currentProfileId,
+			enableManualReview: (state as any)?.compressionState?.enableManualReview ?? false, // Use setting from state, default to false
 		})
 
 		if (truncateResult.messages !== this.apiConversationHistory) {
@@ -2786,9 +2789,11 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 			const contextWindow = modelInfo.contextWindow
 
+			const state = await this.providerRef.deref()?.getState()
+			const { enableManualReview } = state ?? {}
+
 			// Get the current profile ID using the helper method
 			const currentProfileId = this.getCurrentProfileId(state)
-
 			const truncateResult = await truncateConversationIfNeeded({
 				messages: this.apiConversationHistory,
 				totalTokens: contextTokens,

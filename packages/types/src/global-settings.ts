@@ -92,6 +92,7 @@ export const globalSettingsSchema = z.object({
 	autoCondenseContext: z.boolean().optional(),
 	autoCondenseContextPercent: z.number().optional(),
 	maxConcurrentFileReads: z.number().optional(),
+	enableManualReview: z.boolean().optional(),
 
 	/**
 	 * Whether to include current time in the environment details
@@ -353,6 +354,7 @@ export const EVALS_SETTINGS: RooCodeSettings = {
 	mode: "code", // "architect",
 
 	customModes: [],
+	enableManualReview: false,
 }
 
 export const EVALS_TIMEOUT = 5 * 60 * 1_000

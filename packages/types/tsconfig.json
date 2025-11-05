@@ -1,9 +1,10 @@
 {
-	"extends": "@roo-code/config-typescript/base.json",
+	"extends": "../config-typescript/base.json",
 	"compilerOptions": {
-		"types": ["vitest/globals"],
-		"outDir": "dist"
+		"types": ["node", "vitest/globals"],
+		"outDir": "dist",
+		"rootDir": "src"
 	},
-	"include": ["src", "scripts", "*.config.ts"],
+	"include": ["src"],
 	"exclude": ["node_modules"]
 }

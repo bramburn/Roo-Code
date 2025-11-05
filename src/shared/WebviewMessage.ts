@@ -179,6 +179,7 @@ export interface WebviewMessage {
 		| "maxDiagnosticMessages"
 		| "includeCurrentTime"
 		| "includeCurrentCost"
+		| "enableManualReview"
 		| "searchFiles"
 		| "toggleApiConfigPin"
 		| "setHistoryPreviewCollapsed"
@@ -244,12 +245,13 @@ export interface WebviewMessage {
 	images?: string[]
 	bool?: boolean
 	value?: number
+	alwaysAllow?: boolean
 	commands?: string[]
 	audioType?: AudioType
 	serverName?: string
 	toolName?: string
-	alwaysAllow?: boolean
 	isEnabled?: boolean
+	manualReviewEnabled?: boolean
 	mode?: Mode
 	promptMode?: PromptMode
 	customPrompt?: PromptComponent

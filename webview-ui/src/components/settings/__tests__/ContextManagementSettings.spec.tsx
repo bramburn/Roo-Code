@@ -97,8 +97,52 @@ describe("ContextManagementSettings", () => {
 		includeDiagnosticMessages: true,
 		maxDiagnosticMessages: 50,
 		writeDelayMs: 1000,
+		enableManualReview: false,
 		setCachedStateField: vi.fn(),
 	}
+
+	it("renders enable manual review checkbox", () => {
+		render(<ContextManagementSettings {...defaultProps} />)
+
+		// Check for enable manual review checkbox
+		expect(screen.getByTestId("enable-manual-review-checkbox")).toBeInTheDocument()
+	})
+
+	it("renders with enable manual review enabled", () => {
+		render(<ContextManagementSettings {...defaultProps} enableManualReview={true} />)
+
+		const checkbox = screen.getByTestId("enable-manual-review-checkbox")
+		expect(checkbox.querySelector("input")).toBeChecked()
+	})
+
+	it("renders with enable manual review disabled", () => {
+		render(<ContextManagementSettings {...defaultProps} enableManualReview={false} />)
+
+		const checkbox = screen.getByTestId("enable-manual-review-checkbox")
+		expect(checkbox.querySelector("input")).not.toBeChecked()
+	})
+
+	it("calls setCachedStateField when enable manual review checkbox is toggled", async () => {
+		const setCachedStateField = vi.fn()
+		render(<ContextManagementSettings {...defaultProps} setCachedStateField={setCachedStateField} />)
+
+		const checkbox = screen.getByTestId("enable-manual-review-checkbox").querySelector("input")!
+		fireEvent.click(checkbox)
+
+		await waitFor(() => {
+			expect(setCachedStateField).toHaveBeenCalledWith("enableManualReview", true)
+		})
+	})
+
+	it("renders enable manual review with proper label and description", () => {
+		render(<ContextManagementSettings {...defaultProps} />)
+
+		// Check for label
+		expect(screen.getByText("settings:contextManagement.enableManualReview.label")).toBeInTheDocument()
+
+		// Check for description
+		expect(screen.getByText("settings:contextManagement.enableManualReview.description")).toBeInTheDocument()
+	})
 
 	beforeEach(() => {
 		vi.clearAllMocks()

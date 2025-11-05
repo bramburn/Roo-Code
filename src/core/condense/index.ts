@@ -6,6 +6,9 @@ import { t } from "../../i18n"
 import { ApiHandler } from "../../api"
 import { ApiMessage } from "../task-persistence/apiMessages"
 import { maybeRemoveImageBlocks } from "../../api/transform/image-cleaning"
+import { ManualReviewManager } from "./manual-review"
+import { ContextFileManager } from "./context-file-manager"
+import { FileWatcher } from "./file-watcher"
 
 export const N_MESSAGES_TO_KEEP = 3
 export const MIN_CONDENSE_THRESHOLD = 5 // Minimum percentage of context window to trigger condensing
@@ -243,4 +246,126 @@ export function getMessagesSinceLastSummary(messages: ApiMessage[]): ApiMessage[
 	}
 
 	return messagesSinceSummary
+}
+
+/**
+ * Manually review context with user intervention
+ *
+ * @param {ApiMessage[]} messages - The conversation messages
+ * @param {ApiHandler} apiHandler - The API handler for token counting
+ * @param {string} systemPrompt - The system prompt for API requests
+ * @param {string} taskId - The task ID for telemetry
+ * @param {number} prevContextTokens - The number of tokens currently in the context
+ * @param {string} workspaceRoot - The workspace root directory
+ * @param {boolean} enableManualReview - Whether manual review is enabled
+ * @returns {Promise<SummarizeResponse>} - The result of the manual review operation
+ */
+export async function manualReviewContext(
+	messages: ApiMessage[],
+	apiHandler: ApiHandler,
+	systemPrompt: string,
+	taskId: string,
+	prevContextTokens: number,
+	workspaceRoot: string,
+	enableManualReview: boolean,
+): Promise<SummarizeResponse> {
+	TelemetryService.instance.captureContextCondensed(
+		taskId,
+		false, // Manual trigger
+		false, // No custom prompt
+		false, // No condensing API handler
+	)
+
+	const response: SummarizeResponse = { messages, cost: 0, summary: "" }
+
+	if (!enableManualReview) {
+		const error = "Manual review is not enabled"
+		return { ...response, error }
+	}
+
+	// Create manual review manager and components
+	const contextFileManager = new ContextFileManager(workspaceRoot)
+	const fileWatcher = new FileWatcher(contextFileManager.getContextReviewDir())
+	const manualReviewManager = new ManualReviewManager(
+		5 * 60 * 1000, // 5 minutes timeout
+		contextFileManager,
+		fileWatcher,
+	)
+
+	try {
+		// Start file watcher
+		await fileWatcher.start()
+
+		// Create context file and start manual review
+		const contextFile = await manualReviewManager.startManualReview(messages, {
+			contextSize: prevContextTokens,
+			triggerReason: "manual",
+			timestamp: Date.now(),
+			taskId,
+		})
+
+		// Wait for manual review to complete or timeout
+		return new Promise((resolve, reject) => {
+			const handleReviewComplete = ({
+				reason,
+				contextFile,
+				duration,
+			}: {
+				reason: string
+				contextFile?: string
+				duration: number
+			}) => {
+				console.log(`Manual review completed: ${reason} (duration: ${duration}ms)`)
+
+				// Clean up
+				manualReviewManager.dispose()
+				fileWatcher.dispose()
+
+				if (reason === "completed") {
+					// User completed the review, use the modified context
+					resolve({
+						messages,
+						summary: `Manual review completed successfully. Context file: ${contextFile}`,
+						cost: 0,
+					})
+				} else {
+					// Timeout or fallback - use intelligent compression
+					resolve({
+						messages,
+						summary: `Manual review ${reason}. Using intelligent compression instead.`,
+						cost: 0,
+					})
+				}
+			}
+
+			manualReviewManager.on("reviewComplete", handleReviewComplete)
+			manualReviewManager.on("statusChange", (status) => {
+				console.log(`Manual review status: ${status.state}`)
+			})
+
+			// Handle timeout
+			manualReviewManager.on("timeout", () => {
+				console.log("Manual review timed out")
+				handleReviewComplete({
+					reason: "timeout",
+					contextFile: manualReviewManager.getStatus().contextFile,
+					duration: 5 * 60 * 1000,
+				})
+			})
+
+			// Handle fallback
+			manualReviewManager.on("fallback", () => {
+				console.log("Manual review fallback triggered")
+				handleReviewComplete({
+					reason: "fallback",
+					contextFile: manualReviewManager.getStatus().contextFile,
+					duration: 0,
+				})
+			})
+		})
+	} catch (error) {
+		console.error("Manual review failed:", error)
+		const errorResponse = t("common:errors.condense_failed")
+		return { ...response, error: errorResponse }
+	}
 }

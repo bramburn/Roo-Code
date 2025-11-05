@@ -1680,6 +1680,10 @@ export const webviewMessageHandler = async (
 			await updateGlobalState("includeCurrentCost", message.bool ?? true)
 			await provider.postStateToWebview()
 			break
+		case "enableManualReview":
+			await updateGlobalState("enableManualReview", message.bool ?? false)
+			await provider.postStateToWebview()
+			break
 		case "maxDiagnosticMessages":
 			await updateGlobalState("maxDiagnosticMessages", message.value ?? 50)
 			await provider.postStateToWebview()

@@ -78,8 +78,7 @@ interface ChatRowProps {
 	hasCheckpoint?: boolean
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface ChatRowContentProps extends Omit<ChatRowProps, "onHeightChange"> {}
+type ChatRowContentProps = Omit<ChatRowProps, "onHeightChange">
 
 const ChatRow = memo(
 	(props: ChatRowProps) => {

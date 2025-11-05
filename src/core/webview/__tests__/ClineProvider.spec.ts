@@ -1099,6 +1099,28 @@ describe("ClineProvider", () => {
 		expect(mockPostMessage).toHaveBeenCalled()
 	})
 
+	test("handles enableManualReview message", async () => {
+		await provider.resolveWebviewView(mockWebviewView)
+		const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as any).mock.calls[0][0]
+
+		await messageHandler({ type: "enableManualReview", bool: true })
+
+		expect(updateGlobalStateSpy).toHaveBeenCalledWith("enableManualReview", true)
+		expect(mockContext.globalState.update).toHaveBeenCalledWith("enableManualReview", true)
+		expect(mockPostMessage).toHaveBeenCalled()
+	})
+
+	test("handles enableManualReview message with false value", async () => {
+		await provider.resolveWebviewView(mockWebviewView)
+		const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as any).mock.calls[0][0]
+
+		await messageHandler({ type: "enableManualReview", bool: false })
+
+		expect(updateGlobalStateSpy).toHaveBeenCalledWith("enableManualReview", false)
+		expect(mockContext.globalState.update).toHaveBeenCalledWith("enableManualReview", false)
+		expect(mockPostMessage).toHaveBeenCalled()
+	})
+
 	test("handles mode-specific custom instructions updates", async () => {
 		await provider.resolveWebviewView(mockWebviewView)
 		const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as any).mock.calls[0][0]

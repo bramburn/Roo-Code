@@ -127,6 +127,7 @@ export interface ExtensionMessage {
 		| "insertTextIntoTextarea"
 		| "dismissedUpsells"
 		| "organizationSwitchResult"
+		| "enableManualReview"
 	text?: string
 	payload?: any // Add a generic payload for now, can refine later
 	// Checkpoint warning message
@@ -296,6 +297,7 @@ export type ExtensionState = Pick<
 	| "reasoningBlockCollapsed"
 	| "includeCurrentTime"
 	| "includeCurrentCost"
+	| "enableManualReview"
 > & {
 	version: string
 	clineMessages: ClineMessage[]

@@ -630,6 +630,10 @@
 		"includeCurrentCost": {
 			"label": "Include current cost in context",
 			"description": "When enabled, the current API usage cost will be included in the system prompt. Disable this if models are stopping work due to cost concerns."
+		},
+		"enableManualReview": {
+			"label": "Enable manual context review",
+			"description": "When enabled, you will be prompted to review and approve context compression before it is applied. This gives you control over what information is sent to the AI model."
 		}
 	},
 	"terminal": {

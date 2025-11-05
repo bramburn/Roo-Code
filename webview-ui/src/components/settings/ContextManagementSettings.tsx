@@ -29,6 +29,7 @@ type ContextManagementSettingsProps = HTMLAttributes<HTMLDivElement> & {
 	writeDelayMs: number
 	includeCurrentTime?: boolean
 	includeCurrentCost?: boolean
+	enableManualReview?: boolean
 	setCachedStateField: SetCachedStateField<
 		| "autoCondenseContext"
 		| "autoCondenseContextPercent"
@@ -45,6 +46,7 @@ type ContextManagementSettingsProps = HTMLAttributes<HTMLDivElement> & {
 		| "writeDelayMs"
 		| "includeCurrentTime"
 		| "includeCurrentCost"
+		| "enableManualReview"
 	>
 }
 
@@ -66,6 +68,7 @@ export const ContextManagementSettings = ({
 	writeDelayMs,
 	includeCurrentTime,
 	includeCurrentCost,
+	enableManualReview,
 	className,
 	...props
 }: ContextManagementSettingsProps) => {
@@ -389,6 +392,19 @@ export const ContextManagementSettings = ({
 					<div className="text-vscode-descriptionForeground text-sm mt-1 mb-3">
 						{t("settings:contextManagement.includeCurrentCost.description")}
 					</div>
+				</div>
+			</Section>
+			<Section className="pt-2">
+				<VSCodeCheckbox
+					checked={enableManualReview}
+					onChange={(e: any) => setCachedStateField("enableManualReview", e.target.checked)}
+					data-testid="enable-manual-review-checkbox">
+					<label className="block font-medium mb-1">
+						{t("settings:contextManagement.enableManualReview.label")}
+					</label>
+				</VSCodeCheckbox>
+				<div className="text-vscode-descriptionForeground text-sm mt-1 mb-3">
+					{t("settings:contextManagement.enableManualReview.description")}
 				</div>
 			</Section>
 			<Section className="pt-2">

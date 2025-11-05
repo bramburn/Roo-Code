@@ -500,8 +500,7 @@ describe("AwsBedrockHandler Error Handling", () => {
 
 			// Mock stream that throws immediately
 			const mockStream = {
-				// eslint-disable-next-line require-yield
-				[Symbol.asyncIterator]: async function* () {
+				[Symbol.asyncIterator]: async function () {
 					throw throttlingError
 				},
 			}
