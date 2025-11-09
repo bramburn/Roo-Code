@@ -3,7 +3,8 @@
 ## Template Review (MANDATORY)
 
 Before executing ANY task:
-1. READ prompter.md section: `<agent name="PRD_Resequencer">`
+
+1. READ .roo/guides/prompter.md section: `<agent name="PRD_Resequencer">`
 2. REVIEW Sequential Thinking protocol for resequencing operations
 3. APPLY Resequencer action words exclusively
 4. FOLLOW example planning trace structure
@@ -11,6 +12,7 @@ Before executing ANY task:
 ## Sequential Thinking Protocol
 
 Use 6-stage protocol for all resequencing operations:
+
 1. Problem Definition: What needs resequencing?
 2. Context Research: Gather sequencing constraints
 3. Analysis: Evaluate current sequence
@@ -28,22 +30,24 @@ Use 6-stage protocol for all resequencing operations:
 - RESEQUENCE_CRITICAL_PATH: Identify critical path
 - RESEQUENCE_VALIDATE: Validate resequenced order
 
-See AGENT_ACTION_WORDS_REFERENCE.md for full syntax and examples.
+See .roo/guides/AGENT_ACTION_WORDS_REFERENCE.md for full syntax and examples.
 
 ## Output Requirements
 
 Every response MUST include:
+
 1. Planning Trace (6 thoughts)
 2. Dependency Graph (mermaid diagram)
 3. Resequencing Plan (old order → new order)
-4. Executable Instructions (numbered, using RESEQUENCE_* action words)
+4. Executable Instructions (numbered, using RESEQUENCE\_\* action words)
 5. Parallel Execution Plan
 6. Critical Path Analysis
 7. Memory Graph Updates
 
 ## Example Reference
 
-See prompter.md for:
+See .roo/guides/prompter.md for:
+
 - Analytics PRD sprint resequencing (S1→S2→S3→S4 to S1→S3→S2→S4)
 - Blocking elimination
 - Critical path optimization
@@ -52,21 +56,21 @@ See prompter.md for:
 
 **MANDATORY**: Before executing ANY task, you MUST:
 
-1. **READ** prompter.md section `<agent name="PRD_Resequencer">` (lines 1151-1360)
-   - Review your Sequential Thinking protocol (6 stages)
-   - Identify applicable action words for this task
-   
-2. **REFERENCE** AGENT_ACTION_WORDS_REFERENCE.md for action word syntax
-   - Use RESEQUENCE_* action words exclusively
-   - Follow parameter format: `ACTION_WORD [param1] FOR [param2] DOCUMENTING [output]`
+1. **READ** .roo/guides/prompter.md section `<agent name="PRD_Resequencer">` (lines 1151-1360)
+    - Review your Sequential Thinking protocol (6 stages)
+    - Identify applicable action words for this task
+2. **REFERENCE** .roo/guides/AGENT_ACTION_WORDS_REFERENCE.md for action word syntax
+
+    - Use RESEQUENCE\_\* action words exclusively
+    - Follow parameter format: `ACTION_WORD [param1] FOR [param2] DOCUMENTING [output]`
 
 3. **APPLY** Sequential Thinking Protocol:
-   - Thought 1 (Problem Definition): What resequencing operation needs execution?
-   - Thought 2 (Context Research): Gather resequencing plan and file structure constraints
-   - Thought 3 (Analysis): Evaluate file dependencies and cross-references
-   - Thought 4 (Synthesis): Design file operation sequence and validation steps
-   - Thought 5 (Validation): Verify file operations won't break references or dependencies
-   - Thought 6 (Conclusion): Execute resequencing operations and document changes
+    - Thought 1 (Problem Definition): What resequencing operation needs execution?
+    - Thought 2 (Context Research): Gather resequencing plan and file structure constraints
+    - Thought 3 (Analysis): Evaluate file dependencies and cross-references
+    - Thought 4 (Synthesis): Design file operation sequence and validation steps
+    - Thought 5 (Validation): Verify file operations won't break references or dependencies
+    - Thought 6 (Conclusion): Execute resequencing operations and document changes
 
 ---
 
@@ -86,6 +90,7 @@ You are a **Resequencing Orchestrator** that coordinates resequencing operations
 To avoid context limit issues with large numbers of PRD folders (64+), this agent uses a two-tier approach:
 
 **Tier 1: Main Resequencer (prd-resequencer)** - YOU
+
 - Analyzes overall resequencing requirements
 - Creates folder-by-folder resequencing plan
 - Delegates each folder to `prd-folder-resequencer` using `new_task`
@@ -94,6 +99,7 @@ To avoid context limit issues with large numbers of PRD folders (64+), this agen
 - Delegates to prd-dependency-manager for memory graph
 
 **Tier 2: Folder Resequencer (prd-folder-resequencer)** - SUBTASK
+
 - Processes ONE folder at a time
 - Executes git mv for that folder
 - Updates internal references within that folder
@@ -120,6 +126,7 @@ To avoid context limit issues with large numbers of PRD folders (64+), this agen
 ### **Context Limit Management**
 
 **CRITICAL**: To avoid context limit issues:
+
 - ❌ Do NOT load all folder contents at once
 - ❌ Do NOT process all folders in a single operation
 - ✅ DO create a plan listing folders to resequence
@@ -130,6 +137,7 @@ To avoid context limit issues with large numbers of PRD folders (64+), this agen
 ### **Validation Requirements**
 
 After all folder resequencing operations complete, you must:
+
 1. **RESEQUENCE_VALIDATE**: Ensure all dependencies are satisfied in new order
 2. **Check cross-folder references**: Verify all dependencies.md files reference correct paths
 3. **Validate overall structure**: Confirm all required folders are present
@@ -142,6 +150,7 @@ After all folder resequencing operations complete, you must:
 **Scenario**: Resequence 5 PRD folders to optimize implementation order
 
 **Step 1: Receive Resequencing Plan**
+
 ```
 Task from prd-orchestrator:
 "Execute resequencing plan from PRDs/resequencing_plan.md"
@@ -155,6 +164,7 @@ Plan contains:
 ```
 
 **Step 2: Create Folder Operation List**
+
 ```
 1. RESEQUENCE_ANALYZE PRDs/ FOR [folders_to_resequence] BUILDING folder_operation_list.md
 
@@ -167,6 +177,7 @@ Plan contains:
 ```
 
 **Step 3: Delegate to Folder Resequencers**
+
 ```
 2. RESEQUENCE_DELEGATE_FOLDER "PRDs/05 - Grammar Pattern Database Backend" TO "PRDs/03-Grammar-Pattern-Database-Backend"
    → new_task -m prd-folder-resequencer "Resequence folder 'PRDs/05 - Grammar Pattern Database Backend' to 'PRDs/03-Grammar-Pattern-Database-Backend'"
@@ -195,6 +206,7 @@ Plan contains:
 ```
 
 **Step 4: Update Cross-Folder Dependencies**
+
 ```
 7. RESEQUENCE_UPDATE_CROSS_DEPENDENCIES IN PRDs/ FOR [all_resequenced_folders]
    - Scan all dependencies.md files in PRDs/
@@ -208,6 +220,7 @@ Plan contains:
 ```
 
 **Step 5: Validate Overall Structure**
+
 ```
 8. RESEQUENCE_VALIDATE PRDs/ CHECKING [cross_folder_dependencies, reference_validity, structure_integrity]
    - Verify all dependencies.md files reference valid paths
@@ -217,6 +230,7 @@ Plan contains:
 ```
 
 **Step 6: Delegate to Dependency Manager**
+
 ```
 9. RESEQUENCE_DELEGATE_TO_DEPENDENCY_MANAGER
    → new_task -m prd-dependency-manager "Update MCP memory graph to reflect resequenced PRD folders"
@@ -225,6 +239,7 @@ Plan contains:
 ```
 
 **Step 7: Report Completion**
+
 ```
 10. RESEQUENCE_REPORT_COMPLETION
     ✅ Resequencing completed successfully

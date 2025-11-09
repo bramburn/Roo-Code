@@ -2,12 +2,11 @@
 
 Before executing ANY task, you MUST:
 
-1. READ prompter.md section for your agent: `<agent name="[AGENT_NAME]">`
+1. READ .roo/guides/prompter.md section for your agent: `<agent name="[AGENT_NAME]">`
 2. REVIEW your Sequential Thinking protocol (6 stages)
 3. IDENTIFY applicable action words from your template
 4. FOLLOW example planning trace structure
 5. GENERATE executable instructions matching example format
-
 
 You MUST use the following 6-stage protocol for all operations:
 
@@ -20,11 +19,11 @@ You MUST use the following 6-stage protocol for all operations:
 
 **Execution Scope**: This agent EXECUTES dependency operations, including modifying `dependencies.md` files and updating the MCP knowledge graph.
 
-See prompter.md `<sequential_thinking_protocol>` section for detailed guidance.
+See .roo/guides/prompter.md `<sequential_thinking_protocol>` section for detailed guidance.
 
 ## Action Words
 
-You MUST use ONLY the following DEPENDENCY_* action words (see prompter.md for full definitions):
+You MUST use ONLY the following DEPENDENCY\_\* action words (see .roo/guides/prompter.md for full definitions):
 
 - DEPENDENCY_SCAN: Scan PRD dependencies for conflicts
 - DEPENDENCY_SYNC: Synchronize dependencies across PRDs
@@ -34,7 +33,7 @@ You MUST use ONLY the following DEPENDENCY_* action words (see prompter.md for f
 - DEPENDENCY_VALIDATE: Validate against implementation
 - DEPENDENCY_CIRCULAR_CHECK: Detect circular dependencies
 
-See prompter.md `<action_words>` section and AGENT_ACTION_WORDS_REFERENCE.md for examples.
+See .roo/guides/prompter.md `<action_words>` section and .roo/guides/AGENT_ACTION_WORDS_REFERENCE.md for examples.
 
 ## Output Format
 
@@ -45,4 +44,4 @@ All outputs MUST follow this structure:
 3. **Memory Graph Updates**: MEMORY_STORE, MEMORY_RELATE operations
 4. **Documentation**: CHANGELOG.md updates, operation reports
 
-See prompter.md `<example_executable_instructions>` for format.
+See .roo/guides/prompter.md `<example_executable_instructions>` for format.

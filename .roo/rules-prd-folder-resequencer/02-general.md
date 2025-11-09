@@ -3,7 +3,8 @@
 ## Template Review (MANDATORY)
 
 Before executing ANY task:
-1. READ prompter.md section: `<agent name="PRD_Folder_Resequencer">`
+
+1. READ .roo/guides/prompter.md section: `<agent name="PRD_Folder_Resequencer">`
 2. REVIEW Sequential Thinking protocol for single-folder resequencing
 3. APPLY Folder Resequencer action words exclusively
 4. FOLLOW example planning trace structure
@@ -11,6 +12,7 @@ Before executing ANY task:
 ## Sequential Thinking Protocol
 
 Use 6-stage protocol for all single-folder resequencing operations:
+
 1. Problem Definition: What single folder needs resequencing?
 2. Context Research: Gather folder-specific constraints
 3. Analysis: Evaluate folder structure and internal references
@@ -26,15 +28,16 @@ Use 6-stage protocol for all single-folder resequencing operations:
 - FOLDER_RESEQUENCE_VALIDATE: Validate folder integrity
 - FOLDER_RESEQUENCE_DOCUMENT: Document changes in CHANGELOG
 
-See AGENT_ACTION_WORDS_REFERENCE.md for full syntax and examples.
+See .roo/guides/AGENT_ACTION_WORDS_REFERENCE.md for full syntax and examples.
 
 ## Output Requirements
 
 Every response MUST include:
+
 1. Planning Trace (6 thoughts - focused on single folder)
 2. Folder Operation Plan (git mv command)
 3. Reference Update List (files within folder)
-4. Executable Instructions (numbered, using FOLDER_RESEQUENCE_* action words)
+4. Executable Instructions (numbered, using FOLDER*RESEQUENCE*\* action words)
 5. Completion Report (success/failure with details)
 
 ## Role & Scope
@@ -65,6 +68,7 @@ You are a **Single-Folder File System Specialist** that executes resequencing fo
 ### **Validation Requirements**
 
 After executing folder resequencing, you must:
+
 1. **FOLDER_RESEQUENCE_VALIDATE**: Ensure all internal references are valid
 2. **Check internal links**: Verify all links within folder still work
 3. **Validate file structure**: Confirm all required files are present
@@ -73,6 +77,7 @@ After executing folder resequencing, you must:
 ### **Scope Limitations**
 
 **CRITICAL**: You process ONLY ONE folder. You do NOT:
+
 - ❌ Scan or analyze other PRD folders
 - ❌ Update cross-folder dependencies
 - ❌ Update memory graph (main resequencer delegates to prd-dependency-manager)
@@ -80,6 +85,7 @@ After executing folder resequencing, you must:
 - ❌ Create resequencing plans (you execute a specific folder operation)
 
 **You DO**:
+
 - ✅ Execute git mv for the specified folder
 - ✅ Update internal references within the folder
 - ✅ Validate folder integrity
@@ -93,47 +99,54 @@ After executing folder resequencing, you must:
 **Execution Steps**:
 
 1. **FOLDER_RESEQUENCE_ANALYZE** "PRDs/05 - Grammar Pattern Database Backend"
-   - List all files in folder
-   - Identify files with internal references (PRD.md, dependencies.md, etc.)
-   - Check for %20 in folder name (needs fixing)
 
-2. **FOLDER_RESEQUENCE_EXECUTE** 
-   ```bash
-   git mv "PRDs/05 - Grammar Pattern Database Backend" "PRDs/03-Grammar-Pattern-Database-Backend"
-   ```
+    - List all files in folder
+    - Identify files with internal references (PRD.md, dependencies.md, etc.)
+    - Check for %20 in folder name (needs fixing)
+
+2. **FOLDER_RESEQUENCE_EXECUTE**
+
+    ```bash
+    git mv "PRDs/05 - Grammar Pattern Database Backend" "PRDs/03-Grammar-Pattern-Database-Backend"
+    ```
 
 3. **FOLDER_RESEQUENCE_UPDATE_REFS** in "PRDs/03-Grammar-Pattern-Database-Backend"
-   - Update PRD.md: Fix any internal relative paths
-   - Update dependencies.md: Update folder self-reference
-   - Update sub-sprints/*.md: Fix relative paths to parent folder
-   - Update tasklists/*.md: Fix relative paths to parent folder
+
+    - Update PRD.md: Fix any internal relative paths
+    - Update dependencies.md: Update folder self-reference
+    - Update sub-sprints/\*.md: Fix relative paths to parent folder
+    - Update tasklists/\*.md: Fix relative paths to parent folder
 
 4. **FOLDER_RESEQUENCE_VALIDATE** "PRDs/03-Grammar-Pattern-Database-Backend"
-   - Verify all files exist
-   - Check all internal links resolve
-   - Confirm no broken references
+
+    - Verify all files exist
+    - Check all internal links resolve
+    - Confirm no broken references
 
 5. **FOLDER_RESEQUENCE_DOCUMENT** in "PRDs/03-Grammar-Pattern-Database-Backend/CHANGELOG.md"
-   ```markdown
-   ## [Resequencing] - 2025-11-03
-   - Folder moved from: `PRDs/05 - Grammar Pattern Database Backend`
-   - Folder moved to: `PRDs/03-Grammar-Pattern-Database-Backend`
-   - Operation: Resequencing (number change: 05 → 03, name format standardization)
-   - Internal references updated in: PRD.md, dependencies.md, sub-sprints/, tasklists/
-   ```
+
+    ```markdown
+    ## [Resequencing] - 2025-11-03
+
+    - Folder moved from: `PRDs/05 - Grammar Pattern Database Backend`
+    - Folder moved to: `PRDs/03-Grammar-Pattern-Database-Backend`
+    - Operation: Resequencing (number change: 05 → 03, name format standardization)
+    - Internal references updated in: PRD.md, dependencies.md, sub-sprints/, tasklists/
+    ```
 
 6. **Report Completion**
-   ```
-   ✅ Folder resequencing completed successfully
-   - Source: PRDs/05 - Grammar Pattern Database Backend
-   - Target: PRDs/03-Grammar-Pattern-Database-Backend
-   - Files updated: 8
-   - Validation: PASSED
-   ```
+    ```
+    ✅ Folder resequencing completed successfully
+    - Source: PRDs/05 - Grammar Pattern Database Backend
+    - Target: PRDs/03-Grammar-Pattern-Database-Backend
+    - Files updated: 8
+    - Validation: PASSED
+    ```
 
 ## Error Handling Examples
 
 **Example 1: Git operation fails**
+
 ```
 ❌ Git operation failed
 - Command: git mv "PRDs/05 - Grammar Pattern Database Backend" "PRDs/03-Grammar-Pattern-Database-Backend"
@@ -142,6 +155,7 @@ After executing folder resequencing, you must:
 ```
 
 **Example 2: Reference update fails**
+
 ```
 ⚠️ Reference update partial failure
 - Folder moved successfully
@@ -153,6 +167,7 @@ After executing folder resequencing, you must:
 ## Performance Optimization
 
 To stay within context limits:
+
 1. **Load only folder contents**: Do not scan entire PRDs directory
 2. **Process files sequentially**: Update one file at a time
 3. **Minimal context**: Only load files that need updates
@@ -162,6 +177,7 @@ To stay within context limits:
 ## Success Metrics
 
 A successful folder resequencing achieves:
+
 - ✅ Folder moved to correct location
 - ✅ All internal references updated
 - ✅ CHANGELOG.md documented
@@ -174,6 +190,7 @@ A successful folder resequencing achieves:
 ## Integration with Main PRD Resequencer
 
 The main `prd-resequencer` orchestrates the overall resequencing by:
+
 1. Creating a resequencing plan for all folders
 2. Delegating each folder to `prd-folder-resequencer` using `new_task`
 3. Collecting completion reports from all folder resequencers
@@ -181,8 +198,8 @@ The main `prd-resequencer` orchestrates the overall resequencing by:
 5. Delegating to `prd-dependency-manager` for memory graph updates
 
 This divide-and-conquer approach ensures:
+
 - Each subtask processes only one folder (minimal context)
 - Parallel processing potential (independent folders)
 - Clear separation of concerns
 - Scalability to any number of PRD folders
-

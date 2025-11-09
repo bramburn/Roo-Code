@@ -166,3 +166,82 @@ interface ContextReviewFile {
 - Context file monitoring: < 10MB additional memory
 - File watching: < 5MB additional memory
 - UI components: < 2MB additional memory
+
+## Cross-PRD Dependencies
+
+### Related PRDs
+
+#### PRD 03: Tool Call Retry Mechanism Enhancement
+
+- **Location**: `../03-tool-call-retry-mechanism/`
+- **Relationship**: Error Handling Pattern Sharing
+- **Shared Dependencies**:
+    - Error Handling Framework (`src/core/error-handling/`)
+    - Context Management System (`src/core/context-compression/`)
+    - Settings Infrastructure (experimental settings framework)
+    - Performance Monitoring (`src/core/monitoring/`)
+- **Integration Points**:
+    - Context optimization strategies for retry attempts
+    - Error classification and recovery patterns
+    - Settings persistence and management
+    - Performance monitoring for retry operations
+- **Coordination Opportunities**:
+    - Shared error handling improvements
+    - Coordinated context optimization for retries
+    - Joint performance monitoring tools
+    - Common testing patterns for error scenarios
+- **Conflict Risk**: Low - Complementary features with shared infrastructure
+- **Implementation Strategy**: Independent development with error handling coordination
+
+#### PRD 02: CodeIndexManager Initialization Fix
+
+- **Location**: `../02-codeindex-manager-initialization-fix/`
+- **Relationship**: Infrastructure Sharing
+- **Shared Dependencies**:
+    - Error Handling Framework (`src/core/error-handling/`)
+    - Logging Infrastructure (`src/core/logging/`)
+    - Performance Monitoring (`src/core/monitoring/`)
+    - Testing Infrastructure (Jest, Testing Library)
+- **Integration Points**:
+    - Error categorization and logging
+    - User-friendly error message formatting
+    - Error recovery mechanisms
+    - Performance metrics logging
+- **Coordination Opportunities**:
+    - Joint improvements to shared error handling framework
+    - Coordinated logging infrastructure enhancements
+    - Shared performance monitoring tools and metrics
+    - Common testing patterns and utilities
+- **Conflict Risk**: Low - Different technical domains with shared infrastructure
+- **Implementation Strategy**: Independent development with infrastructure coordination
+
+### Infrastructure Coordination
+
+#### Shared Error Handling Framework
+
+- **Current Status**: Both PRDs depend on existing error handling infrastructure
+- **Coordination Need**: Ensure error handling enhancements support both context compression errors and tool call retry errors
+- **Integration Points**:
+    - Error categorization and logging
+    - User-friendly error message formatting
+    - Error recovery mechanisms
+
+#### Shared Logging Infrastructure
+
+- **Current Status**: Both PRDs require comprehensive logging for monitoring and debugging
+- **Coordination Need**: Ensure logging patterns are consistent across both features
+- **Integration Points**:
+    - Context compression event logging (PRD 01)
+    - Retry attempt logging (PRD 03)
+    - Performance metrics logging
+    - Debug information formatting
+
+#### Shared Performance Monitoring
+
+- **Current Status**: Both PRDs require performance monitoring with specific targets
+- **Coordination Need**: Ensure monitoring tools can track both context compression performance and retry performance
+- **Integration Points**:
+    - Performance metrics collection
+    - Real-time monitoring dashboards
+    - Performance regression detection
+    - Resource usage tracking

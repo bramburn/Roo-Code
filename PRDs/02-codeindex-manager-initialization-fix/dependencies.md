@@ -365,3 +365,92 @@
 - Cross-PRD dependency tracking
 - Joint testing strategy documentation
 - Shared performance monitoring dashboards
+
+## Updated Cross-PRD Dependencies
+
+### Related PRDs
+
+#### PRD 03: Tool Call Retry Mechanism Enhancement
+
+- **Location**: `../03-tool-call-retry-mechanism/`
+- **Relationship**: Initialization Error Handling Patterns
+- **Shared Dependencies**:
+    - Error Handling Framework (`src/core/error-handling/`)
+    - Logging Infrastructure (`src/core/logging/`)
+    - Performance Monitoring (`src/core/monitoring/`)
+    - Testing Infrastructure (Jest, Testing Library)
+- **Integration Points**:
+    - Error classification for initialization failures vs tool call failures
+    - Retry strategies for initialization errors
+    - Logging patterns for error tracking and debugging
+    - Performance monitoring for retry vs initialization timing
+- **Coordination Opportunities**:
+    - Shared error handling framework enhancements
+    - Coordinated logging infrastructure improvements
+    - Joint performance monitoring for system reliability
+    - Common testing patterns for error recovery
+- **Conflict Risk**: Low - Different error domains with shared infrastructure
+- **Implementation Strategy**: Independent development with infrastructure coordination
+
+### Updated Infrastructure Coordination
+
+#### Enhanced Error Handling Framework
+
+- **Current Status**: All three PRDs depend on existing error handling infrastructure
+- **Coordination Need**: Ensure error handling enhancements support context compression, initialization errors, and tool call retries
+- **Integration Points**:
+    - Error categorization and logging across all three domains
+    - User-friendly error message formatting
+    - Error recovery mechanisms for different failure types
+    - Retry vs initialization vs context error handling patterns
+
+#### Enhanced Logging Infrastructure
+
+- **Current Status**: All three PRDs require comprehensive logging for monitoring and debugging
+- **Coordination Need**: Ensure logging patterns are consistent across all features
+- **Integration Points**:
+    - Retry attempt logging (PRD 03)
+    - Initialization status logging (PRD 02)
+    - Context compression event logging (PRD 01)
+    - Performance metrics logging across all features
+    - Debug information formatting and standardization
+
+#### Enhanced Performance Monitoring
+
+- **Current Status**: All three PRDs require performance monitoring with specific targets
+- **Coordination Need**: Ensure monitoring tools can track retry performance, initialization performance, and context compression performance
+- **Integration Points**:
+    - Performance metrics collection across all three domains
+    - Real-time monitoring dashboards
+    - Performance regression detection
+    - Resource usage tracking for retries, initialization, and compression
+    - System-wide performance insights and optimization
+
+### Updated Implementation Coordination Strategy
+
+#### Phase 1: Independent Development
+
+- All three PRDs proceed with independent development
+- Infrastructure dependencies are tracked but not modified
+- Regular coordination meetings to identify shared improvement opportunities
+
+#### Phase 2: Infrastructure Coordination
+
+- Review infrastructure improvements from all three PRDs
+- Identify opportunities for joint enhancements
+- Coordinate infrastructure changes to avoid conflicts
+- Ensure error handling patterns are consistent across all domains
+
+#### Phase 3: Integration Testing
+
+- Joint integration testing of shared infrastructure components
+- Validate that all three PRDs work correctly with shared infrastructure
+- Performance testing across all features
+- End-to-end testing for combined error handling scenarios
+
+#### Phase 4: Deployment Coordination
+
+- Coordinate deployment schedules if infrastructure changes are required
+- Monitor system-wide performance after deployment
+- Coordinate any necessary infrastructure rollbacks
+- Ensure all three features work correctly in production
