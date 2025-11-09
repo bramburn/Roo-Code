@@ -25,6 +25,14 @@ vi.mock("react-i18next", () => ({
 	},
 }))
 
+// Mock TranslationContext to provide TranslationProvider
+vi.mock("@src/i18n/TranslationContext", () => ({
+	TranslationProvider: ({ children }: { children: React.ReactNode }) => children,
+	useAppTranslation: () => ({
+		t: (key: string) => key,
+	}),
+}))
+
 // Mock VSCodeBadge
 vi.mock("@vscode/webview-ui-toolkit/react", () => ({
 	VSCodeBadge: ({ children, ...props }: { children: React.ReactNode }) => <span {...props}>{children}</span>,

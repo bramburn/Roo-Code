@@ -1,0 +1,39 @@
+{
+	"startTime": "2025-11-07T14:43:57.377Z",
+	"endTime": "2025-11-07T14:48:41.334Z",
+	"totalTests": 3,
+	"passedTests": 0,
+	"failedTests": 3,
+	"coverage": null,
+	"suites": [
+		{
+			"name": "services/code-index/__tests__/manager.spec.ts",
+			"passed": 0,
+			"failed": 1,
+			"status": "ERROR",
+			"error": "Cannot read properties of null (reading 'split')"
+		},
+		{
+			"name": "services/code-index/__tests__/initialization.test.ts",
+			"passed": 0,
+			"failed": 1,
+			"status": "ERROR",
+			"error": "Cannot read properties of null (reading 'split')"
+		},
+		{
+			"name": "services/code-index/__tests__/access-guards.test.ts",
+			"passed": 0,
+			"failed": 1,
+			"status": "ERROR",
+			"error": "Cannot read properties of null (reading 'split')"
+		}
+	],
+	"duration": 172505,
+	"summary": {
+		"totalTests": 3,
+		"passedTests": 0,
+		"failedTests": 3,
+		"successRate": "0.00",
+		"coverageTarget": "NOT_MET"
+	}
+}

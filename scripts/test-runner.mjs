@@ -144,7 +144,7 @@ function showHelp() {
 	log('  --coverage               Generate coverage report')
 	log('  -w, --watch              Run tests in watch mode')
 	log('  -v, --verbose            Enable verbose output')
-	log'  -s, --silent              Silent mode (minimal output)')
+	log('  -s, --silent              Silent mode (minimal output)')
 	log('  --pattern <pattern>      Test file pattern to match')
 	log('  -b, --bail               Stop on first test failure')
 	log('  -r, --reporter <type>    Test reporter: default, verbose, json')

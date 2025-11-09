@@ -10,6 +10,7 @@ import { MarketplaceListView } from "../MarketplaceListView"
 import { ViewState } from "../MarketplaceViewStateManager"
 
 vi.mock("@/i18n/TranslationContext", () => ({
+	TranslationProvider: ({ children }: { children: React.ReactNode }) => children,
 	useAppTranslation: () => ({
 		t: (key: string) => key,
 	}),

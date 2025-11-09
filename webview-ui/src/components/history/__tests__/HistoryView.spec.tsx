@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@/utils/test-utils"
+import { renderWithWebview, screen, fireEvent } from "@/utils/test-utils"
 
 import { useExtensionState } from "@src/context/ExtensionStateContext"
 
@@ -8,6 +8,7 @@ vi.mock("@src/context/ExtensionStateContext")
 vi.mock("@src/utils/vscode")
 
 vi.mock("@src/i18n/TranslationContext", () => ({
+	TranslationProvider: ({ children }: { children: React.ReactNode }) => children,
 	useAppTranslation: () => ({
 		t: (key: string) => key,
 	}),
@@ -53,13 +54,16 @@ describe("HistoryView", () => {
 		expect(screen.getByPlaceholderText("history:searchPlaceholder")).toBeInTheDocument()
 	})
 
-	it("calls onDone when done button is clicked", () => {
+	it("calls onDone when done button is clicked", async () => {
 		const onDone = vi.fn()
-		render(<HistoryView onDone={onDone} />)
+		const { cleanup } = renderWithWebview(<HistoryView onDone={onDone} />)
 
 		const doneButton = screen.getByText("history:done")
 		fireEvent.click(doneButton)
 
 		expect(onDone).toHaveBeenCalled()
+
+		// Cleanup after test
+		await cleanup()
 	})
 })

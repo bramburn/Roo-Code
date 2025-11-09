@@ -14,11 +14,15 @@ export default defineConfig({
 		environment: "jsdom",
 		include: ["src/**/*.spec.ts", "src/**/*.spec.tsx"],
 		onConsoleLog,
-		// Configure React testing environment
+		// Configure React testing environment for React 18 concurrent features
 		environmentOptions: {
 			jsdom: {
 				resources: "usable",
 				runScripts: "dangerously",
+				url: "http://localhost",
+				pretendToBeVisual: true,
+				// Ensure proper browser globals for React 18
+				storageQuota: 1000000,
 			},
 		},
 		// Ensure proper test timeouts for React components

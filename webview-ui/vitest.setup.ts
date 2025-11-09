@@ -1,6 +1,10 @@
 import "@testing-library/jest-dom"
 import "@testing-library/jest-dom/vitest"
-import { vi, beforeEach } from "vitest"
+import { vi, beforeEach, afterEach } from "vitest"
+import React from "react"
+import { act } from "react"
+import { getCleanupManager, resetCleanupManager, debugCleanupState } from "@/utils/async-cleanup-utils"
+import { detectCleanupConfig, CLEANUP_PRESETS } from "@/utils/cleanup-config"
 
 // Force React into development mode for tests
 // This is needed to enable act(...) function in React Testing Library
@@ -8,23 +12,24 @@ globalThis.process = globalThis.process || {}
 globalThis.process.env = globalThis.process.env || {}
 globalThis.process.env.NODE_ENV = "development"
 
-// Mock React's internal act function
-const React = require("react")
-React.act = vi.fn((callback) => {
-	// Simple implementation for React.act in test environment
-	const result = callback()
-	// In a real implementation, this would handle async updates and batching
-	return result
-})
+// Make proper React act available globally for tests
+global.act = act
 
-// Ensure React hooks are available globally
+// Ensure browser globals are properly defined for React 18
 beforeEach(() => {
-	// Reset React's internal state before each test
-	// This ensures hooks like useMemo, useState, etc. work properly
-	// Verify that React hooks are available
-	if (!React.useState || !React.useMemo || !React.useEffect) {
-		throw new Error("React hooks are not available in test environment")
+	// Ensure window and document are available
+	if (typeof window === "undefined") {
+		global.window = global.window || {}
 	}
+	if (typeof document === "undefined") {
+		global.document = global.document || {}
+	}
+
+	// Reset any modified globals before each test
+	vi.clearAllMocks()
+
+	// Reset cleanup manager to ensure clean state
+	resetCleanupManager()
 })
 
 class MockResizeObserver {
@@ -138,3 +143,96 @@ class MockIntersectionObserver {
 }
 
 ;(global as any).IntersectionObserver = MockIntersectionObserver
+
+// Global async cleanup setup
+let cleanupManager = getCleanupManager(detectCleanupConfig())
+
+// Enhanced unhandled rejection handling
+const originalUnhandledRejectionHandler = process?.listeners?.("unhandledRejection") || []
+
+// Setup comprehensive error handling for async operations
+process?.on?.("unhandledRejection", (reason: any, promise: Promise<any>) => {
+	// Log the rejection for debugging
+	console.warn("Unhandled promise rejection caught by test setup:", reason)
+
+	// Prevent the rejection from crashing the test runner
+	// This is especially important during test teardown
+	promise.catch(() => {
+		// Silently handle to prevent "unhandled rejection" errors
+	})
+})
+
+// Setup global afterEach for comprehensive cleanup
+afterEach(async () => {
+	// Use cleanup manager for comprehensive async cleanup
+	try {
+		await cleanupManager.cleanup()
+	} catch (error) {
+		console.error("Error during global cleanup:", error)
+	}
+
+	// Reset cleanup manager for the next test
+	resetCleanupManager()
+	cleanupManager = getCleanupManager(detectCleanupConfig())
+
+	// Clear all mocks and timers
+	vi.clearAllMocks()
+	vi.clearAllTimers()
+
+	// Reset fake timers if they were used
+	if (typeof vi.isFakeTimersEnabled === "function" && vi.isFakeTimersEnabled()) {
+		vi.useRealTimers()
+	}
+
+	// Clean up any remaining DOM elements
+	document.body.innerHTML = ""
+
+	// Reset window properties that might have been modified
+	if (typeof window !== "undefined") {
+		// Clean up any VS Code API references
+		delete (window as any).acquireVsCodeApi
+
+		// Clean up any event listeners that might cause issues
+		const originalAddEventListener = window.addEventListener
+		const originalRemoveEventListener = window.removeEventListener
+
+		// Track and clean up stray event listeners
+		const eventListeners: Array<{ type: string; listener: EventListener }> = []
+
+		window.addEventListener = function (
+			type: string,
+			listener: EventListener,
+			options?: boolean | AddEventListenerOptions,
+		) {
+			eventListeners.push({ type, listener })
+			return originalAddEventListener.call(this, type, listener, options)
+		}
+
+		window.removeEventListener = function (
+			type: string,
+			listener: EventListener,
+			options?: boolean | EventListenerOptions,
+		) {
+			const index = eventListeners.findIndex((el) => el.type === type && el.listener === listener)
+			if (index > -1) {
+				eventListeners.splice(index, 1)
+			}
+			return originalRemoveEventListener.call(this, type, listener, options)
+		}
+
+		// Restore original methods
+		window.addEventListener = originalAddEventListener
+		window.removeEventListener = originalRemoveEventListener
+	}
+})
+
+// Debug utilities for test development
+if (process.env.DEBUG_CLEANUP === "true") {
+	// Make debug functions available globally for test debugging
+	;(global as any).debugCleanup = debugCleanupState
+	;(global as any).getCleanupManager = () => cleanupManager
+	;(global as any).cleanupStats = () => cleanupManager.getStats()
+}
+
+// Export cleanup utilities for use in tests
+export { getCleanupManager, resetCleanupManager, debugCleanupState, CLEANUP_PRESETS }

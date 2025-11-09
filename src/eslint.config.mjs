@@ -30,6 +30,19 @@ export default [
 		},
 	},
 	{
+		files: ["services/code-index/__tests__/*.js"],
+		languageOptions: {
+			globals: {
+				require: "readonly",
+				console: "readonly",
+				process: "readonly",
+				__dirname: "readonly",
+				module: "writable",
+				exports: "writable",
+			},
+		},
+	},
+	{
 		ignores: ["webview-ui", "out"],
 	},
 ]

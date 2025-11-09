@@ -14,6 +14,13 @@ vi.mock("@src/context/ExtensionStateContext", () => ({
 	}),
 }))
 
+vi.mock("@src/i18n/TranslationContext", () => ({
+	TranslationProvider: ({ children }: { children: React.ReactNode }) => children,
+	useAppTranslation: () => ({
+		t: (key: string) => key,
+	}),
+}))
+
 describe("MarkdownBlock", () => {
 	it("should correctly handle URLs with trailing punctuation", async () => {
 		const markdown = "Check out this link: https://example.com."
