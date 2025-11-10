@@ -904,5 +904,46 @@
 			"output": "Output",
 			"cacheReads": "Cache reads"
 		}
+	},
+	"retryStatus": {
+		"idle": "Idle",
+		"retrying": "Retrying {{tool}} (attempt {{attempt}}/{{max}})",
+		"success": "Successfully completed {{tool}} after {{attempts}} attempts",
+		"failed": "Failed to complete {{tool}} after {{attempts}} attempts",
+		"cancelled": "Cancelled retry for {{tool}}",
+		"waiting": "Waiting {{time}} before next retry...",
+		"manualRetry": "Click to retry",
+		"cancelRetry": "Cancel retry",
+		"resetCircuitBreaker": "Reset Circuit Breaker",
+		"details": {
+			"tool": "Tool",
+			"attempts": "Attempts",
+			"delay": "Current delay",
+			"duration": "Total duration",
+			"errors": "Recent errors",
+			"moreErrors": "+{{count}} more errors"
+		},
+		"recovery": {
+			"errorOccurred": "Error Recovery",
+			"toolError": "Error occurred in {{tool}} operation",
+			"errorDetails": "Error Details",
+			"classification": "Error Classification",
+			"category": "Category",
+			"severity": "Severity",
+			"retryable": "Retryable",
+			"strategy": "Strategy",
+			"recommendedAction": "Recommended Action",
+			"action": "Action",
+			"originalError": "Original Error",
+			"retryable": "Retryable",
+			"immediateRetry": "Immediate Retry",
+			"waitAndRetry": "Wait and Retry",
+			"increaseTimeout": "Increase Timeout",
+			"checkPermissions": "Check Permissions",
+			"optimizeContextAndRetry": "Optimize Context and Retry",
+			"checkCredentials": "Check Credentials",
+			"checkCredentialsAndRetry": "Check Credentials and Retry",
+			"resetAndRetry": "Reset Circuit Breaker and Retry"
+		}
 	}
 }

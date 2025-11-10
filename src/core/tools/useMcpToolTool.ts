@@ -4,6 +4,7 @@ import { formatResponse } from "../prompts/responses"
 import { ClineAskUseMcpServer } from "../../shared/ExtensionMessage"
 import { McpExecutionStatus } from "@roo-code/types"
 import { t } from "../../i18n"
+import { RetryIntegration } from "./retry/RetryIntegration"
 
 interface McpToolParams {
 	server_name?: string
@@ -270,6 +271,16 @@ async function executeToolAndProcessResult(
 	pushToolResult(formatResponse.toolResult(toolResultPretty))
 }
 
+// Global retry integration instance
+let retryIntegration: RetryIntegration | null = null
+
+function getRetryIntegration(task: Task): RetryIntegration {
+	if (!retryIntegration) {
+		retryIntegration = new RetryIntegration(task.providerRef.deref()?.getState()?.retrySettings)
+	}
+	return retryIntegration
+}
+
 export async function useMcpToolTool(
 	cline: Task,
 	block: ToolUse,
@@ -278,6 +289,33 @@ export async function useMcpToolTool(
 	pushToolResult: PushToolResult,
 	removeClosingTag: RemoveClosingTag,
 ) {
+	// Check if retry is enabled for this tool
+	const retryInt = getRetryIntegration(cline)
+	if (retryInt.isRetryEnabled("use_mcp_tool", cline)) {
+		return retryInt.wrapToolExecution(
+			cline,
+			"use_mcp_tool",
+			useMcpToolWithRetry,
+			block,
+			askApproval,
+			handleError,
+			pushToolResult,
+			removeClosingTag,
+		)
+	}
+
+	// Execute without retry
+	return useMcpToolWithRetry(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
+}
+
+async function useMcpToolWithRetry(
+	cline: Task,
+	block: ToolUse,
+	askApproval: AskApproval,
+	handleError: HandleError,
+	pushToolResult: PushToolResult,
+	removeClosingTag: RemoveClosingTag,
+): Promise<void> {
 	try {
 		const params: McpToolParams = {
 			server_name: block.params.server_name,
@@ -329,3 +367,6 @@ export async function useMcpToolTool(
 		await handleError("executing MCP tool", error)
 	}
 }
+
+// Export retry integration for external use
+export { RetryIntegration } from "./retry/RetryIntegration"

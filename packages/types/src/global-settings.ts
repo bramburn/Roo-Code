@@ -16,6 +16,129 @@ import { customModePromptsSchema, customSupportPromptsSchema } from "./mode.js"
 import { languagesSchema } from "./vscode.js"
 
 /**
+ * Default retry configuration constants
+ */
+export const DEFAULT_MAX_RETRY_ATTEMPTS = 3
+export const DEFAULT_BASE_DELAY_MS = 1000
+export const DEFAULT_MAX_DELAY_MS = 30000
+export const DEFAULT_BACKOFF_MULTIPLIER = 2
+export const DEFAULT_JITTER_FACTOR = 0.1
+export const DEFAULT_RETRY_TIMEOUT_MS = 60000
+
+/**
+ * Minimum and maximum bounds for retry settings
+ */
+export const MIN_MAX_RETRY_ATTEMPTS = 2
+export const MAX_MAX_RETRY_ATTEMPTS = 10
+export const MIN_BASE_DELAY_MS = 100
+export const MAX_BASE_DELAY_MS = 10000
+export const MIN_MAX_DELAY_MS = 1000
+export const MAX_MAX_DELAY_MS = 300000
+export const MIN_BACKOFF_MULTIPLIER = 1.1
+export const MAX_BACKOFF_MULTIPLIER = 5
+export const MIN_JITTER_FACTOR = 0
+export const MAX_JITTER_FACTOR = 0.5
+export const MIN_RETRY_TIMEOUT_MS = 5000
+export const MAX_RETRY_TIMEOUT_MS = 300000
+
+/**
+ * Retry Settings Schema
+ *
+ * Configuration for tool call retry mechanism with exponential backoff and jitter.
+ * All settings are optional to maintain backward compatibility.
+ */
+export const retrySettingsSchema = z.object({
+	/**
+	 * Whether the retry mechanism is enabled
+	 * @default false
+	 */
+	enableRetry: z.boolean().optional(),
+
+	/**
+	 * Maximum number of retry attempts for failed tool calls
+	 * @min 2
+	 * @max 10
+	 * @default 3
+	 */
+	maxRetryAttempts: z.number().int().min(MIN_MAX_RETRY_ATTEMPTS).max(MAX_MAX_RETRY_ATTEMPTS).optional(),
+
+	/**
+	 * Base delay in milliseconds before the first retry attempt
+	 * @min 100
+	 * @max 10000
+	 * @default 1000
+	 */
+	baseDelayMs: z.number().int().min(MIN_BASE_DELAY_MS).max(MAX_BASE_DELAY_MS).optional(),
+
+	/**
+	 * Maximum delay in milliseconds between retry attempts
+	 * @min 1000
+	 * @max 300000
+	 * @default 30000
+	 */
+	maxDelayMs: z.number().int().min(MIN_MAX_DELAY_MS).max(MAX_MAX_DELAY_MS).optional(),
+
+	/**
+	 * Multiplier for exponential backoff calculation
+	 * @min 1.1
+	 * @max 5
+	 * @default 2
+	 */
+	backoffMultiplier: z.number().min(MIN_BACKOFF_MULTIPLIER).max(MAX_BACKOFF_MULTIPLIER).optional(),
+
+	/**
+	 * Jitter factor to add randomness to retry delays (0-0.5)
+	 * Helps prevent thundering herd problems
+	 * @min 0
+	 * @max 0.5
+	 * @default 0.1
+	 */
+	jitterFactor: z.number().min(MIN_JITTER_FACTOR).max(MAX_JITTER_FACTOR).optional(),
+
+	/**
+	 * Whether to enable context optimization during retries
+	 * Reduces context window size for retry attempts to improve success rate
+	 * @default true
+	 */
+	enableContextOptimization: z.boolean().optional(),
+
+	/**
+	 * Whether to enable manual retry prompts for users
+	 * Allows users to manually trigger retries for failed tool calls
+	 * @default true
+	 */
+	enableManualRetry: z.boolean().optional(),
+
+	/**
+	 * Timeout in milliseconds for individual retry attempts
+	 * @min 5000
+	 * @max 300000
+	 * @default 60000
+	 */
+	retryTimeoutMs: z.number().int().min(MIN_RETRY_TIMEOUT_MS).max(MAX_RETRY_TIMEOUT_MS).optional(),
+})
+
+/**
+ * Type definition for retry settings
+ */
+export type RetrySettings = z.infer<typeof retrySettingsSchema>
+
+/**
+ * Default retry settings configuration
+ */
+export const DEFAULT_RETRY_SETTINGS: RetrySettings = {
+	enableRetry: false,
+	maxRetryAttempts: DEFAULT_MAX_RETRY_ATTEMPTS,
+	baseDelayMs: DEFAULT_BASE_DELAY_MS,
+	maxDelayMs: DEFAULT_MAX_DELAY_MS,
+	backoffMultiplier: DEFAULT_BACKOFF_MULTIPLIER,
+	jitterFactor: DEFAULT_JITTER_FACTOR,
+	enableContextOptimization: true,
+	enableManualRetry: true,
+	retryTimeoutMs: DEFAULT_RETRY_TIMEOUT_MS,
+}
+
+/**
  * Default delay in milliseconds after writes to allow diagnostics to detect potential problems.
  * This delay is particularly important for Go and other languages where tools like goimports
  * need time to automatically clean up unused imports.
@@ -185,6 +308,12 @@ export const globalSettingsSchema = z.object({
 	hasOpenedModeSelector: z.boolean().optional(),
 	lastModeExportPath: z.string().optional(),
 	lastModeImportPath: z.string().optional(),
+
+	/**
+	 * Tool call retry mechanism settings
+	 * Provides configurable retry behavior for failed tool calls with exponential backoff
+	 */
+	retrySettings: retrySettingsSchema.optional(),
 })
 
 export type GlobalSettings = z.infer<typeof globalSettingsSchema>
@@ -355,6 +484,9 @@ export const EVALS_SETTINGS: RooCodeSettings = {
 
 	customModes: [],
 	enableManualReview: false,
+
+	// Retry settings defaults
+	retrySettings: DEFAULT_RETRY_SETTINGS,
 }
 
 export const EVALS_TIMEOUT = 5 * 60 * 1_000

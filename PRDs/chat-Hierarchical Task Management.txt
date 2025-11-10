@@ -1,0 +1,346 @@
+### USER
+based on the following content, can you do some research as to how we can best manage the roocode sub-task and parent delegation to allow multiple levels of sub-tasks to be started.
+
+[report]
+```
+The management of sub-tasks is a structured process facilitated by the `new_task` tool, primarily intended for breaking down complex workflows into discrete, delegable units. The system supports a hierarchical structure, allowing for tasks to have parents and, implicitly, grand-parents, although the sources do not explicitly confirm support for arbitrary, deep *sub-subtask* chains.
+
+Here is a detailed explanation of how sub-tasks are managed:
+
+### 1. Initiation and Delegation (The `new_task` Tool)
+
+The process begins when the Language Model (LLM) uses the **`new_task` tool** (found in `src/core/prompts/tools/new-task.ts` and `src/core/tools/newTaskTool.ts`) in the parent task's thread.
+
+*   **Tool Parameters:** When using the tool, the LLM must provide the **`mode`** (the specialized mode slug, e.g., "code," "debug," "architect") and the **`message`** (the initial instructions) for the new sub-task. Optionally, an initial list of `todos` can be included.
+*   **Delegation:** The `newTaskTool` function handles the creation of the new task instance by calling `task.startSubtask`.
+
+### 2. Parent Task Management (Pausing and Waiting)
+
+When a sub-task is successfully created, the parent task transitions into a waiting state:
+
+*   **Parent Paused:** The parent task's state variable `isPaused` is set to `true`.
+*   **Child Tracking:** The parent task records the ID of the new child task in its `childTaskId` property.
+*   **Mode Preservation:** The parent task records its current mode in `pausedModeSlug`, ensuring it can return to the correct operational mode upon resumption.
+*   **Event Emission:** The parent task emits two events: `TaskPaused` (for the parent) and `TaskSpawned` (for the child).
+*   **Blocking:** The parent task calls `waitForSubtask()`, which uses an internal interval loop (`pauseInterval`) to monitor the `isPaused` state. This prevents the parent's LLM agent loop from continuing until the sub-task is complete and `isPaused` is reset to `false`.
+
+### 3. Sub-task Execution
+
+The child task operates independently, guided by its new mode and the instructions delegated in the message parameter.
+
+*   **Root and Parent IDs:** The child task instance is initialized with `rootTaskId` (inherited from the parent) and `parentTaskId` (set to the parent's ID).
+*   **Mode Switch:** After creation, the parent temporarily switches the workspace mode to the child's designated mode (e.g., "code") to match the sub-task's environment.
+
+### 4. Completion and Resumption
+
+When the child task successfully completes its work, the flow reverses:
+
+*   **Child Completion:** The child task signals completion by using the **`attempt_completion` tool**, providing a concise yet thorough summary of the outcome in the `result` parameter. The child then calls `providerRef.deref()?.finishSubTask(result)`.
+*   **Resumption:** The parent task's `isPaused` flag is set back to `false` (usually within `finishSubTask`, though the source mentions `clearCurrentTask` uses `finishSubTask`).
+*   **Context Integration:** Upon resumption (when `waitForSubtask` resolves), the sub-task's final result (`lastMessage`) is added to the parent's conversation history. This ensures the LLM receives the outcome of the delegated work before determining the next step in the parent task. The `skipPrevResponseIdOnce` flag is set to ensure the next API call respects the full context including the sub-task result.
+*   **Mode Reversion:** The system checks if the global mode changed during the sub-task's run. If it did, it switches back to the parent's `pausedModeSlug`.
+
+### Does it Allow for Sub-Subtasks?
+
+The system supports a hierarchical chain of tasks:
+
+*   A task instance explicitly stores its `parentTaskId`.
+*   Crucially, the task also stores its `rootTaskId`, allowing tracking back to the original, top-level task.
+*   The system includes a special `Orchestrator` mode, whose custom instructions explicitly define its role as delegating complex tasks into logical **subtasks** using the `new_task` tool. The use of nested task creation within evaluation runs is also implied by the event system, which includes the `TaskSpawned` event.
+
+While the sources demonstrate Parent -> Child task relationships (tracked via `parentTask`, `rootTask`, and `childTaskId`), **the structure inherently supports nesting deeper** (A -> B -> C), as Task B can delegate a new task (Task C) and become Task C's parent, while maintaining A as the root. The *Orchestrator* prompt encourages breaking down tasks into subtasks, implying this multi-level delegation is a core feature of complex workflows.
+
+The **`TaskCompleted` event** payload explicitly includes a field indicating whether the completed task `isSubtask` (`isSubtask: z.boolean()`) and the API implementation records this based on the presence of a `parentTaskId` (`isSubtask: !!task.parentTaskId`), confirming that the system tracks this lineage.
+
+The system manages sub-tasks using the **`new_task` tool** to create a distinct, nested task instance, thereby facilitating complex, multi-step agentic workflows, especially when using the `orchestrator` mode.
+
+## 1. Sub-Task and Parent Management Flow (Mermaid Diagram)
+
+The following flowchart illustrates the key files, classes, tools, and events involved in spawning a new task (Sub-task) and resuming the originating task (Parent Task).
+
+```mermaid
+graph TD
+    subgraph Parent Task (P)
+        P[Parent Task Running] -- 1. Use new_task tool --> T[(newTaskTool.ts)];
+        T --> P_PAUSE{Task.startSubtask()};
+        P_PAUSE -- Pauses P --> A[P.isPaused = true];
+        P_PAUSE -- Tracks Child --> B[P.childTaskId = Child ID];
+        P_PAUSE -- Saves Mode --> C[P.pausedModeSlug = P.mode];
+        P_PAUSE -- Emits Event --> E_PAUSE(RooCodeEventName.TaskPaused);
+        P_PAUSE --> P_WAIT{Task.waitForSubtask()};
+        P_WAIT -- Blocking --> P_LOOP(recursivelyMakeClineRequests);
+    end
+
+    subgraph Child Task (C)
+        P_PAUSE -- 2. Create New Task --> C_INIT[Task.createTask()];
+        C_INIT -- Sets Lineage --> C_LINE[C.parentTaskId = P.taskId];
+        C_INIT -- Emits Event --> E_SPAWN(RooCodeEventName.TaskSpawned);
+        C_INIT --> C_RUN[Child Task Running in new Mode];
+        C_RUN -- 3. Use attempt_completion tool --> T_COMPLETE[(attemptCompletionTool.ts)];
+        T_COMPLETE --> P_RESUME{Task.completeSubtask(result)};
+    end
+
+    subgraph Resumption & Completion
+        P_RESUME -- Resets P State --> D[P.isPaused = false];
+        P_RESUME -- Adds Result to History --> F[Add Subtask Result to P.apiConversationHistory];
+        P_RESUME -- Ensures Context Refresh --> G[P.skipPrevResponseIdOnce = true];
+        P_RESUME -- Emits Event --> E_COMPLETE(RooCodeEventName.TaskCompleted);
+        P_RESUME -- Unblocks Parent --> P_LOOP;
+        P_LOOP --> H{Check P.mode == P.pausedModeSlug?};
+        H -- No --> H1[Switch Mode back to P.pausedModeSlug];
+        H -- Yes / Finished --> I[Parent Continues Execution];
+    end
+
+    style P_PAUSE fill:#D2E5FF,stroke:#333
+    style C_INIT fill:#C8E6C9,stroke:#333
+    style P_RESUME fill:#FFECB3,stroke:#333
+    style P_WAIT fill:#FFD2D2,stroke:#333
+    style A fill:#f9f,stroke:#333
+    style F fill:#E0BBE4,stroke:#333
+```
+
+## 2. Hierarchical Sub-tasks (Sub-subtasks)
+
+The architecture supports the creation of tasks that are both children (`parentTaskId`) and potential parents themselves, meaning sub-subtasks are inherently possible.
+
+*   Every task tracks its lineage through optional properties: `rootTaskId` and `parentTaskId`.
+*   When a child task (Sub-task) is created, it can, in turn, use the `new_task` tool to create its own child task (Sub-subtask), because the `Task` class implements the necessary methods (`startSubtask`, `waitForSubtask`, `completeSubtask`).
+*   The `TaskCompleted` event explicitly includes a property `isSubtask` (`z.boolean()`), which is determined by checking the presence of a `parentTaskId` (`!!task.parentTaskId`).
+
+## 3. Files Required for Sub-task Resolution
+
+Managing and executing sub-tasks primarily involves logic within the `Task` core class and the tool handler files:
+
+| Area | File Name | Purpose and Snippet Context |
+| :--- | :--- | :--- |
+| **Tool Definition** | `src/core/prompts/tools/new-task.ts` | Contains the definition for the LLM to call the tool, including required parameters: `mode` and `message`. |
+| **Tool Handler** | `src/core/tools/newTaskTool.ts` | Implements the execution logic, calls `task.startSubtask`. |
+| **Tool Handler** | `src/core/prompts/tools/attempt-completion.ts` | Used by the sub-task to signal that it has finished and contains the `result` that is sent back to the parent. |
+| **Task Core** | `src/core/task/Task.ts` | Contains the primary logic for `startSubtask`, `waitForSubtask`, and `completeSubtask`. It also holds the state variables like `isPaused`, `childTaskId`, and `pausedModeSlug`. |
+| **Task Core** | `src/core/task/__tests__/Task.spec.ts` | Contains unit tests validating the sub-task lifecycle, including checking the assignment of `rootTaskId` and `parentTaskId`. |
+| **Events/Types** | `src/shared/types/events.ts` | Defines the event `RooCodeEventName.TaskSpawned` and the event payload for `TaskCompleted`, which includes `isSubtask`. |
+
+### Snippet of Core Logic (`src/core/task/Task.ts` context)
+
+The context of the `Task` class demonstrates how the pause state and tracking variables are managed during sub-task initiation:
+
+```typescript
+// Context for Task properties
+readonly taskId: string
+readonly rootTaskId?: string
+readonly parentTaskId?: string
+childTaskId?: string // Tracks the ID of the spawned child task
+// ...
+isPaused: boolean = false // Set to true when a subtask is started
+pausedModeSlug: string = defaultModeSlug // Stores the parent's mode before switch
+// ...
+```
+
+The `startSubtask` method is responsible for instantiating the new task and halting the current (parent) task:
+
+```typescript
+// Snippet context from Task.ts
+public async startSubtask(message: string, initialTodos: TodoItem[], mode: string) {
+    const provider = this.providerRef.deref()
+    if (!provider) {
+        throw new Error("Provider not available")
+    }
+
+    const newTask = await provider.createTask(message, undefined, this, { initialTodos })
+
+    if (newTask) {
+        this.isPaused = true // Pause parent.
+        this.childTaskId = newTask.taskId
+        await provider.handleModeSwitch(mode) // Set child's mode.
+        await delay(500) // Allow mode change to take effect.
+        this.emit(RooCodeEventName.TaskPaused, this.taskId)
+        this.emit(RooCodeEventName.TaskSpawned, newTask.taskId)
+    }
+
+    return newTask
+}
+```
+```
+
+### ASSISTANT
+Based on the architectural analysis of RooCode's task management system, here's a research-backed strategy to optimize multi-level sub-task delegation while addressing key limitations in the current implementation:
+
+### Core Findings from System Analysis
+1. **Inherent Support for Deep Nesting**: 
+   - The `rootTaskId`/`parentTaskId` lineage tracking and recursive `Task` class methods (`startSubtask`/`waitForSubtask`) *technically* support arbitrary nesting depth
+   - **Critical Gap**: Mode switching uses global state (`provider.handleModeSwitch`), causing collisions in nested scenarios where multiple subtasks try to control workspace mode simultaneously
+
+2. **Blocking Mechanics Limit Concurrency**:
+   - Parent tasks use CPU-intensive polling (`pauseInterval`) while waiting, preventing parallel subtask execution
+   - No mechanism exists for siblings (multiple children of same parent) to run concurrently
+
+3. **State Corruption Risks**:
+   - Single `childTaskId` reference per task prevents tracking multiple children
+   - `pausedModeSlug` restoration assumes no intermediate mode changes by grandchildren
+
+### Optimized Architecture Recommendations
+
+#### 1. **Mode Isolation with Context Stacking** (Critical Fix)
+```typescript
+// src/core/task/TaskProvider.ts
+class TaskProvider {
+  private modeStack: {taskId: string, mode: string}[] = [];
+
+  async pushMode(taskId: string, mode: string) {
+    this.modeStack.push({taskId, mode});
+    await this.setGlobalMode(mode); // Actual workspace switch
+  }
+
+  async popMode(expectedTaskId: string) {
+    if (this.modeStack[this.modeStack.length-1].taskId !== expectedTaskId) {
+      throw new Error("Mode stack corruption detected");
+    }
+    this.modeStack.pop();
+    const newMode = this.modeStack.length > 0 
+      ? this.modeStack[this.modeStack.length-1].mode 
+      : defaultMode;
+    await this.setGlobalMode(newMode);
+  }
+}
+```
+**Implementation in Task.ts**:
+```typescript
+// Replace current mode handling in startSubtask/completeSubtask
+public async startSubtask(...) {
+  await provider.pushMode(this.taskId, mode); // Push to stack
+}
+
+public async completeSubtask(result: string) {
+  await provider.popMode(this.taskId); // Pop with verification
+}
+```
+
+#### 2. **Non-Blocking Hierarchy Management**
+- **Replace polling with event-driven resumption**:
+```typescript
+// Task.ts
+private subtaskCompletion = new EventEmitter();
+
+public async waitForSubtask() {
+  return new Promise<void>(resolve => {
+    this.subtaskCompletion.once('completed', () => {
+      this.isPaused = false;
+      resolve();
+    });
+  });
+}
+
+// In completeSubtask()
+this.subtaskCompletion.emit('completed');
+```
+
+- **Support sibling concurrency**:
+```typescript
+// Task.ts modifications
+childrenTaskIds: string[] = []; // Array instead of single childTaskId
+isPausedForChildren: boolean = false;
+
+public async startSubtask(..., concurrent: boolean = false) {
+  if (!concurrent) {
+    this.isPausedForChildren = true;
+    this.childrenTaskIds = [newTask.taskId]; // Reset for sequential
+  } else {
+    this.childrenTaskIds.push(newTask.taskId); // Append for parallel
+  }
+  // ... rest unchanged
+}
+
+// New method for parallel wait
+public async waitForAllChildren() {
+  return Promise.all(this.childrenTaskIds.map(id => 
+    provider.getTask(id).waitForCompletion()
+  ));
+}
+```
+
+#### 3. **Depth Control & Safety Mechanisms**
+```typescript
+// TaskProvider.ts
+MAX_NESTING_DEPTH = 5; // Configurable limit
+
+public async createTask(..., parent?: Task) {
+  const depth = parent ? parent.depth + 1 : 0;
+  if (depth > this.MAX_NESTING_DEPTH) {
+    throw new Error(`Max task depth (${MAX_NESTING_DEPTH}) exceeded`);
+  }
+  return new Task(..., depth); // Pass depth to constructor
+}
+```
+
+#### 4. **Subtask Orchestration Protocol**
+Introduce dedicated orchestration handlers:
+```typescript
+// src/core/orchestration/TaskOrchestrator.ts
+class TaskOrchestrator {
+  // Handles complex delegation patterns
+  async executeSequentialSubtasks(task: Task, subtaskDefs: SubtaskDefinition[]) {
+    for (const def of subtaskDefs) {
+      const child = await task.startSubtask(def.message, def.todos, def.mode);
+      await task.waitForSubtask(); // Sequential blocking
+      // Process child result before next subtask
+    }
+  }
+
+  async executeParallelSubtasks(task: Task, subtaskDefs: SubtaskDefinition[]) {
+    const children = await Promise.all(
+      subtaskDefs.map(def => task.startSubtask(def.message, def.todos, def.mode, true))
+    );
+    await task.waitForAllChildren(); // Non-blocking wait
+    return children.map(c => c.result); // Aggregate results
+  }
+}
+```
+
+### Critical Workflow Adjustments
+1. **Mode Switching Protocol**:
+   - **Never** switch modes directly in `startSubtask`
+   - Subtasks declare required mode in metadata, resolved during execution
+   - Global mode changes only occur at leaf nodes (no subtasks)
+
+2. **Completion Propagation**:
+```mermaid
+sequenceDiagram
+    RootTask->>+Child1: Delegates work (mode=code)
+    Child1->>+Grandchild: Delegates subtask (mode=test)
+    Grandchild-->>-Child1: Returns test results
+    Note over Child1: Aggregates code+test results
+    Child1-->>-RootTask: Returns integrated solution
+```
+
+3. **Error Handling Protocol**:
+   - Failed subtasks throw `SubtaskFailureError` with lineage context
+   - Parents implement retry policies using exponential backoff
+   - Root task maintains failure journal for debugging
+
+### Validation Requirements
+1. **Depth Testing**:
+   - Unit tests verifying mode stack integrity at 5+ nesting levels
+   - Memory leak checks during deep recursion
+
+2. **Concurrency Validation**:
+   - Test parallel subtask execution with shared resource constraints
+   - Validate mode stack behavior when siblings use different modes
+
+3. **Failure Recovery**:
+   - Simulate grandchild failures to verify error propagation
+   - Test mode restoration after partial task trees crash
+
+### Performance Considerations
+- **Mode Change Cost**: Profile `handleModeSwitch` latency; consider caching expensive mode transitions
+- **Event Overhead**: Batch `TaskSpawned`/`TaskCompleted` events for deep hierarchies
+- **Memory**: Implement task garbage collection after completion (current system retains history indefinitely)
+
+This architecture maintains compatibility with existing tool interfaces (`new_task`, `attempt_completion`) while adding robustness for complex workflows. The key innovation is decoupling mode management from task hierarchy through stack-based context isolation, which resolves the fundamental limitation blocking deep nesting in the current implementation.
+
+**Next Steps**: 
+1. Prototype mode stack in isolated branch
+2. Add depth tracking to task constructor
+3. Implement event-driven waiting mechanism
+4. Develop orchestration protocol handlers
+
+Would you like me to elaborate on any specific component (e.g., detailed mode stack implementation, concurrency test cases, or error propagation mechanics)?

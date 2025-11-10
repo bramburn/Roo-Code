@@ -92,6 +92,7 @@ const sectionNames = [
 	"prompts",
 	"ui",
 	"experimental",
+	"retry",
 	"language",
 	"about",
 ] as const

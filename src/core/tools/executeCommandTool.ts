@@ -17,8 +17,19 @@ import { TerminalRegistry } from "../../integrations/terminal/TerminalRegistry"
 import { Terminal } from "../../integrations/terminal/Terminal"
 import { Package } from "../../shared/package"
 import { t } from "../../i18n"
+import { RetryIntegration } from "./retry/RetryIntegration"
 
 class ShellIntegrationError extends Error {}
+
+// Global retry integration instance
+let retryIntegration: RetryIntegration | null = null
+
+function getRetryIntegration(task: Task): RetryIntegration {
+	if (!retryIntegration) {
+		retryIntegration = new RetryIntegration(task.providerRef.deref()?.getState()?.retrySettings)
+	}
+	return retryIntegration
+}
 
 export async function executeCommandTool(
 	task: Task,
@@ -28,6 +39,33 @@ export async function executeCommandTool(
 	pushToolResult: PushToolResult,
 	removeClosingTag: RemoveClosingTag,
 ) {
+	// Check if retry is enabled for this tool
+	const retryInt = getRetryIntegration(task)
+	if (retryInt.isRetryEnabled("execute_command", task)) {
+		return retryInt.wrapToolExecution(
+			task,
+			"execute_command",
+			executeCommandWithRetry,
+			block,
+			askApproval,
+			handleError,
+			pushToolResult,
+			removeClosingTag,
+		)
+	}
+
+	// Execute without retry
+	return executeCommandWithRetry(task, block, askApproval, handleError, pushToolResult, removeClosingTag)
+}
+
+async function executeCommandWithRetry(
+	task: Task,
+	block: ToolUse,
+	askApproval: AskApproval,
+	handleError: HandleError,
+	pushToolResult: PushToolResult,
+	removeClosingTag: RemoveClosingTag,
+): Promise<void> {
 	let command: string | undefined = block.params.command
 	const customCwd: string | undefined = block.params.cwd
 
