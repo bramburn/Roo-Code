@@ -1,5 +1,13 @@
-import { vi } from "vitest"
-import type { MockVSCodeApi } from "@/mocks/vscode-mock"
+// import { vi } from "vitest"
+// import type { MockVSCodeApi } from "@/mocks/vscode-mock"
+
+// Type definition for VSCode API (simplified)
+interface MockVSCodeApi {
+	postMessage: (message: any) => void
+	getState: () => any
+	setState: (state: any) => void
+	reset: () => void
+}
 
 /**
  * Configuration for cleanup operations

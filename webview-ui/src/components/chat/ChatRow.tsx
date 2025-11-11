@@ -342,7 +342,7 @@ export const ChatRowContent = ({
 	}, [message.type, message.ask, message.partial, message.text])
 
 	if (tool) {
-		const toolIcon = (name: string) => (
+		const toolIcon = (name: string): React.ReactElement => (
 			<span
 				className={`codicon codicon-${name}`}
 				style={{ color: "var(--vscode-foreground)", marginBottom: "-1.5px" }}></span>
