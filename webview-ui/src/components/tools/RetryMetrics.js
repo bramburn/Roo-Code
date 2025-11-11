@@ -403,82 +403,85 @@ export const RetryMetricsPanel = ({ metrics, history, className = "" }) => {
 														className: "text-center text-gray-500 dark:text-gray-400 py-4",
 														children: "No retry history in selected time range",
 													})
-												: filteredHistory.slice(0, 10).map((item) =>
-														_jsxs(
-															"div",
-															{
-																className:
-																	"flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded",
-																children: [
-																	_jsxs("div", {
-																		className: "flex-1",
-																		children: [
-																			_jsxs("div", {
-																				className:
-																					"flex items-center gap-2 mb-1",
-																				children: [
-																					_jsx("span", {
-																						className:
-																							"font-medium text-gray-900 dark:text-gray-100",
-																						children: item.toolName,
-																					}),
-																					_jsx("span", {
-																						className: `px-2 py-1 text-xs rounded ${
-																							item.status === "success"
-																								? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-																								: item.status ===
-																									  "failed"
-																									? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-																									: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-																						}`,
-																						children: item.status,
-																					}),
-																				],
-																			}),
-																			_jsxs("div", {
-																				className:
-																					"flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400",
-																				children: [
-																					_jsxs("span", {
-																						children: [
-																							"Attempts: ",
-																							item.attempts,
-																						],
-																					}),
-																					_jsxs("span", {
-																						children: [
-																							"Duration: ",
-																							formatDuration(
-																								item.endTime -
-																									item.startTime,
-																							),
-																						],
-																					}),
-																				],
-																			}),
-																			item.finalError &&
-																				_jsxs("p", {
+												: filteredHistory
+														.slice(0, 10)
+														.map((item) =>
+															_jsxs(
+																"div",
+																{
+																	className:
+																		"flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded",
+																	children: [
+																		_jsxs("div", {
+																			className: "flex-1",
+																			children: [
+																				_jsxs("div", {
 																					className:
-																						"text-xs text-red-600 dark:text-red-400 mt-1",
+																						"flex items-center gap-2 mb-1",
 																					children: [
-																						"Error: ",
-																						item.finalError,
+																						_jsx("span", {
+																							className:
+																								"font-medium text-gray-900 dark:text-gray-100",
+																							children: item.toolName,
+																						}),
+																						_jsx("span", {
+																							className: `px-2 py-1 text-xs rounded ${
+																								item.status ===
+																								"success"
+																									? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+																									: item.status ===
+																										  "failed"
+																										? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+																										: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+																							}`,
+																							children: item.status,
+																						}),
 																					],
 																				}),
-																		],
-																	}),
-																	_jsx("div", {
-																		className:
-																			"text-xs text-gray-500 dark:text-gray-400",
-																		children: new Date(
-																			item.endTime,
-																		).toLocaleString(),
-																	}),
-																],
-															},
-															item.retryId,
+																				_jsxs("div", {
+																					className:
+																						"flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400",
+																					children: [
+																						_jsxs("span", {
+																							children: [
+																								"Attempts: ",
+																								item.attempts,
+																							],
+																						}),
+																						_jsxs("span", {
+																							children: [
+																								"Duration: ",
+																								formatDuration(
+																									item.endTime -
+																										item.startTime,
+																								),
+																							],
+																						}),
+																					],
+																				}),
+																				item.finalError &&
+																					_jsxs("p", {
+																						className:
+																							"text-xs text-red-600 dark:text-red-400 mt-1",
+																						children: [
+																							"Error: ",
+																							item.finalError,
+																						],
+																					}),
+																			],
+																		}),
+																		_jsx("div", {
+																			className:
+																				"text-xs text-gray-500 dark:text-gray-400",
+																			children: new Date(
+																				item.endTime,
+																			).toLocaleString(),
+																		}),
+																	],
+																},
+																item.retryId,
+															),
 														),
-													),
 											filteredHistory.length > 10 &&
 												_jsx("button", {
 													onClick: () => {
