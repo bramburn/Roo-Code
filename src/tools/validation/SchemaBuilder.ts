@@ -227,7 +227,7 @@ export class SchemaBuilder {
 			return schemas[0]
 		}
 
-		return z.union(schemas as [z.ZodTypeAny, ...z.ZodTypeAny[]])
+		return z.union(schemas as any)
 	}
 
 	/**
@@ -247,7 +247,7 @@ export class SchemaBuilder {
 			return schemaList[0] as any
 		}
 
-		return z.union(schemaList as [z.ZodTypeAny, ...z.ZodTypeAny[]])
+		return z.union(schemaList as any)
 	}
 
 	/**

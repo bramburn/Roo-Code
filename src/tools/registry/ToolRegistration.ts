@@ -23,7 +23,7 @@ export class ToolRegistration {
 		metadata?: Record<string, any>,
 	): void {
 		const registration: ToolWrapperRegistration = {
-			tool,
+			tool: tool as any,
 			name: tool.name,
 			description: tool.description,
 			schema: tool.schema as z.ZodSchema,
@@ -61,7 +61,7 @@ export class ToolRegistration {
 		},
 	): void {
 		const registration: ToolWrapperRegistration = {
-			tool,
+			tool: tool as any,
 			name: tool.name,
 			description: tool.description,
 			schema: tool.schema as z.ZodSchema,
