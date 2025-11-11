@@ -21,9 +21,9 @@ export class SchemaBuilder {
 
 		// Apply strict or unknown handling
 		if (definition.strict) {
-			schema = schema.strict()
+			schema = schema.strict() as any
 		} else if (!definition.allowUnknown) {
-			schema = schema.passthrough()
+			schema = schema.passthrough() as any
 		}
 
 		return schema
@@ -227,7 +227,7 @@ export class SchemaBuilder {
 			return schemas[0]
 		}
 
-		return z.union(schemas)
+		return z.union(schemas as [z.ZodTypeAny, ...z.ZodTypeAny[]])
 	}
 
 	/**

@@ -69,7 +69,7 @@ export class ToolPerformanceMonitor {
 	private metrics: Map<string, ToolExecutionMetrics[]> = new Map()
 	private aggregatedStats: Map<string, ToolPerformanceStats> = new Map()
 	private config: MonitoringConfig
-	private alertCallbacks: Map<string, (metrics: ToolExecutionMetrics) => void> = new Map()
+	private alertCallbacks: Map<string, ((metrics: ToolExecutionMetrics) => void)[]> = new Map()
 	private cleanupInterval: NodeJS.Timeout | null = null
 
 	constructor(config: Partial<MonitoringConfig> = {}) {
@@ -304,7 +304,9 @@ export class ToolPerformanceMonitor {
 	 * Register alert callback
 	 */
 	registerAlertCallback(toolName: string, callback: (metrics: ToolExecutionMetrics) => void): void {
-		this.alertCallbacks.set(toolName, callback)
+		const callbacks = this.alertCallbacks.get(toolName) || []
+		callbacks.push(callback)
+		this.alertCallbacks.set(toolName, callbacks)
 	}
 
 	/**
@@ -461,7 +463,11 @@ export class ToolPerformanceMonitor {
 		degrading: string[]
 		stable: string[]
 	} {
-		const trends = { improving: [], degrading: [], stable: [] }
+		const trends: { improving: string[]; degrading: string[]; stable: string[] } = {
+			improving: [],
+			degrading: [],
+			stable: [],
+		}
 		const allStats = this.getAllStats()
 
 		// Simple trend analysis based on recent vs historical performance

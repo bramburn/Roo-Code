@@ -1,7 +1,7 @@
 import { DynamicStructuredTool } from "@langchain/core/tools"
 import { z } from "zod"
-import { Task } from "../../core/task/Task"
-import { AskApproval, HandleError, PushToolResult, RemoveClosingTag, ToolUse } from "../../shared/tools"
+import { Task } from "../../../core/task/Task"
+import { AskApproval, HandleError, PushToolResult, RemoveClosingTag, ToolUse } from "../../../shared/tools"
 
 export interface ToolWrapperConfig {
 	toolName: string
@@ -52,7 +52,7 @@ export abstract class LangGraphToolWrapper {
 			func: async (params: any, context?: any) => {
 				return await this.executeTool(params, context)
 			},
-		})
+		} as any)
 	}
 
 	/**
@@ -83,7 +83,7 @@ export abstract class LangGraphToolWrapper {
 
 		return {
 			type: "tool_use",
-			name: this.config.toolName,
+			name: this.config.toolName as any,
 			params: stringParams,
 			partial: false,
 		}
