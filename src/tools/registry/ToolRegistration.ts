@@ -22,7 +22,7 @@ export class ToolRegistration {
 		version: string = "1.0.0",
 		metadata?: Record<string, any>,
 	): void {
-		const registration: ToolWrapperRegistration = {
+		const registration: any = {
 			tool: tool as any,
 			name: tool.name,
 			description: tool.description,
@@ -60,7 +60,7 @@ export class ToolRegistration {
 			[Key: string]: any
 		},
 	): void {
-		const registration: ToolWrapperRegistration = {
+		const registration: any = {
 			tool: tool as any,
 			name: tool.name,
 			description: tool.description,

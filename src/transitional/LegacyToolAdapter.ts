@@ -173,7 +173,7 @@ export class LegacyToolAdapter {
 		return {
 			async executeLegacyTool(toolUse: ToolUse, context: any): Promise<any> {
 				// Convert to LangChain format
-				const langChainCall = this.convertToLangChainCall(toolUse)
+				const langChainCall = LegacyToolAdapter.convertToLangChainCall(toolUse)
 
 				// Execute through the appropriate mechanism
 				// This would integrate with the actual tool execution system
