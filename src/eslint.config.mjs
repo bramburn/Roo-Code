@@ -47,6 +47,8 @@ export default [
 			"@typescript-eslint/no-explicit-any": "off",
 			"@typescript-eslint/no-require-imports": "off",
 			"@typescript-eslint/ban-ts-comment": "off",
+			// LangChain compatibility rules
+			"no-console": "off", // LangChain uses console logging
 		},
 	},
 	{

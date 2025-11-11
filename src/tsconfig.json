@@ -2,6 +2,7 @@
 	"compilerOptions": {
 		"types": ["vitest/globals"],
 		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
 		"experimentalDecorators": true,
 		"forceConsistentCasingInFileNames": true,
 		"isolatedModules": true,
