@@ -25,5 +25,15 @@
 			"@roo/*": ["../src/shared/*"]
 		}
 	},
-	"include": ["src", "../src/shared", "vitest.setup.ts"]
+	"include": ["src", "../src/shared"],
+	"exclude": [
+		"src/**/__tests__/**",
+		"src/**/*.spec.tsx",
+		"src/**/*.spec.ts",
+		"vitest.setup.ts",
+		"src/mocks/**",
+		"src/utils/test-utils.tsx",
+		"src/utils/webview-test-utils.tsx",
+		"src/utils/cleanup-config.ts"
+	]
 }

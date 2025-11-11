@@ -1,4 +1,4 @@
-import { renderWithWebview, screen, fireEvent } from "@/utils/test-utils"
+import { render, renderWithWebview, screen, fireEvent } from "@/utils/test-utils"
 
 import { useExtensionState } from "@src/context/ExtensionStateContext"
 

@@ -3,13 +3,13 @@ import { BarChart3, TrendingUp, CheckCircle, XCircle, Activity } from "lucide-re
 import { RetryMetrics, RetryHistory } from "../../types/retry"
 import { vscode } from "../../utils/vscode"
 
-interface RetryMetricsProps {
+interface RetryMetricsPanelProps {
 	metrics: RetryMetrics
 	history: RetryHistory[]
 	className?: string
 }
 
-export const RetryMetrics: React.FC<RetryMetricsProps> = ({ metrics, history, className = "" }) => {
+export const RetryMetricsPanel: React.FC<RetryMetricsPanelProps> = ({ metrics, history, className = "" }) => {
 	const [selectedTimeRange, setSelectedTimeRange] = useState<"1h" | "24h" | "7d" | "30d">("24h")
 	const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
 

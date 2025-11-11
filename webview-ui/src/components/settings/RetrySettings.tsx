@@ -3,13 +3,17 @@ import { Settings, Info, RotateCcw, Zap, Shield, Database, Clock } from "lucide-
 import { RetrySettings } from "../../types/retry"
 import { vscode } from "../../utils/vscode"
 
-interface RetrySettingsProps {
+interface RetrySettingsPanelProps {
 	settings: RetrySettings
 	onSettingsChange: (settings: RetrySettings) => void
 	className?: string
 }
 
-export const RetrySettings: React.FC<RetrySettingsProps> = ({ settings, onSettingsChange, className = "" }) => {
+export const RetrySettingsPanel: React.FC<RetrySettingsPanelProps> = ({
+	settings,
+	onSettingsChange,
+	className = "",
+}) => {
 	const handleSettingChange = (key: keyof RetrySettings, value: any) => {
 		onSettingsChange({
 			...settings,

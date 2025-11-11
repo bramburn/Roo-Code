@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react"
 import { Settings, BarChart3, AlertTriangle, RefreshCw } from "lucide-react"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
-import { RetryState, RetrySettings, RetryMetrics, RetryHistory, ErrorClassification } from "../../types/retry"
+import type { RetryState, RetrySettings, RetryMetrics, RetryHistory, ErrorClassification } from "../../types/retry"
 import { vscode } from "../../utils/vscode"
 import { RetryStatus } from "./RetryStatus"
 import { ErrorRecovery } from "./ErrorRecovery"
 import { RetryNotifications } from "./RetryNotifications"
 import { RetryProgressIndicator } from "./RetryNotifications"
-import { RetryMetrics } from "./RetryMetrics"
+import { RetryMetricsPanel } from "./RetryMetrics"
+import { RetrySettingsPanel } from "../settings/RetrySettings"
 
 interface RetryIntegrationProps {
 	// Current retry state
@@ -278,7 +279,7 @@ export const RetryIntegration: React.FC<RetryIntegrationProps> = ({
 				{/* Metrics Tab */}
 				{activeTab === "metrics" && showMetrics && (
 					<div className="p-4">
-						<RetryMetrics metrics={metrics} history={history} />
+						<RetryMetricsPanel metrics={metrics} history={history} />
 					</div>
 				)}
 
@@ -292,7 +293,7 @@ export const RetryIntegration: React.FC<RetryIntegrationProps> = ({
 							<p className="text-sm text-gray-600 dark:text-gray-400">{t("retry.description")}</p>
 						</div>
 
-						<RetrySettings settings={retrySettings} onSettingsChange={onRetrySettingsChange} />
+						<RetrySettingsPanel settings={retrySettings} onSettingsChange={onRetrySettingsChange} />
 					</div>
 				)}
 			</div>

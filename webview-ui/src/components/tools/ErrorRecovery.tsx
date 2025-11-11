@@ -3,7 +3,7 @@ import { AlertTriangle, RefreshCw, Zap, Shield, XCircle, Info, Lightbulb } from 
 import { RetryState, ErrorClassification } from "../../types/retry"
 import { vscode } from "../../utils/vscode"
 
-interface ErrorRecoveryProps {
+export interface ErrorRecoveryProps {
 	retryState?: RetryState
 	errorClassification?: ErrorClassification
 	toolName: string

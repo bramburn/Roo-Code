@@ -1,0 +1,130 @@
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime"
+import { useCallback } from "react"
+import { Checkbox } from "vscrui"
+import { VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
+import { VERTEX_REGIONS } from "@roo-code/types"
+import { useAppTranslation } from "@src/i18n/TranslationContext"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@src/components/ui"
+import { inputEventTransform } from "../transforms"
+export const Vertex = ({ apiConfiguration, setApiConfigurationField, fromWelcomeView }) => {
+	const { t } = useAppTranslation()
+	const handleInputChange = useCallback(
+		(field, transform = inputEventTransform) =>
+			(event) => {
+				setApiConfigurationField(field, transform(event))
+			},
+		[setApiConfigurationField],
+	)
+	return _jsxs(_Fragment, {
+		children: [
+			_jsxs("div", {
+				className: "text-sm text-vscode-descriptionForeground",
+				children: [
+					_jsx("div", { children: t("settings:providers.googleCloudSetup.title") }),
+					_jsx("div", {
+						children: _jsx(VSCodeLink, {
+							href: "https://cloud.google.com/vertex-ai/generative-ai/docs/partner-models/use-claude#before_you_begin",
+							className: "text-sm",
+							children: t("settings:providers.googleCloudSetup.step1"),
+						}),
+					}),
+					_jsx("div", {
+						children: _jsx(VSCodeLink, {
+							href: "https://cloud.google.com/docs/authentication/provide-credentials-adc#google-idp",
+							className: "text-sm",
+							children: t("settings:providers.googleCloudSetup.step2"),
+						}),
+					}),
+					_jsx("div", {
+						children: _jsx(VSCodeLink, {
+							href: "https://developers.google.com/workspace/guides/create-credentials?hl=en#service-account",
+							className: "text-sm",
+							children: t("settings:providers.googleCloudSetup.step3"),
+						}),
+					}),
+				],
+			}),
+			_jsx(VSCodeTextField, {
+				value: apiConfiguration?.vertexJsonCredentials || "",
+				onInput: handleInputChange("vertexJsonCredentials"),
+				placeholder: t("settings:placeholders.credentialsJson"),
+				className: "w-full",
+				children: _jsx("label", {
+					className: "block font-medium mb-1",
+					children: t("settings:providers.googleCloudCredentials"),
+				}),
+			}),
+			_jsx(VSCodeTextField, {
+				value: apiConfiguration?.vertexKeyFile || "",
+				onInput: handleInputChange("vertexKeyFile"),
+				placeholder: t("settings:placeholders.keyFilePath"),
+				className: "w-full",
+				children: _jsx("label", {
+					className: "block font-medium mb-1",
+					children: t("settings:providers.googleCloudKeyFile"),
+				}),
+			}),
+			_jsx(VSCodeTextField, {
+				value: apiConfiguration?.vertexProjectId || "",
+				onInput: handleInputChange("vertexProjectId"),
+				placeholder: t("settings:placeholders.projectId"),
+				className: "w-full",
+				children: _jsx("label", {
+					className: "block font-medium mb-1",
+					children: t("settings:providers.googleCloudProjectId"),
+				}),
+			}),
+			_jsxs("div", {
+				children: [
+					_jsx("label", {
+						className: "block font-medium mb-1",
+						children: t("settings:providers.googleCloudRegion"),
+					}),
+					_jsxs(Select, {
+						value: apiConfiguration?.vertexRegion || "",
+						onValueChange: (value) => setApiConfigurationField("vertexRegion", value),
+						children: [
+							_jsx(SelectTrigger, {
+								className: "w-full",
+								children: _jsx(SelectValue, { placeholder: t("settings:common.select") }),
+							}),
+							_jsx(SelectContent, {
+								children: VERTEX_REGIONS.map(({ value, label }) =>
+									_jsx(SelectItem, { value: value, children: label }, value),
+								),
+							}),
+						],
+					}),
+				],
+			}),
+			!fromWelcomeView &&
+				apiConfiguration.apiModelId?.startsWith("gemini") &&
+				_jsxs("div", {
+					className: "mt-6",
+					children: [
+						_jsx(Checkbox, {
+							"data-testid": "checkbox-url-context",
+							checked: !!apiConfiguration.enableUrlContext,
+							onChange: (checked) => setApiConfigurationField("enableUrlContext", checked),
+							children: t("settings:providers.geminiParameters.urlContext.title"),
+						}),
+						_jsx("div", {
+							className: "text-sm text-vscode-descriptionForeground mb-3 mt-1.5",
+							children: t("settings:providers.geminiParameters.urlContext.description"),
+						}),
+						_jsx(Checkbox, {
+							"data-testid": "checkbox-grounding-search",
+							checked: !!apiConfiguration.enableGrounding,
+							onChange: (checked) => setApiConfigurationField("enableGrounding", checked),
+							children: t("settings:providers.geminiParameters.groundingSearch.title"),
+						}),
+						_jsx("div", {
+							className: "text-sm text-vscode-descriptionForeground mb-3 mt-1.5",
+							children: t("settings:providers.geminiParameters.groundingSearch.description"),
+						}),
+					],
+				}),
+		],
+	})
+}
+//# sourceMappingURL=Vertex.js.map

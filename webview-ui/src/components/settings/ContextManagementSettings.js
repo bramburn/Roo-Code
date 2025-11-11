@@ -1,0 +1,588 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime"
+import React from "react"
+import { useAppTranslation } from "@/i18n/TranslationContext"
+import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
+import { Database, FoldVertical } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Slider, Button } from "@/components/ui"
+import { SectionHeader } from "./SectionHeader"
+import { Section } from "./Section"
+import { vscode } from "@/utils/vscode"
+export const ContextManagementSettings = ({
+	autoCondenseContext,
+	autoCondenseContextPercent,
+	listApiConfigMeta,
+	maxOpenTabsContext,
+	maxWorkspaceFiles,
+	showRooIgnoredFiles,
+	setCachedStateField,
+	maxReadFileLine,
+	maxImageFileSize,
+	maxTotalImageSize,
+	maxConcurrentFileReads,
+	profileThresholds = {},
+	includeDiagnosticMessages,
+	maxDiagnosticMessages,
+	writeDelayMs,
+	includeCurrentTime,
+	includeCurrentCost,
+	enableManualReview,
+	className,
+	...props
+}) => {
+	const { t } = useAppTranslation()
+	const [selectedThresholdProfile, setSelectedThresholdProfile] = React.useState("default")
+	// Helper function to get the current threshold value based on selected profile
+	const getCurrentThresholdValue = () => {
+		if (selectedThresholdProfile === "default") {
+			return autoCondenseContextPercent
+		}
+		const profileThreshold = profileThresholds[selectedThresholdProfile]
+		if (profileThreshold === undefined || profileThreshold === -1) {
+			return autoCondenseContextPercent // Use default if profile not configured or set to -1
+		}
+		return profileThreshold
+	}
+	// Helper function to handle threshold changes
+	const handleThresholdChange = (value) => {
+		if (selectedThresholdProfile === "default") {
+			setCachedStateField("autoCondenseContextPercent", value)
+		} else {
+			const newThresholds = {
+				...profileThresholds,
+				[selectedThresholdProfile]: value,
+			}
+			setCachedStateField("profileThresholds", newThresholds)
+			vscode.postMessage({
+				type: "profileThresholds",
+				values: newThresholds,
+			})
+		}
+	}
+	return _jsxs("div", {
+		className: cn("flex flex-col gap-2", className),
+		...props,
+		children: [
+			_jsx(SectionHeader, {
+				description: t("settings:contextManagement.description"),
+				children: _jsxs("div", {
+					className: "flex items-center gap-2",
+					children: [
+						_jsx(Database, { className: "w-4" }),
+						_jsx("div", { children: t("settings:sections.contextManagement") }),
+					],
+				}),
+			}),
+			_jsxs(Section, {
+				children: [
+					_jsxs("div", {
+						children: [
+							_jsx("span", {
+								className: "block font-medium mb-1",
+								children: t("settings:contextManagement.openTabs.label"),
+							}),
+							_jsxs("div", {
+								className: "flex items-center gap-2",
+								children: [
+									_jsx(Slider, {
+										min: 0,
+										max: 500,
+										step: 1,
+										value: [maxOpenTabsContext ?? 20],
+										onValueChange: ([value]) => setCachedStateField("maxOpenTabsContext", value),
+										"data-testid": "open-tabs-limit-slider",
+									}),
+									_jsx("span", { className: "w-10", children: maxOpenTabsContext ?? 20 }),
+								],
+							}),
+							_jsx("div", {
+								className: "text-vscode-descriptionForeground text-sm mt-1",
+								children: t("settings:contextManagement.openTabs.description"),
+							}),
+						],
+					}),
+					_jsxs("div", {
+						children: [
+							_jsx("span", {
+								className: "block font-medium mb-1",
+								children: t("settings:contextManagement.workspaceFiles.label"),
+							}),
+							_jsxs("div", {
+								className: "flex items-center gap-2",
+								children: [
+									_jsx(Slider, {
+										min: 0,
+										max: 500,
+										step: 1,
+										value: [maxWorkspaceFiles ?? 200],
+										onValueChange: ([value]) => setCachedStateField("maxWorkspaceFiles", value),
+										"data-testid": "workspace-files-limit-slider",
+									}),
+									_jsx("span", { className: "w-10", children: maxWorkspaceFiles ?? 200 }),
+								],
+							}),
+							_jsx("div", {
+								className: "text-vscode-descriptionForeground text-sm mt-1",
+								children: t("settings:contextManagement.workspaceFiles.description"),
+							}),
+						],
+					}),
+					_jsxs("div", {
+						children: [
+							_jsx("span", {
+								className: "block font-medium mb-1",
+								children: t("settings:contextManagement.maxConcurrentFileReads.label"),
+							}),
+							_jsxs("div", {
+								className: "flex items-center gap-2",
+								children: [
+									_jsx(Slider, {
+										min: 1,
+										max: 100,
+										step: 1,
+										value: [Math.max(1, maxConcurrentFileReads ?? 5)],
+										onValueChange: ([value]) =>
+											setCachedStateField("maxConcurrentFileReads", value),
+										"data-testid": "max-concurrent-file-reads-slider",
+									}),
+									_jsx("span", {
+										className: "w-10 text-sm",
+										children: Math.max(1, maxConcurrentFileReads ?? 5),
+									}),
+								],
+							}),
+							_jsx("div", {
+								className: "text-vscode-descriptionForeground text-sm mt-1 mb-3",
+								children: t("settings:contextManagement.maxConcurrentFileReads.description"),
+							}),
+						],
+					}),
+					_jsxs("div", {
+						children: [
+							_jsx(VSCodeCheckbox, {
+								checked: showRooIgnoredFiles,
+								onChange: (e) => setCachedStateField("showRooIgnoredFiles", e.target.checked),
+								"data-testid": "show-rooignored-files-checkbox",
+								children: _jsx("label", {
+									className: "block font-medium mb-1",
+									children: t("settings:contextManagement.rooignore.label"),
+								}),
+							}),
+							_jsx("div", {
+								className: "text-vscode-descriptionForeground text-sm mt-1 mb-3",
+								children: t("settings:contextManagement.rooignore.description"),
+							}),
+						],
+					}),
+					_jsxs("div", {
+						children: [
+							_jsxs("div", {
+								className: "flex flex-col gap-2",
+								children: [
+									_jsx("span", {
+										className: "font-medium",
+										children: t("settings:contextManagement.maxReadFile.label"),
+									}),
+									_jsxs("div", {
+										className: "flex items-center gap-4",
+										children: [
+											_jsx(Input, {
+												type: "number",
+												pattern: "-?[0-9]*",
+												className:
+													"w-24 bg-vscode-input-background text-vscode-input-foreground border border-vscode-input-border px-2 py-1 rounded text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none disabled:opacity-50",
+												value: maxReadFileLine ?? -1,
+												min: -1,
+												onChange: (e) => {
+													const newValue = parseInt(e.target.value, 10)
+													if (!isNaN(newValue) && newValue >= -1) {
+														setCachedStateField("maxReadFileLine", newValue)
+													}
+												},
+												onClick: (e) => e.currentTarget.select(),
+												"data-testid": "max-read-file-line-input",
+												disabled: maxReadFileLine === -1,
+											}),
+											_jsx("span", {
+												children: t("settings:contextManagement.maxReadFile.lines"),
+											}),
+											_jsx(VSCodeCheckbox, {
+												checked: maxReadFileLine === -1,
+												onChange: (e) =>
+													setCachedStateField("maxReadFileLine", e.target.checked ? -1 : 500),
+												"data-testid": "max-read-file-always-full-checkbox",
+												children: t("settings:contextManagement.maxReadFile.always_full_read"),
+											}),
+										],
+									}),
+								],
+							}),
+							_jsx("div", {
+								className: "text-vscode-descriptionForeground text-sm mt-2",
+								children: t("settings:contextManagement.maxReadFile.description"),
+							}),
+						],
+					}),
+					_jsxs("div", {
+						children: [
+							_jsxs("div", {
+								className: "flex flex-col gap-2",
+								children: [
+									_jsx("span", {
+										className: "font-medium",
+										children: t("settings:contextManagement.maxImageFileSize.label"),
+									}),
+									_jsxs("div", {
+										className: "flex items-center gap-4",
+										children: [
+											_jsx(Input, {
+												type: "number",
+												pattern: "[0-9]*",
+												className:
+													"w-24 bg-vscode-input-background text-vscode-input-foreground border border-vscode-input-border px-2 py-1 rounded text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+												value: maxImageFileSize ?? 5,
+												min: 1,
+												max: 100,
+												onChange: (e) => {
+													const newValue = parseInt(e.target.value, 10)
+													if (!isNaN(newValue) && newValue >= 1 && newValue <= 100) {
+														setCachedStateField("maxImageFileSize", newValue)
+													}
+												},
+												onClick: (e) => e.currentTarget.select(),
+												"data-testid": "max-image-file-size-input",
+											}),
+											_jsx("span", {
+												children: t("settings:contextManagement.maxImageFileSize.mb"),
+											}),
+										],
+									}),
+								],
+							}),
+							_jsx("div", {
+								className: "text-vscode-descriptionForeground text-sm mt-2",
+								children: t("settings:contextManagement.maxImageFileSize.description"),
+							}),
+						],
+					}),
+					_jsxs("div", {
+						children: [
+							_jsxs("div", {
+								className: "flex flex-col gap-2",
+								children: [
+									_jsx("span", {
+										className: "font-medium",
+										children: t("settings:contextManagement.maxTotalImageSize.label"),
+									}),
+									_jsxs("div", {
+										className: "flex items-center gap-4",
+										children: [
+											_jsx(Input, {
+												type: "number",
+												pattern: "[0-9]*",
+												className:
+													"w-24 bg-vscode-input-background text-vscode-input-foreground border border-vscode-input-border px-2 py-1 rounded text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+												value: maxTotalImageSize ?? 20,
+												min: 1,
+												max: 500,
+												onChange: (e) => {
+													const newValue = parseInt(e.target.value, 10)
+													if (!isNaN(newValue) && newValue >= 1 && newValue <= 500) {
+														setCachedStateField("maxTotalImageSize", newValue)
+													}
+												},
+												onClick: (e) => e.currentTarget.select(),
+												"data-testid": "max-total-image-size-input",
+											}),
+											_jsx("span", {
+												children: t("settings:contextManagement.maxTotalImageSize.mb"),
+											}),
+										],
+									}),
+								],
+							}),
+							_jsx("div", {
+								className: "text-vscode-descriptionForeground text-sm mt-2",
+								children: t("settings:contextManagement.maxTotalImageSize.description"),
+							}),
+						],
+					}),
+					_jsxs("div", {
+						children: [
+							_jsx(VSCodeCheckbox, {
+								checked: includeDiagnosticMessages,
+								onChange: (e) => setCachedStateField("includeDiagnosticMessages", e.target.checked),
+								"data-testid": "include-diagnostic-messages-checkbox",
+								children: _jsx("label", {
+									className: "block font-medium mb-1",
+									children: t("settings:contextManagement.diagnostics.includeMessages.label"),
+								}),
+							}),
+							_jsx("div", {
+								className: "text-vscode-descriptionForeground text-sm mt-1 mb-3",
+								children: t("settings:contextManagement.diagnostics.includeMessages.description"),
+							}),
+						],
+					}),
+					_jsxs("div", {
+						children: [
+							_jsx("span", {
+								className: "block font-medium mb-1",
+								children: t("settings:contextManagement.diagnostics.maxMessages.label"),
+							}),
+							_jsxs("div", {
+								className: "flex items-center gap-2",
+								children: [
+									_jsx(Slider, {
+										min: 1,
+										max: 100,
+										step: 1,
+										value: [
+											maxDiagnosticMessages !== undefined && maxDiagnosticMessages <= 0
+												? 100
+												: (maxDiagnosticMessages ?? 50),
+										],
+										onValueChange: ([value]) => {
+											// When slider reaches 100, set to -1 (unlimited)
+											setCachedStateField("maxDiagnosticMessages", value === 100 ? -1 : value)
+										},
+										"data-testid": "max-diagnostic-messages-slider",
+										"aria-label": t("settings:contextManagement.diagnostics.maxMessages.label"),
+										"aria-valuemin": 1,
+										"aria-valuemax": 100,
+										"aria-valuenow":
+											maxDiagnosticMessages !== undefined && maxDiagnosticMessages <= 0
+												? 100
+												: (maxDiagnosticMessages ?? 50),
+										"aria-valuetext":
+											(maxDiagnosticMessages !== undefined && maxDiagnosticMessages <= 0) ||
+											maxDiagnosticMessages === 100
+												? t("settings:contextManagement.diagnostics.maxMessages.unlimitedLabel")
+												: `${maxDiagnosticMessages ?? 50} ${t("settings:contextManagement.diagnostics.maxMessages.label")}`,
+									}),
+									_jsx("span", {
+										className: "w-20 text-sm font-medium",
+										children:
+											(maxDiagnosticMessages !== undefined && maxDiagnosticMessages <= 0) ||
+											maxDiagnosticMessages === 100
+												? t("settings:contextManagement.diagnostics.maxMessages.unlimitedLabel")
+												: (maxDiagnosticMessages ?? 50),
+									}),
+									_jsx(Button, {
+										variant: "ghost",
+										size: "sm",
+										onClick: () => setCachedStateField("maxDiagnosticMessages", 50),
+										title: t("settings:contextManagement.diagnostics.maxMessages.resetTooltip"),
+										className: "p-1 h-6 w-6",
+										disabled: maxDiagnosticMessages === 50,
+										children: _jsx("span", { className: "codicon codicon-discard" }),
+									}),
+								],
+							}),
+							_jsx("div", {
+								className: "text-vscode-descriptionForeground text-sm mt-1",
+								children: t("settings:contextManagement.diagnostics.maxMessages.description"),
+							}),
+						],
+					}),
+					_jsxs("div", {
+						children: [
+							_jsx("span", {
+								className: "block font-medium mb-1",
+								children: t("settings:contextManagement.diagnostics.delayAfterWrite.label"),
+							}),
+							_jsxs("div", {
+								className: "flex items-center gap-2",
+								children: [
+									_jsx(Slider, {
+										min: 0,
+										max: 5000,
+										step: 100,
+										value: [writeDelayMs],
+										onValueChange: ([value]) => setCachedStateField("writeDelayMs", value),
+										"data-testid": "write-delay-slider",
+									}),
+									_jsxs("span", { className: "w-20", children: [writeDelayMs, "ms"] }),
+								],
+							}),
+							_jsx("div", {
+								className: "text-vscode-descriptionForeground text-sm mt-1",
+								children: t("settings:contextManagement.diagnostics.delayAfterWrite.description"),
+							}),
+						],
+					}),
+					_jsxs("div", {
+						children: [
+							_jsx(VSCodeCheckbox, {
+								checked: includeCurrentTime,
+								onChange: (e) => setCachedStateField("includeCurrentTime", e.target.checked),
+								"data-testid": "include-current-time-checkbox",
+								children: _jsx("label", {
+									className: "block font-medium mb-1",
+									children: t("settings:contextManagement.includeCurrentTime.label"),
+								}),
+							}),
+							_jsx("div", {
+								className: "text-vscode-descriptionForeground text-sm mt-1 mb-3",
+								children: t("settings:contextManagement.includeCurrentTime.description"),
+							}),
+						],
+					}),
+					_jsxs("div", {
+						children: [
+							_jsx(VSCodeCheckbox, {
+								checked: includeCurrentCost,
+								onChange: (e) => setCachedStateField("includeCurrentCost", e.target.checked),
+								"data-testid": "include-current-cost-checkbox",
+								children: _jsx("label", {
+									className: "block font-medium mb-1",
+									children: t("settings:contextManagement.includeCurrentCost.label"),
+								}),
+							}),
+							_jsx("div", {
+								className: "text-vscode-descriptionForeground text-sm mt-1 mb-3",
+								children: t("settings:contextManagement.includeCurrentCost.description"),
+							}),
+						],
+					}),
+				],
+			}),
+			_jsxs(Section, {
+				className: "pt-2",
+				children: [
+					_jsx(VSCodeCheckbox, {
+						checked: enableManualReview,
+						onChange: (e) => setCachedStateField("enableManualReview", e.target.checked),
+						"data-testid": "enable-manual-review-checkbox",
+						children: _jsx("label", {
+							className: "block font-medium mb-1",
+							children: t("settings:contextManagement.enableManualReview.label"),
+						}),
+					}),
+					_jsx("div", {
+						className: "text-vscode-descriptionForeground text-sm mt-1 mb-3",
+						children: t("settings:contextManagement.enableManualReview.description"),
+					}),
+				],
+			}),
+			_jsxs(Section, {
+				className: "pt-2",
+				children: [
+					_jsx(VSCodeCheckbox, {
+						checked: autoCondenseContext,
+						onChange: (e) => setCachedStateField("autoCondenseContext", e.target.checked),
+						"data-testid": "auto-condense-context-checkbox",
+						children: _jsx("span", {
+							className: "font-medium",
+							children: t("settings:contextManagement.autoCondenseContext.name"),
+						}),
+					}),
+					autoCondenseContext &&
+						_jsxs("div", {
+							className: "flex flex-col gap-3 pl-3 border-l-2 border-vscode-button-background",
+							children: [
+								_jsxs("div", {
+									className: "flex items-center gap-4 font-bold",
+									children: [
+										_jsx(FoldVertical, { size: 16 }),
+										_jsx("div", {
+											children: t("settings:contextManagement.condensingThreshold.label"),
+										}),
+									],
+								}),
+								_jsx("div", {
+									children: _jsxs(Select, {
+										value: selectedThresholdProfile || "default",
+										onValueChange: (value) => {
+											setSelectedThresholdProfile(value)
+										},
+										"data-testid": "threshold-profile-select",
+										children: [
+											_jsx(SelectTrigger, {
+												className: "w-full",
+												children: _jsx(SelectValue, {
+													placeholder:
+														t(
+															"settings:contextManagement.condensingThreshold.selectProfile",
+														) || "Select profile for threshold",
+												}),
+											}),
+											_jsxs(SelectContent, {
+												children: [
+													_jsx(SelectItem, {
+														value: "default",
+														children:
+															t(
+																"settings:contextManagement.condensingThreshold.defaultProfile",
+															) || "Default (applies to all unconfigured profiles)",
+													}),
+													(listApiConfigMeta || []).map((config) => {
+														const profileThreshold = profileThresholds[config.id]
+														const thresholdDisplay =
+															profileThreshold !== undefined
+																? profileThreshold === -1
+																	? ` ${t(
+																			"settings:contextManagement.condensingThreshold.usesGlobal",
+																			{
+																				threshold: autoCondenseContextPercent,
+																			},
+																		)}`
+																	: ` (${profileThreshold}%)`
+																: ""
+														return _jsxs(
+															SelectItem,
+															{
+																value: config.id,
+																children: [config.name, thresholdDisplay],
+															},
+															config.id,
+														)
+													}),
+												],
+											}),
+										],
+									}),
+								}),
+								_jsxs("div", {
+									children: [
+										_jsxs("div", {
+											className: "flex items-center gap-2",
+											children: [
+												_jsx(Slider, {
+													min: 10,
+													max: 100,
+													step: 1,
+													value: [getCurrentThresholdValue()],
+													onValueChange: ([value]) => handleThresholdChange(value),
+													"data-testid": "condense-threshold-slider",
+												}),
+												_jsxs("span", {
+													className: "w-20",
+													children: [getCurrentThresholdValue(), "%"],
+												}),
+											],
+										}),
+										_jsx("div", {
+											className: "text-vscode-descriptionForeground text-sm mt-1",
+											children:
+												selectedThresholdProfile === "default"
+													? t(
+															"settings:contextManagement.condensingThreshold.defaultDescription",
+															{
+																threshold: autoCondenseContextPercent,
+															},
+														)
+													: t(
+															"settings:contextManagement.condensingThreshold.profileDescription",
+														),
+										}),
+									],
+								}),
+							],
+						}),
+				],
+			}),
+		],
+	})
+}
+//# sourceMappingURL=ContextManagementSettings.js.map

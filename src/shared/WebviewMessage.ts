@@ -234,11 +234,39 @@ export interface WebviewMessage {
 		| "editQueuedMessage"
 		| "dismissUpsell"
 		| "getDismissedUpsells"
+		// Retry mechanism messages
+		| "retry-manual"
+		| "retry-cancel"
+		| "retry-optimize-context"
+		| "retry-reset-circuit-breaker"
+		| "retry-get-settings"
+		| "retry-update-settings"
+		| "retry-get-metrics"
+		| "retry-get-history"
+		| "retry-show-status"
+		| "retry-show-recovery"
+		| "retry-show-full-history"
+		| "retry-export-metrics"
+		| "retry-reset-metrics"
+		| "retry-settings-reset"
+		| "retry-settings-export"
+		| "retry-settings-test"
+		| "retry-export-settings"
+		| "retry-test-settings"
+		| "retry-focus"
 	text?: string
 	editedMessageContent?: string
 	tab?: "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "cloud"
 	disabled?: boolean
 	context?: string
+	// Retry mechanism properties
+	retryId?: string
+	timeRange?: string
+	metrics?: any
+	history?: any
+	originalError?: string
+	contextOptimizationAvailable?: boolean
+	action?: string
 	dataUri?: string
 	askResponse?: ClineAskResponse
 	apiConfiguration?: ProviderSettings

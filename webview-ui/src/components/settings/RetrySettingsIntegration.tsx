@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
-import { RetrySettings } from "../../types/retry"
+import type { RetrySettings } from "../../types/retry"
 import { vscode } from "../../utils/vscode"
-import { RetrySettings } from "./RetrySettings"
+import { RetrySettingsPanel } from "./RetrySettings"
 
 interface RetrySettingsIntegrationProps {
 	className?: string
@@ -175,7 +175,7 @@ export const RetrySettingsIntegration: React.FC<RetrySettingsIntegrationProps> =
 			)}
 
 			{/* Settings Form */}
-			<RetrySettings settings={settings} onSettingsChange={handleSettingsChange} className="mb-6" />
+			<RetrySettingsPanel settings={settings} onSettingsChange={handleSettingsChange} className="mb-6" />
 
 			{/* Action Buttons */}
 			<div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">

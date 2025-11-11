@@ -3,7 +3,7 @@ import { Clock, RefreshCw, AlertCircle, CheckCircle, XCircle } from "lucide-reac
 import { RetryState, RetryStatusVariant } from "../../types/retry"
 // import { vscode } from "../../utils/vscode" // eslint-disable-line @typescript-eslint/no-unused-vars
 
-interface RetryStatusProps {
+export interface RetryStatusProps {
 	retryState?: RetryState
 	variant?: RetryStatusVariant
 	showDetails?: boolean
