@@ -59,7 +59,6 @@ export class RetryStateManager extends EventEmitter {
 			currentDelay: 0,
 			isActive: true,
 			isCancelled: false,
-			metadata: context.metadata,
 		}
 
 		// Add to active retries

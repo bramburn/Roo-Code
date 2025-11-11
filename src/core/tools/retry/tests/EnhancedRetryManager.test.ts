@@ -4,8 +4,21 @@ import { ContextOptimizer } from "../ContextOptimizer"
 import { ErrorClassifier } from "../ErrorClassifier"
 import { DualHistorySynchronizer } from "../DualHistorySynchronizer"
 import { ContextStateManager } from "../ContextStateManager"
-import { type ApiMessage } from "../../../../shared/ExtensionMessage"
-import { type ClineMessage } from "../../../../shared/ExtensionMessage"
+import { type ContextOptimizationResult, type ContextOptimizationStrategy } from "../ContextOptimizer"
+// Type definitions for testing
+interface ApiMessage {
+	type: "ask" | "say"
+	ask?: string
+	say?: string
+	text?: string
+}
+
+interface ClineMessage {
+	type: "ask" | "say"
+	ask?: string
+	say?: string
+	text?: string
+}
 
 // Mock dependencies for testing
 const mockApiHandler = {
@@ -224,7 +237,7 @@ describe("EnhancedRetryManager", () => {
 				{ type: "say", say: "text", text: "UI: important response" },
 			] as ClineMessage[]
 
-			const result = await optimizer.optimizeContext(
+			const result = await ContextOptimizer.optimizeContext(
 				apiHistory,
 				clineMessages,
 				100, // contextTokens
@@ -252,7 +265,7 @@ describe("EnhancedRetryManager", () => {
 				text: `message ${i}`,
 			})) as ClineMessage[]
 
-			const result = await optimizer.optimizeContext(
+			const result = await ContextOptimizer.optimizeContext(
 				apiHistory,
 				clineMessages,
 				150, // contextTokens (over limit)
@@ -278,7 +291,7 @@ describe("EnhancedRetryManager", () => {
 
 		it("should classify context window exceeded error", () => {
 			const error = { message: "Context window exceeded", status: 429 }
-			const classification = classifier.classifyError(
+			const classification = ErrorClassifier.classifyError(
 				error,
 				100, // contextTokens
 				1000, // maxTokens
@@ -294,7 +307,7 @@ describe("EnhancedRetryManager", () => {
 
 		it("should classify token limit error", () => {
 			const error = { message: "Token limit exceeded" }
-			const classification = classifier.classifyError(
+			const classification = ErrorClassifier.classifyError(
 				error,
 				950, // contextTokens
 				1000, // maxTokens
@@ -308,7 +321,7 @@ describe("EnhancedRetryManager", () => {
 
 		it("should classify memory pressure error", () => {
 			const error = { message: "Memory pressure detected" }
-			const classification = classifier.classifyError(
+			const classification = ErrorClassifier.classifyError(
 				error,
 				900, // contextTokens
 				1000, // maxTokens
@@ -360,7 +373,7 @@ describe("EnhancedRetryManager", () => {
 			const result = await synchronizer.synchronizeHistories(apiHistory, clineMessages, "test synchronization")
 
 			expect(result.success).toBe(false)
-			expect(result.issues).toContain("Message ordering inconsistency")
+			expect(result.warnings).toContain("Message ordering inconsistency")
 		})
 	})
 
@@ -384,12 +397,19 @@ describe("EnhancedRetryManager", () => {
 			})) as ClineMessage[]
 
 			stateManager.manageContextDuringOptimization(
-				{ success: true, optimizedApiHistory: apiHistory, optimizedClineMessages: clineMessages },
+				{
+					success: true,
+					optimizedApiHistory: apiHistory,
+					optimizedClineMessages: clineMessages,
+					preservedElements: [],
+					removedElements: [],
+					strategy: "recent_messages" as ContextOptimizationStrategy,
+					contextReduction: 10,
+				},
 				apiHistory,
 				clineMessages,
 				950, // contextTokens
 				1000, // maxTokens
-				1000, // contextWindow
 			)
 
 			const memoryState = stateManager.getMemoryState()
@@ -409,12 +429,19 @@ describe("EnhancedRetryManager", () => {
 			})) as ClineMessage[]
 
 			stateManager.manageContextDuringOptimization(
-				{ success: true, optimizedApiHistory: apiHistory, optimizedClineMessages: clineMessages },
+				{
+					success: true,
+					optimizedApiHistory: apiHistory,
+					optimizedClineMessages: clineMessages,
+					preservedElements: [],
+					removedElements: [],
+					strategy: "recent_messages" as ContextOptimizationStrategy,
+					contextReduction: 10,
+				},
 				apiHistory,
 				clineMessages,
 				2000, // contextTokens
 				1000, // maxTokens
-				1000, // contextWindow
 			)
 
 			const memoryState = stateManager.getMemoryState()

@@ -274,9 +274,10 @@ async function executeToolAndProcessResult(
 // Global retry integration instance
 let retryIntegration: RetryIntegration | null = null
 
-function getRetryIntegration(task: Task): RetryIntegration {
+async function getRetryIntegration(task: Task): Promise<RetryIntegration> {
 	if (!retryIntegration) {
-		retryIntegration = new RetryIntegration(task.providerRef.deref()?.getState()?.retrySettings)
+		const state = await task.providerRef.deref()?.getState()
+		retryIntegration = new RetryIntegration(state?.retrySettings)
 	}
 	return retryIntegration
 }
@@ -290,7 +291,7 @@ export async function useMcpToolTool(
 	removeClosingTag: RemoveClosingTag,
 ) {
 	// Check if retry is enabled for this tool
-	const retryInt = getRetryIntegration(cline)
+	const retryInt = await getRetryIntegration(cline)
 	if (retryInt.isRetryEnabled("use_mcp_tool", cline)) {
 		return retryInt.wrapToolExecution(
 			cline,

@@ -298,6 +298,7 @@ export type ExtensionState = Pick<
 	| "includeCurrentTime"
 	| "includeCurrentCost"
 	| "enableManualReview"
+	| "retrySettings"
 > & {
 	version: string
 	clineMessages: ClineMessage[]

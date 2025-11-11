@@ -257,7 +257,14 @@ export class RetryIntegration {
 	): typeof import("./executeCommandTool").executeCommandTool {
 		const integration = new RetryIntegration()
 
-		return async (task, block, askApproval, handleError, pushToolResult, removeClosingTag) => {
+		return async (
+			task: Task,
+			block: ToolUse,
+			askApproval: AskApproval,
+			handleError: HandleError,
+			pushToolResult: PushToolResult,
+			removeClosingTag: RemoveClosingTag,
+		) => {
 			return integration.wrapToolExecution(
 				task,
 				"execute_command",
@@ -281,7 +288,14 @@ export class RetryIntegration {
 	): typeof import("./useMcpToolTool").useMcpToolTool {
 		const integration = new RetryIntegration()
 
-		return async (task, block, askApproval, handleError, pushToolResult, removeClosingTag) => {
+		return async (
+			task: Task,
+			block: ToolUse,
+			askApproval: AskApproval,
+			handleError: HandleError,
+			pushToolResult: PushToolResult,
+			removeClosingTag: RemoveClosingTag,
+		) => {
 			return integration.wrapToolExecution(
 				task,
 				"use_mcp_tool",
@@ -314,7 +328,14 @@ export class RetryIntegration {
 	): typeof originalFileTool {
 		const integration = new RetryIntegration()
 
-		return async (task, block, askApproval, handleError, pushToolResult, removeClosingTag) => {
+		return async (
+			task: Task,
+			block: ToolUse,
+			askApproval: AskApproval,
+			handleError: HandleError,
+			pushToolResult: PushToolResult,
+			removeClosingTag: RemoveClosingTag,
+		) => {
 			return integration.wrapToolExecution(
 				task,
 				toolName,

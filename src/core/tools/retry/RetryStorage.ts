@@ -227,7 +227,7 @@ export class RetryStorage {
 
 			for (const entry of Object.values(storage.entries)) {
 				if (now > entry.expiresAt) {
-					stats.exiredEntries++
+					stats.expiredEntries++
 				} else if (entry.state.isActive) {
 					stats.activeEntries++
 				}
