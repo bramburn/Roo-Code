@@ -26,7 +26,7 @@ export class ToolRegistration {
 			tool: tool as any,
 			name: tool.name,
 			description: tool.description,
-			schema: tool.schema as z.ZodSchema,
+			schema: tool.schema as any,
 			version,
 			metadata: {
 				...metadata,
@@ -64,7 +64,7 @@ export class ToolRegistration {
 			tool: tool as any,
 			name: tool.name,
 			description: tool.description,
-			schema: tool.schema as z.ZodSchema,
+			schema: tool.schema as any,
 			version: metadata.version || "1.0.0",
 			metadata: {
 				...metadata,

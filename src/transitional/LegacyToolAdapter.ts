@@ -89,7 +89,7 @@ export class LegacyToolAdapter {
 		removeClosingTag: RemoveClosingTag,
 	): DynamicStructuredTool {
 		return new DynamicStructuredTool({
-			name: toolName,
+			name: toolName as any,
 			description,
 			schema: this.createLegacySchema(toolName),
 			func: async (args: any, context?: any) => {
@@ -99,7 +99,7 @@ export class LegacyToolAdapter {
 				// Create legacy ToolUse format
 				const toolUse: ToolUse = {
 					type: "tool_use",
-					name: toolName,
+					name: toolName as any,
 					params: legacyParams,
 					partial: false,
 				}
