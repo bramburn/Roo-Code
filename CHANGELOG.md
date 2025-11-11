@@ -14,6 +14,10 @@
 - Fix: Prevent UI flicker and enable resumption after task cancellation (thanks @daniel-lxs!)
 - Fix: Cleanup terminal settings tab and change default terminal to inline (thanks @hannesrudolph!)
 
+## [3.30.1] - 2025-11-11
+
+- **PRD Dependencies**: Updated dependencies for PRD 04-tool-standardization-testing with detailed code-level dependencies including LangChain integration, Zod validation, and existing Roocode API reuse patterns (thanks @prd-dependency-manager!)
+
 ## [3.29.5] - 2025-11-01
 
 - Fix: Resolve Qdrant codebase_search error by adding keyword index for type field (#8963 by @rossdonald, PR by @app/roomote)
