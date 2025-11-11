@@ -1,4 +1,4 @@
-import { parse } from "shell-quote"
+import { parse } from "shell-quote";
 /**
  * # Command Denylist Feature - Longest Prefix Match Strategy
  *
@@ -74,42 +74,39 @@ import { parse } from "shell-quote"
  * @returns true if dangerous substitution patterns are detected, false otherwise
  */
 export function containsDangerousSubstitution(source) {
-	// Check for dangerous parameter expansion operators that can execute commands
-	// ${var@P} - Prompt string expansion (interprets escape sequences and executes embedded commands)
-	// ${var@Q} - Quote removal
-	// ${var@E} - Escape sequence expansion
-	// ${var@A} - Assignment statement
-	// ${var@a} - Attribute flags
-	const dangerousParameterExpansion = /\$\{[^}]*@[PQEAa][^}]*\}/.test(source)
-	// Check for parameter expansions with assignments that could contain escape sequences
-	// ${var=value} or ${var:=value} can embed commands via escape sequences like \140 (backtick)
-	// Also check for ${var+value}, ${var:-value}, ${var:+value}, ${var:?value}
-	const parameterAssignmentWithEscapes =
-		/\$\{[^}]*[=+\-?][^}]*\\[0-7]{3}[^}]*\}/.test(source) || // octal escapes
-		/\$\{[^}]*[=+\-?][^}]*\\x[0-9a-fA-F]{2}[^}]*\}/.test(source) || // hex escapes
-		/\$\{[^}]*[=+\-?][^}]*\\u[0-9a-fA-F]{4}[^}]*\}/.test(source) // unicode escapes
-	// Check for indirect variable references that could execute commands
-	// ${!var} performs indirect expansion which can be dangerous with crafted variable names
-	const indirectExpansion = /\$\{![^}]+\}/.test(source)
-	// Check for here-strings with command substitution
-	// <<<$(...) or <<<`...` can execute commands
-	const hereStringWithSubstitution = /<<<\s*(\$\(|`)/.test(source)
-	// Check for zsh process substitution =(...) which executes commands
-	// =(...) creates a temporary file containing the output of the command, but executes it
-	const zshProcessSubstitution = /=\([^)]+\)/.test(source)
-	// Check for zsh glob qualifiers with code execution (e:...:)
-	// Patterns like *(e:whoami:) or ?(e:rm -rf /:) execute commands during glob expansion
-	// This regex matches patterns like *(e:...:), ?(e:...:), +(e:...:), @(e:...:), !(e:...:)
-	const zshGlobQualifier = /[*?+@!]\(e:[^:]+:\)/.test(source)
-	// Return true if any dangerous pattern is detected
-	return (
-		dangerousParameterExpansion ||
-		parameterAssignmentWithEscapes ||
-		indirectExpansion ||
-		hereStringWithSubstitution ||
-		zshProcessSubstitution ||
-		zshGlobQualifier
-	)
+    // Check for dangerous parameter expansion operators that can execute commands
+    // ${var@P} - Prompt string expansion (interprets escape sequences and executes embedded commands)
+    // ${var@Q} - Quote removal
+    // ${var@E} - Escape sequence expansion
+    // ${var@A} - Assignment statement
+    // ${var@a} - Attribute flags
+    const dangerousParameterExpansion = /\$\{[^}]*@[PQEAa][^}]*\}/.test(source);
+    // Check for parameter expansions with assignments that could contain escape sequences
+    // ${var=value} or ${var:=value} can embed commands via escape sequences like \140 (backtick)
+    // Also check for ${var+value}, ${var:-value}, ${var:+value}, ${var:?value}
+    const parameterAssignmentWithEscapes = /\$\{[^}]*[=+\-?][^}]*\\[0-7]{3}[^}]*\}/.test(source) || // octal escapes
+        /\$\{[^}]*[=+\-?][^}]*\\x[0-9a-fA-F]{2}[^}]*\}/.test(source) || // hex escapes
+        /\$\{[^}]*[=+\-?][^}]*\\u[0-9a-fA-F]{4}[^}]*\}/.test(source); // unicode escapes
+    // Check for indirect variable references that could execute commands
+    // ${!var} performs indirect expansion which can be dangerous with crafted variable names
+    const indirectExpansion = /\$\{![^}]+\}/.test(source);
+    // Check for here-strings with command substitution
+    // <<<$(...) or <<<`...` can execute commands
+    const hereStringWithSubstitution = /<<<\s*(\$\(|`)/.test(source);
+    // Check for zsh process substitution =(...) which executes commands
+    // =(...) creates a temporary file containing the output of the command, but executes it
+    const zshProcessSubstitution = /=\([^)]+\)/.test(source);
+    // Check for zsh glob qualifiers with code execution (e:...:)
+    // Patterns like *(e:whoami:) or ?(e:rm -rf /:) execute commands during glob expansion
+    // This regex matches patterns like *(e:...:), ?(e:...:), +(e:...:), @(e:...:), !(e:...:)
+    const zshGlobQualifier = /[*?+@!]\(e:[^:]+:\)/.test(source);
+    // Return true if any dangerous pattern is detected
+    return (dangerousParameterExpansion ||
+        parameterAssignmentWithEscapes ||
+        indirectExpansion ||
+        hereStringWithSubstitution ||
+        zshProcessSubstitution ||
+        zshGlobQualifier);
 }
 /**
  * Split a command string into individual sub-commands by
@@ -123,185 +120,161 @@ export function containsDangerousSubstitution(source) {
  * - Newlines as command separators
  */
 export function parseCommand(command) {
-	if (!command?.trim()) return []
-	// Split by newlines first (handle different line ending formats)
-	// This regex splits on \r\n (Windows), \n (Unix), or \r (old Mac)
-	const lines = command.split(/\r\n|\r|\n/)
-	const allCommands = []
-	for (const line of lines) {
-		// Skip empty lines
-		if (!line.trim()) continue
-		// Process each line through the existing parsing logic
-		const lineCommands = parseCommandLine(line)
-		allCommands.push(...lineCommands)
-	}
-	return allCommands
+    if (!command?.trim())
+        return [];
+    // Split by newlines first (handle different line ending formats)
+    // This regex splits on \r\n (Windows), \n (Unix), or \r (old Mac)
+    const lines = command.split(/\r\n|\r|\n/);
+    const allCommands = [];
+    for (const line of lines) {
+        // Skip empty lines
+        if (!line.trim())
+            continue;
+        // Process each line through the existing parsing logic
+        const lineCommands = parseCommandLine(line);
+        allCommands.push(...lineCommands);
+    }
+    return allCommands;
 }
 /**
  * Helper function to restore placeholders in a command string
  */
-function restorePlaceholders(
-	command,
-	quotes,
-	redirections,
-	arrayIndexing,
-	arithmeticExpressions,
-	parameterExpansions,
-	variables,
-	subshells,
-) {
-	let result = command
-	// Restore quotes
-	result = result.replace(/__QUOTE_(\d+)__/g, (_, i) => quotes[parseInt(i)])
-	// Restore redirections
-	result = result.replace(/__REDIR_(\d+)__/g, (_, i) => redirections[parseInt(i)])
-	// Restore array indexing expressions
-	result = result.replace(/__ARRAY_(\d+)__/g, (_, i) => arrayIndexing[parseInt(i)])
-	// Restore arithmetic expressions
-	result = result.replace(/__ARITH_(\d+)__/g, (_, i) => arithmeticExpressions[parseInt(i)])
-	// Restore parameter expansions
-	result = result.replace(/__PARAM_(\d+)__/g, (_, i) => parameterExpansions[parseInt(i)])
-	// Restore variable references
-	result = result.replace(/__VAR_(\d+)__/g, (_, i) => variables[parseInt(i)])
-	result = result.replace(/__SUBSH_(\d+)__/g, (_, i) => subshells[parseInt(i)])
-	return result
+function restorePlaceholders(command, quotes, redirections, arrayIndexing, arithmeticExpressions, parameterExpansions, variables, subshells) {
+    let result = command;
+    // Restore quotes
+    result = result.replace(/__QUOTE_(\d+)__/g, (_, i) => quotes[parseInt(i)]);
+    // Restore redirections
+    result = result.replace(/__REDIR_(\d+)__/g, (_, i) => redirections[parseInt(i)]);
+    // Restore array indexing expressions
+    result = result.replace(/__ARRAY_(\d+)__/g, (_, i) => arrayIndexing[parseInt(i)]);
+    // Restore arithmetic expressions
+    result = result.replace(/__ARITH_(\d+)__/g, (_, i) => arithmeticExpressions[parseInt(i)]);
+    // Restore parameter expansions
+    result = result.replace(/__PARAM_(\d+)__/g, (_, i) => parameterExpansions[parseInt(i)]);
+    // Restore variable references
+    result = result.replace(/__VAR_(\d+)__/g, (_, i) => variables[parseInt(i)]);
+    result = result.replace(/__SUBSH_(\d+)__/g, (_, i) => subshells[parseInt(i)]);
+    return result;
 }
 /**
  * Parse a single line of commands (internal helper function)
  */
 function parseCommandLine(command) {
-	if (!command?.trim()) return []
-	// Storage for replaced content
-	const redirections = []
-	const subshells = []
-	const quotes = []
-	const arrayIndexing = []
-	const arithmeticExpressions = []
-	const variables = []
-	const parameterExpansions = []
-	// First handle PowerShell redirections by temporarily replacing them
-	let processedCommand = command.replace(/\d*>&\d*/g, (match) => {
-		redirections.push(match)
-		return `__REDIR_${redirections.length - 1}__`
-	})
-	// Handle arithmetic expressions: $((...)) pattern
-	// Match the entire arithmetic expression including nested parentheses
-	processedCommand = processedCommand.replace(/\$\(\([^)]*(?:\)[^)]*)*\)\)/g, (match) => {
-		arithmeticExpressions.push(match)
-		return `__ARITH_${arithmeticExpressions.length - 1}__`
-	})
-	// Handle $[...] arithmetic expressions (alternative syntax)
-	processedCommand = processedCommand.replace(/\$\[[^\]]*\]/g, (match) => {
-		arithmeticExpressions.push(match)
-		return `__ARITH_${arithmeticExpressions.length - 1}__`
-	})
-	// Handle parameter expansions: ${...} patterns (including array indexing)
-	// This covers ${var}, ${var:-default}, ${var:+alt}, ${#var}, ${var%pattern}, etc.
-	processedCommand = processedCommand.replace(/\$\{[^}]+\}/g, (match) => {
-		parameterExpansions.push(match)
-		return `__PARAM_${parameterExpansions.length - 1}__`
-	})
-	// Handle process substitutions: <(...) and >(...)
-	processedCommand = processedCommand.replace(/[<>]\(([^)]+)\)/g, (_, inner) => {
-		subshells.push(inner.trim())
-		return `__SUBSH_${subshells.length - 1}__`
-	})
-	// Handle simple variable references: $varname pattern
-	// This prevents shell-quote from splitting $count into separate tokens
-	processedCommand = processedCommand.replace(/\$[a-zA-Z_][a-zA-Z0-9_]*/g, (match) => {
-		variables.push(match)
-		return `__VAR_${variables.length - 1}__`
-	})
-	// Handle special bash variables: $?, $!, $#, $$, $@, $*, $-, $0-$9
-	processedCommand = processedCommand.replace(/\$[?!#$@*\-0-9]/g, (match) => {
-		variables.push(match)
-		return `__VAR_${variables.length - 1}__`
-	})
-	// Then handle subshell commands $() and back-ticks
-	processedCommand = processedCommand
-		.replace(/\$\((.*?)\)/g, (_, inner) => {
-			subshells.push(inner.trim())
-			return `__SUBSH_${subshells.length - 1}__`
-		})
-		.replace(/`(.*?)`/g, (_, inner) => {
-			subshells.push(inner.trim())
-			return `__SUBSH_${subshells.length - 1}__`
-		})
-	// Then handle quoted strings
-	processedCommand = processedCommand.replace(/"[^"]*"/g, (match) => {
-		quotes.push(match)
-		return `__QUOTE_${quotes.length - 1}__`
-	})
-	let tokens
-	try {
-		tokens = parse(processedCommand)
-	} catch (error) {
-		// If shell-quote fails to parse, fall back to simple splitting
-		console.warn("shell-quote parse error:", error.message, "for command:", processedCommand)
-		// Simple fallback: split by common operators
-		const fallbackCommands = processedCommand
-			.split(/(?:&&|\|\||;|\||&)/)
-			.map((cmd) => cmd.trim())
-			.filter((cmd) => cmd.length > 0)
-		// Restore all placeholders for each command
-		return fallbackCommands.map((cmd) =>
-			restorePlaceholders(
-				cmd,
-				quotes,
-				redirections,
-				arrayIndexing,
-				arithmeticExpressions,
-				parameterExpansions,
-				variables,
-				subshells,
-			),
-		)
-	}
-	const commands = []
-	let currentCommand = []
-	for (const token of tokens) {
-		if (typeof token === "object" && "op" in token) {
-			// Chain operator - split command
-			if (["&&", "||", ";", "|", "&"].includes(token.op)) {
-				if (currentCommand.length > 0) {
-					commands.push(currentCommand.join(" "))
-					currentCommand = []
-				}
-			} else {
-				// Other operators (>) are part of the command
-				currentCommand.push(token.op)
-			}
-		} else if (typeof token === "string") {
-			// Check if it's a subshell placeholder
-			const subshellMatch = token.match(/__SUBSH_(\d+)__/)
-			if (subshellMatch) {
-				if (currentCommand.length > 0) {
-					commands.push(currentCommand.join(" "))
-					currentCommand = []
-				}
-				commands.push(subshells[parseInt(subshellMatch[1])])
-			} else {
-				currentCommand.push(token)
-			}
-		}
-	}
-	// Add any remaining command
-	if (currentCommand.length > 0) {
-		commands.push(currentCommand.join(" "))
-	}
-	// Restore quotes and redirections
-	return commands.map((cmd) =>
-		restorePlaceholders(
-			cmd,
-			quotes,
-			redirections,
-			arrayIndexing,
-			arithmeticExpressions,
-			parameterExpansions,
-			variables,
-			subshells,
-		),
-	)
+    if (!command?.trim())
+        return [];
+    // Storage for replaced content
+    const redirections = [];
+    const subshells = [];
+    const quotes = [];
+    const arrayIndexing = [];
+    const arithmeticExpressions = [];
+    const variables = [];
+    const parameterExpansions = [];
+    // First handle PowerShell redirections by temporarily replacing them
+    let processedCommand = command.replace(/\d*>&\d*/g, (match) => {
+        redirections.push(match);
+        return `__REDIR_${redirections.length - 1}__`;
+    });
+    // Handle arithmetic expressions: $((...)) pattern
+    // Match the entire arithmetic expression including nested parentheses
+    processedCommand = processedCommand.replace(/\$\(\([^)]*(?:\)[^)]*)*\)\)/g, (match) => {
+        arithmeticExpressions.push(match);
+        return `__ARITH_${arithmeticExpressions.length - 1}__`;
+    });
+    // Handle $[...] arithmetic expressions (alternative syntax)
+    processedCommand = processedCommand.replace(/\$\[[^\]]*\]/g, (match) => {
+        arithmeticExpressions.push(match);
+        return `__ARITH_${arithmeticExpressions.length - 1}__`;
+    });
+    // Handle parameter expansions: ${...} patterns (including array indexing)
+    // This covers ${var}, ${var:-default}, ${var:+alt}, ${#var}, ${var%pattern}, etc.
+    processedCommand = processedCommand.replace(/\$\{[^}]+\}/g, (match) => {
+        parameterExpansions.push(match);
+        return `__PARAM_${parameterExpansions.length - 1}__`;
+    });
+    // Handle process substitutions: <(...) and >(...)
+    processedCommand = processedCommand.replace(/[<>]\(([^)]+)\)/g, (_, inner) => {
+        subshells.push(inner.trim());
+        return `__SUBSH_${subshells.length - 1}__`;
+    });
+    // Handle simple variable references: $varname pattern
+    // This prevents shell-quote from splitting $count into separate tokens
+    processedCommand = processedCommand.replace(/\$[a-zA-Z_][a-zA-Z0-9_]*/g, (match) => {
+        variables.push(match);
+        return `__VAR_${variables.length - 1}__`;
+    });
+    // Handle special bash variables: $?, $!, $#, $$, $@, $*, $-, $0-$9
+    processedCommand = processedCommand.replace(/\$[?!#$@*\-0-9]/g, (match) => {
+        variables.push(match);
+        return `__VAR_${variables.length - 1}__`;
+    });
+    // Then handle subshell commands $() and back-ticks
+    processedCommand = processedCommand
+        .replace(/\$\((.*?)\)/g, (_, inner) => {
+        subshells.push(inner.trim());
+        return `__SUBSH_${subshells.length - 1}__`;
+    })
+        .replace(/`(.*?)`/g, (_, inner) => {
+        subshells.push(inner.trim());
+        return `__SUBSH_${subshells.length - 1}__`;
+    });
+    // Then handle quoted strings
+    processedCommand = processedCommand.replace(/"[^"]*"/g, (match) => {
+        quotes.push(match);
+        return `__QUOTE_${quotes.length - 1}__`;
+    });
+    let tokens;
+    try {
+        tokens = parse(processedCommand);
+    }
+    catch (error) {
+        // If shell-quote fails to parse, fall back to simple splitting
+        console.warn("shell-quote parse error:", error.message, "for command:", processedCommand);
+        // Simple fallback: split by common operators
+        const fallbackCommands = processedCommand
+            .split(/(?:&&|\|\||;|\||&)/)
+            .map((cmd) => cmd.trim())
+            .filter((cmd) => cmd.length > 0);
+        // Restore all placeholders for each command
+        return fallbackCommands.map((cmd) => restorePlaceholders(cmd, quotes, redirections, arrayIndexing, arithmeticExpressions, parameterExpansions, variables, subshells));
+    }
+    const commands = [];
+    let currentCommand = [];
+    for (const token of tokens) {
+        if (typeof token === "object" && "op" in token) {
+            // Chain operator - split command
+            if (["&&", "||", ";", "|", "&"].includes(token.op)) {
+                if (currentCommand.length > 0) {
+                    commands.push(currentCommand.join(" "));
+                    currentCommand = [];
+                }
+            }
+            else {
+                // Other operators (>) are part of the command
+                currentCommand.push(token.op);
+            }
+        }
+        else if (typeof token === "string") {
+            // Check if it's a subshell placeholder
+            const subshellMatch = token.match(/__SUBSH_(\d+)__/);
+            if (subshellMatch) {
+                if (currentCommand.length > 0) {
+                    commands.push(currentCommand.join(" "));
+                    currentCommand = [];
+                }
+                commands.push(subshells[parseInt(subshellMatch[1])]);
+            }
+            else {
+                currentCommand.push(token);
+            }
+        }
+    }
+    // Add any remaining command
+    if (currentCommand.length > 0) {
+        commands.push(currentCommand.join(" "));
+    }
+    // Restore quotes and redirections
+    return commands.map((cmd) => restorePlaceholders(cmd, quotes, redirections, arrayIndexing, arithmeticExpressions, parameterExpansions, variables, subshells));
 }
 /**
  * Find the longest matching prefix from a list of prefixes for a given command.
@@ -332,19 +305,20 @@ function parseCommandLine(command) {
  * @returns The longest matching prefix, or null if no match found
  */
 export function findLongestPrefixMatch(command, prefixes) {
-	if (!command || !prefixes?.length) return null
-	const trimmedCommand = command.trim().toLowerCase()
-	let longestMatch = null
-	for (const prefix of prefixes) {
-		const lowerPrefix = prefix.toLowerCase()
-		// Handle wildcard "*" - it matches any command
-		if (lowerPrefix === "*" || trimmedCommand.startsWith(lowerPrefix)) {
-			if (!longestMatch || lowerPrefix.length > longestMatch.length) {
-				longestMatch = lowerPrefix
-			}
-		}
-	}
-	return longestMatch
+    if (!command || !prefixes?.length)
+        return null;
+    const trimmedCommand = command.trim().toLowerCase();
+    let longestMatch = null;
+    for (const prefix of prefixes) {
+        const lowerPrefix = prefix.toLowerCase();
+        // Handle wildcard "*" - it matches any command
+        if (lowerPrefix === "*" || trimmedCommand.startsWith(lowerPrefix)) {
+            if (!longestMatch || lowerPrefix.length > longestMatch.length) {
+                longestMatch = lowerPrefix;
+            }
+        }
+    }
+    return longestMatch;
 }
 /**
  * Check if a single command should be auto-approved.
@@ -355,31 +329,36 @@ export function findLongestPrefixMatch(command, prefixes) {
  * but denylist can still block specific commands.
  */
 export function isAutoApprovedSingleCommand(command, allowedCommands, deniedCommands) {
-	if (!command) return true
-	// If no allowlist configured, nothing can be auto-approved
-	if (!allowedCommands?.length) return false
-	// Check if wildcard is present in allowlist
-	const hasWildcard = allowedCommands.some((cmd) => cmd.toLowerCase() === "*")
-	// If no denylist provided (undefined), use simple allowlist logic
-	if (deniedCommands === undefined) {
-		const trimmedCommand = command.trim().toLowerCase()
-		return allowedCommands.some((prefix) => {
-			const lowerPrefix = prefix.toLowerCase()
-			// Handle wildcard "*" - it matches any command
-			return lowerPrefix === "*" || trimmedCommand.startsWith(lowerPrefix)
-		})
-	}
-	// Find longest matching prefix in both lists
-	const longestDeniedMatch = findLongestPrefixMatch(command, deniedCommands)
-	const longestAllowedMatch = findLongestPrefixMatch(command, allowedCommands)
-	// Special case: if wildcard is present and no denylist match, auto-approve
-	if (hasWildcard && !longestDeniedMatch) return true
-	// Must have an allowlist match to be auto-approved
-	if (!longestAllowedMatch) return false
-	// If no denylist match, auto-approve
-	if (!longestDeniedMatch) return true
-	// Both have matches - allowlist must be longer to auto-approve
-	return longestAllowedMatch.length > longestDeniedMatch.length
+    if (!command)
+        return true;
+    // If no allowlist configured, nothing can be auto-approved
+    if (!allowedCommands?.length)
+        return false;
+    // Check if wildcard is present in allowlist
+    const hasWildcard = allowedCommands.some((cmd) => cmd.toLowerCase() === "*");
+    // If no denylist provided (undefined), use simple allowlist logic
+    if (deniedCommands === undefined) {
+        const trimmedCommand = command.trim().toLowerCase();
+        return allowedCommands.some((prefix) => {
+            const lowerPrefix = prefix.toLowerCase();
+            // Handle wildcard "*" - it matches any command
+            return lowerPrefix === "*" || trimmedCommand.startsWith(lowerPrefix);
+        });
+    }
+    // Find longest matching prefix in both lists
+    const longestDeniedMatch = findLongestPrefixMatch(command, deniedCommands);
+    const longestAllowedMatch = findLongestPrefixMatch(command, allowedCommands);
+    // Special case: if wildcard is present and no denylist match, auto-approve
+    if (hasWildcard && !longestDeniedMatch)
+        return true;
+    // Must have an allowlist match to be auto-approved
+    if (!longestAllowedMatch)
+        return false;
+    // If no denylist match, auto-approve
+    if (!longestDeniedMatch)
+        return true;
+    // Both have matches - allowlist must be longer to auto-approve
+    return longestAllowedMatch.length > longestDeniedMatch.length;
 }
 /**
  * Check if a single command should be auto-denied.
@@ -387,18 +366,22 @@ export function isAutoApprovedSingleCommand(command, allowedCommands, deniedComm
  * and either don't match the allowlist or have a longer denylist match.
  */
 export function isAutoDeniedSingleCommand(command, allowedCommands, deniedCommands) {
-	if (!command) return false
-	// If no denylist configured, nothing can be auto-denied
-	if (!deniedCommands?.length) return false
-	// Find longest matching prefix in both lists
-	const longestDeniedMatch = findLongestPrefixMatch(command, deniedCommands)
-	const longestAllowedMatch = findLongestPrefixMatch(command, allowedCommands || [])
-	// Must have a denylist match to be auto-denied
-	if (!longestDeniedMatch) return false
-	// If no allowlist match, auto-deny
-	if (!longestAllowedMatch) return true
-	// Both have matches - denylist must be longer or equal to auto-deny
-	return longestDeniedMatch.length >= longestAllowedMatch.length
+    if (!command)
+        return false;
+    // If no denylist configured, nothing can be auto-denied
+    if (!deniedCommands?.length)
+        return false;
+    // Find longest matching prefix in both lists
+    const longestDeniedMatch = findLongestPrefixMatch(command, deniedCommands);
+    const longestAllowedMatch = findLongestPrefixMatch(command, allowedCommands || []);
+    // Must have a denylist match to be auto-denied
+    if (!longestDeniedMatch)
+        return false;
+    // If no allowlist match, auto-deny
+    if (!longestAllowedMatch)
+        return true;
+    // Both have matches - denylist must be longer or equal to auto-deny
+    return longestDeniedMatch.length >= longestAllowedMatch.length;
 }
 /**
  * Unified command validation that implements the longest prefix match rule.
@@ -448,29 +431,30 @@ export function isAutoDeniedSingleCommand(command, allowedCommands, deniedComman
  * @returns Decision indicating whether to approve, deny, or ask user
  */
 export function getCommandDecision(command, allowedCommands, deniedCommands) {
-	if (!command?.trim()) return "auto_approve"
-	// Parse into sub-commands (split by &&, ||, ;, |)
-	const subCommands = parseCommand(command)
-	// Check each sub-command and collect decisions
-	const decisions = subCommands.map((cmd) => {
-		// Remove simple PowerShell-like redirections (e.g. 2>&1) before checking
-		const cmdWithoutRedirection = cmd.replace(/\d*>&\d*/, "").trim()
-		return getSingleCommandDecision(cmdWithoutRedirection, allowedCommands, deniedCommands)
-	})
-	// If any sub-command is denied, deny the whole command
-	if (decisions.includes("auto_deny")) {
-		return "auto_deny"
-	}
-	// Require explicit user approval for dangerous patterns
-	if (containsDangerousSubstitution(command)) {
-		return "ask_user"
-	}
-	// If all sub-commands are approved, approve the whole command
-	if (decisions.every((decision) => decision === "auto_approve")) {
-		return "auto_approve"
-	}
-	// Otherwise, ask user
-	return "ask_user"
+    if (!command?.trim())
+        return "auto_approve";
+    // Parse into sub-commands (split by &&, ||, ;, |)
+    const subCommands = parseCommand(command);
+    // Check each sub-command and collect decisions
+    const decisions = subCommands.map((cmd) => {
+        // Remove simple PowerShell-like redirections (e.g. 2>&1) before checking
+        const cmdWithoutRedirection = cmd.replace(/\d*>&\d*/, "").trim();
+        return getSingleCommandDecision(cmdWithoutRedirection, allowedCommands, deniedCommands);
+    });
+    // If any sub-command is denied, deny the whole command
+    if (decisions.includes("auto_deny")) {
+        return "auto_deny";
+    }
+    // Require explicit user approval for dangerous patterns
+    if (containsDangerousSubstitution(command)) {
+        return "ask_user";
+    }
+    // If all sub-commands are approved, approve the whole command
+    if (decisions.every((decision) => decision === "auto_approve")) {
+        return "auto_approve";
+    }
+    // Otherwise, ask user
+    return "ask_user";
 }
 /**
  * Get the decision for a single command using longest prefix match rule.
@@ -518,24 +502,25 @@ export function getCommandDecision(command, allowedCommands, deniedCommands) {
  * @returns Decision for this specific command
  */
 export function getSingleCommandDecision(command, allowedCommands, deniedCommands) {
-	if (!command) return "auto_approve"
-	// Find longest matching prefixes in both lists
-	const longestAllowedMatch = findLongestPrefixMatch(command, allowedCommands || [])
-	const longestDeniedMatch = findLongestPrefixMatch(command, deniedCommands || [])
-	// If only allowlist has a match, auto-approve
-	if (longestAllowedMatch && !longestDeniedMatch) {
-		return "auto_approve"
-	}
-	// If only denylist has a match, auto-deny
-	if (!longestAllowedMatch && longestDeniedMatch) {
-		return "auto_deny"
-	}
-	// Both lists have matches - apply longest prefix match rule
-	if (longestAllowedMatch && longestDeniedMatch) {
-		return longestAllowedMatch.length > longestDeniedMatch.length ? "auto_approve" : "auto_deny"
-	}
-	// If neither list has a match, ask user
-	return "ask_user"
+    if (!command)
+        return "auto_approve";
+    // Find longest matching prefixes in both lists
+    const longestAllowedMatch = findLongestPrefixMatch(command, allowedCommands || []);
+    const longestDeniedMatch = findLongestPrefixMatch(command, deniedCommands || []);
+    // If only allowlist has a match, auto-approve
+    if (longestAllowedMatch && !longestDeniedMatch) {
+        return "auto_approve";
+    }
+    // If only denylist has a match, auto-deny
+    if (!longestAllowedMatch && longestDeniedMatch) {
+        return "auto_deny";
+    }
+    // Both lists have matches - apply longest prefix match rule
+    if (longestAllowedMatch && longestDeniedMatch) {
+        return longestAllowedMatch.length > longestDeniedMatch.length ? "auto_approve" : "auto_deny";
+    }
+    // If neither list has a match, ask user
+    return "ask_user";
 }
 /**
  * Centralized Command Validation Service
@@ -545,110 +530,110 @@ export function getSingleCommandDecision(command, allowedCommands, deniedCommand
  * provides convenient methods for different validation scenarios.
  */
 export class CommandValidator {
-	allowedCommands
-	deniedCommands
-	constructor(allowedCommands, deniedCommands) {
-		this.allowedCommands = allowedCommands
-		this.deniedCommands = deniedCommands
-	}
-	/**
-	 * Update the command lists used for validation
-	 */
-	updateCommandLists(allowedCommands, deniedCommands) {
-		this.allowedCommands = allowedCommands
-		this.deniedCommands = deniedCommands
-	}
-	/**
-	 * Get the current command lists
-	 */
-	getCommandLists() {
-		return {
-			allowedCommands: [...this.allowedCommands],
-			deniedCommands: this.deniedCommands ? [...this.deniedCommands] : undefined,
-		}
-	}
-	/**
-	 * Validate a command and return a decision
-	 * This is the main validation method that should be used for all command validation
-	 */
-	validateCommand(command) {
-		return getCommandDecision(command, this.allowedCommands, this.deniedCommands)
-	}
-	/**
-	 * Check if a command would be auto-approved
-	 */
-	isAutoApproved(command) {
-		return this.validateCommand(command) === "auto_approve"
-	}
-	/**
-	 * Check if a command would be auto-denied
-	 */
-	isAutoDenied(command) {
-		return this.validateCommand(command) === "auto_deny"
-	}
-	/**
-	 * Check if a command requires user input
-	 */
-	requiresUserInput(command) {
-		return this.validateCommand(command) === "ask_user"
-	}
-	/**
-	 * Get detailed validation information for a command
-	 * Useful for debugging and providing user feedback
-	 */
-	getValidationDetails(command) {
-		const subCommands = parseCommand(command)
-		const hasDangerousSubstitution = containsDangerousSubstitution(command)
-		const allowedMatches = subCommands.map((cmd) => ({
-			command: cmd,
-			match: findLongestPrefixMatch(cmd.replace(/\d*>&\d*/, "").trim(), this.allowedCommands),
-		}))
-		const deniedMatches = subCommands.map((cmd) => ({
-			command: cmd,
-			match: findLongestPrefixMatch(cmd.replace(/\d*>&\d*/, "").trim(), this.deniedCommands || []),
-		}))
-		return {
-			decision: this.validateCommand(command),
-			subCommands,
-			allowedMatches,
-			deniedMatches,
-			hasDangerousSubstitution,
-		}
-	}
-	/**
-	 * Validate multiple commands at once
-	 * Returns a map of command to decision
-	 */
-	validateCommands(commands) {
-		const results = new Map()
-		for (const command of commands) {
-			results.set(command, this.validateCommand(command))
-		}
-		return results
-	}
-	/**
-	 * Check if the validator has any rules configured
-	 */
-	hasRules() {
-		return this.allowedCommands.length > 0 || (this.deniedCommands?.length ?? 0) > 0
-	}
-	/**
-	 * Get statistics about the current configuration
-	 */
-	getStats() {
-		return {
-			allowedCount: this.allowedCommands.length,
-			deniedCount: this.deniedCommands?.length ?? 0,
-			hasWildcard: this.allowedCommands.some((cmd) => cmd.toLowerCase() === "*"),
-			hasRules: this.hasRules(),
-		}
-	}
+    allowedCommands;
+    deniedCommands;
+    constructor(allowedCommands, deniedCommands) {
+        this.allowedCommands = allowedCommands;
+        this.deniedCommands = deniedCommands;
+    }
+    /**
+     * Update the command lists used for validation
+     */
+    updateCommandLists(allowedCommands, deniedCommands) {
+        this.allowedCommands = allowedCommands;
+        this.deniedCommands = deniedCommands;
+    }
+    /**
+     * Get the current command lists
+     */
+    getCommandLists() {
+        return {
+            allowedCommands: [...this.allowedCommands],
+            deniedCommands: this.deniedCommands ? [...this.deniedCommands] : undefined,
+        };
+    }
+    /**
+     * Validate a command and return a decision
+     * This is the main validation method that should be used for all command validation
+     */
+    validateCommand(command) {
+        return getCommandDecision(command, this.allowedCommands, this.deniedCommands);
+    }
+    /**
+     * Check if a command would be auto-approved
+     */
+    isAutoApproved(command) {
+        return this.validateCommand(command) === "auto_approve";
+    }
+    /**
+     * Check if a command would be auto-denied
+     */
+    isAutoDenied(command) {
+        return this.validateCommand(command) === "auto_deny";
+    }
+    /**
+     * Check if a command requires user input
+     */
+    requiresUserInput(command) {
+        return this.validateCommand(command) === "ask_user";
+    }
+    /**
+     * Get detailed validation information for a command
+     * Useful for debugging and providing user feedback
+     */
+    getValidationDetails(command) {
+        const subCommands = parseCommand(command);
+        const hasDangerousSubstitution = containsDangerousSubstitution(command);
+        const allowedMatches = subCommands.map((cmd) => ({
+            command: cmd,
+            match: findLongestPrefixMatch(cmd.replace(/\d*>&\d*/, "").trim(), this.allowedCommands),
+        }));
+        const deniedMatches = subCommands.map((cmd) => ({
+            command: cmd,
+            match: findLongestPrefixMatch(cmd.replace(/\d*>&\d*/, "").trim(), this.deniedCommands || []),
+        }));
+        return {
+            decision: this.validateCommand(command),
+            subCommands,
+            allowedMatches,
+            deniedMatches,
+            hasDangerousSubstitution,
+        };
+    }
+    /**
+     * Validate multiple commands at once
+     * Returns a map of command to decision
+     */
+    validateCommands(commands) {
+        const results = new Map();
+        for (const command of commands) {
+            results.set(command, this.validateCommand(command));
+        }
+        return results;
+    }
+    /**
+     * Check if the validator has any rules configured
+     */
+    hasRules() {
+        return this.allowedCommands.length > 0 || (this.deniedCommands?.length ?? 0) > 0;
+    }
+    /**
+     * Get statistics about the current configuration
+     */
+    getStats() {
+        return {
+            allowedCount: this.allowedCommands.length,
+            deniedCount: this.deniedCommands?.length ?? 0,
+            hasWildcard: this.allowedCommands.some((cmd) => cmd.toLowerCase() === "*"),
+            hasRules: this.hasRules(),
+        };
+    }
 }
 /**
  * Factory function to create a CommandValidator instance
  * This is the recommended way to create validators in the application
  */
 export function createCommandValidator(allowedCommands, deniedCommands) {
-	return new CommandValidator(allowedCommands, deniedCommands)
+    return new CommandValidator(allowedCommands, deniedCommands);
 }
 //# sourceMappingURL=command-validation.js.map

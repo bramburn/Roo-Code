@@ -1,11 +1,11 @@
-import i18next from "./setup"
+import i18next from "./setup";
 /**
  * Initialize i18next with the specified language
  *
  * @param language The language code to use
  */
 export function initializeI18n(language) {
-	i18next.changeLanguage(language)
+    i18next.changeLanguage(language);
 }
 /**
  * Get the current language
@@ -13,7 +13,7 @@ export function initializeI18n(language) {
  * @returns The current language code
  */
 export function getCurrentLanguage() {
-	return i18next.language
+    return i18next.language;
 }
 /**
  * Change the current language
@@ -21,7 +21,7 @@ export function getCurrentLanguage() {
  * @param language The language code to change to
  */
 export function changeLanguage(language) {
-	i18next.changeLanguage(language)
+    i18next.changeLanguage(language);
 }
 /**
  * Translate a string using i18next
@@ -31,7 +31,7 @@ export function changeLanguage(language) {
  * @returns The translated string
  */
 export function t(key, options) {
-	return i18next.t(key, options)
+    return i18next.t(key, options);
 }
-export default i18next
+export default i18next;
 //# sourceMappingURL=index.js.map

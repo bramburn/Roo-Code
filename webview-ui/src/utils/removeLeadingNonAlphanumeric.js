@@ -7,5 +7,5 @@
 // Only remove specific punctuation characters that might interfere with
 // ellipsis display. Keep all language characters (including CJK, Cyrillic
 //  etc.) and numbers.
-export const removeLeadingNonAlphanumeric = (path) => path.replace(/^[/\\:*?"<>|]+/, "")
+export const removeLeadingNonAlphanumeric = (path) => path.replace(/^[/\\:*?"<>|]+/, "");
 //# sourceMappingURL=removeLeadingNonAlphanumeric.js.map

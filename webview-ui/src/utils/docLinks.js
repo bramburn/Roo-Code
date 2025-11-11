@@ -6,10 +6,10 @@
  * @returns The full docs URL with UTM parameters
  */
 export function buildDocLink(path, campaign) {
-	// Remove any leading slash from path
-	const cleanPath = path.replace(/^\//, "")
-	const [basePath, hash] = cleanPath.split("#")
-	const baseUrl = `https://docs.roocode.com/${basePath}?utm_source=extension&utm_medium=ide&utm_campaign=${encodeURIComponent(campaign)}`
-	return hash ? `${baseUrl}#${hash}` : baseUrl
+    // Remove any leading slash from path
+    const cleanPath = path.replace(/^\//, "");
+    const [basePath, hash] = cleanPath.split("#");
+    const baseUrl = `https://docs.roocode.com/${basePath}?utm_source=extension&utm_medium=ide&utm_campaign=${encodeURIComponent(campaign)}`;
+    return hash ? `${baseUrl}#${hash}` : baseUrl;
 }
 //# sourceMappingURL=docLinks.js.map

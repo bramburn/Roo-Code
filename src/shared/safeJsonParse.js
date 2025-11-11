@@ -6,15 +6,16 @@
  * @returns Parsed JSON object or defaultValue if parsing fails
  */
 export function safeJsonParse(jsonString, defaultValue) {
-	if (!jsonString) {
-		return defaultValue
-	}
-	try {
-		return JSON.parse(jsonString)
-	} catch (error) {
-		// Log the error to the console for debugging
-		console.error("Error parsing JSON:", error)
-		return defaultValue
-	}
+    if (!jsonString) {
+        return defaultValue;
+    }
+    try {
+        return JSON.parse(jsonString);
+    }
+    catch (error) {
+        // Log the error to the console for debugging
+        console.error("Error parsing JSON:", error);
+        return defaultValue;
+    }
 }
 //# sourceMappingURL=safeJsonParse.js.map

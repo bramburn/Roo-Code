@@ -1,5 +1,5 @@
-import { safeJsonParse } from "./safeJsonParse"
-export const COMMAND_OUTPUT_STRING = "Output:"
+import { safeJsonParse } from "./safeJsonParse";
+export const COMMAND_OUTPUT_STRING = "Output:";
 /**
  * Combines sequences of command and command_output messages in an array of ClineMessages.
  * Also combines sequences of use_mcp_server and mcp_server_response messages.
@@ -23,100 +23,102 @@ export const COMMAND_OUTPUT_STRING = "Output:"
  * // Result: [{ type: 'ask', ask: 'command', text: 'ls\nfile1.txt\nfile2.txt', ts: 1625097600000 }]
  */
 export function combineCommandSequences(messages) {
-	const combinedMessages = new Map()
-	const processedIndices = new Set()
-	// Single pass through all messages
-	for (let i = 0; i < messages.length; i++) {
-		const msg = messages[i]
-		// Handle MCP server requests
-		if (msg.type === "ask" && msg.ask === "use_mcp_server") {
-			// Look ahead for MCP responses
-			let responses = []
-			let j = i + 1
-			while (j < messages.length) {
-				if (messages[j].say === "mcp_server_response") {
-					responses.push(messages[j].text || "")
-					processedIndices.add(j)
-					j++
-				} else if (messages[j].type === "ask" && messages[j].ask === "use_mcp_server") {
-					// Stop if we encounter another MCP request
-					break
-				} else {
-					j++
-				}
-			}
-			if (responses.length > 0) {
-				// Parse the JSON from the message text
-				const jsonObj = safeJsonParse(msg.text || "{}", {})
-				// Add the response to the JSON object
-				jsonObj.response = responses.join("\n")
-				// Stringify the updated JSON object
-				const combinedText = JSON.stringify(jsonObj)
-				combinedMessages.set(msg.ts, { ...msg, text: combinedText })
-			} else {
-				// If there's no response, just keep the original message
-				combinedMessages.set(msg.ts, { ...msg })
-			}
-		}
-		// Handle command sequences
-		else if (msg.type === "ask" && msg.ask === "command") {
-			let combinedText = msg.text || ""
-			let j = i + 1
-			let previous
-			let lastProcessedIndex = i
-			while (j < messages.length) {
-				const { type, ask, say, text = "" } = messages[j]
-				if (type === "ask" && ask === "command") {
-					break // Stop if we encounter the next command.
-				}
-				if (ask === "command_output" || say === "command_output") {
-					if (!previous) {
-						combinedText += `\n${COMMAND_OUTPUT_STRING}`
-					}
-					const isDuplicate = previous && previous.type !== type && previous.text === text
-					if (text.length > 0 && !isDuplicate) {
-						// Add a newline before adding the text if there's already content
-						if (
-							previous &&
-							combinedText.length >
-								combinedText.indexOf(COMMAND_OUTPUT_STRING) + COMMAND_OUTPUT_STRING.length
-						) {
-							combinedText += "\n"
-						}
-						combinedText += text
-					}
-					previous = { type, text }
-					processedIndices.add(j)
-					lastProcessedIndex = j
-				}
-				j++
-			}
-			combinedMessages.set(msg.ts, { ...msg, text: combinedText })
-			// Only skip ahead if we actually processed command outputs
-			if (lastProcessedIndex > i) {
-				i = lastProcessedIndex
-			}
-		}
-	}
-	// Build final result: filter out processed messages and use combined versions
-	const result = []
-	for (let i = 0; i < messages.length; i++) {
-		const msg = messages[i]
-		// Skip messages that were processed as outputs/responses
-		if (processedIndices.has(i)) {
-			continue
-		}
-		// Skip command_output and mcp_server_response messages
-		if (msg.ask === "command_output" || msg.say === "command_output" || msg.say === "mcp_server_response") {
-			continue
-		}
-		// Use combined version if available
-		if (combinedMessages.has(msg.ts)) {
-			result.push(combinedMessages.get(msg.ts))
-		} else {
-			result.push(msg)
-		}
-	}
-	return result
+    const combinedMessages = new Map();
+    const processedIndices = new Set();
+    // Single pass through all messages
+    for (let i = 0; i < messages.length; i++) {
+        const msg = messages[i];
+        // Handle MCP server requests
+        if (msg.type === "ask" && msg.ask === "use_mcp_server") {
+            // Look ahead for MCP responses
+            let responses = [];
+            let j = i + 1;
+            while (j < messages.length) {
+                if (messages[j].say === "mcp_server_response") {
+                    responses.push(messages[j].text || "");
+                    processedIndices.add(j);
+                    j++;
+                }
+                else if (messages[j].type === "ask" && messages[j].ask === "use_mcp_server") {
+                    // Stop if we encounter another MCP request
+                    break;
+                }
+                else {
+                    j++;
+                }
+            }
+            if (responses.length > 0) {
+                // Parse the JSON from the message text
+                const jsonObj = safeJsonParse(msg.text || "{}", {});
+                // Add the response to the JSON object
+                jsonObj.response = responses.join("\n");
+                // Stringify the updated JSON object
+                const combinedText = JSON.stringify(jsonObj);
+                combinedMessages.set(msg.ts, { ...msg, text: combinedText });
+            }
+            else {
+                // If there's no response, just keep the original message
+                combinedMessages.set(msg.ts, { ...msg });
+            }
+        }
+        // Handle command sequences
+        else if (msg.type === "ask" && msg.ask === "command") {
+            let combinedText = msg.text || "";
+            let j = i + 1;
+            let previous;
+            let lastProcessedIndex = i;
+            while (j < messages.length) {
+                const { type, ask, say, text = "" } = messages[j];
+                if (type === "ask" && ask === "command") {
+                    break; // Stop if we encounter the next command.
+                }
+                if (ask === "command_output" || say === "command_output") {
+                    if (!previous) {
+                        combinedText += `\n${COMMAND_OUTPUT_STRING}`;
+                    }
+                    const isDuplicate = previous && previous.type !== type && previous.text === text;
+                    if (text.length > 0 && !isDuplicate) {
+                        // Add a newline before adding the text if there's already content
+                        if (previous &&
+                            combinedText.length >
+                                combinedText.indexOf(COMMAND_OUTPUT_STRING) + COMMAND_OUTPUT_STRING.length) {
+                            combinedText += "\n";
+                        }
+                        combinedText += text;
+                    }
+                    previous = { type, text };
+                    processedIndices.add(j);
+                    lastProcessedIndex = j;
+                }
+                j++;
+            }
+            combinedMessages.set(msg.ts, { ...msg, text: combinedText });
+            // Only skip ahead if we actually processed command outputs
+            if (lastProcessedIndex > i) {
+                i = lastProcessedIndex;
+            }
+        }
+    }
+    // Build final result: filter out processed messages and use combined versions
+    const result = [];
+    for (let i = 0; i < messages.length; i++) {
+        const msg = messages[i];
+        // Skip messages that were processed as outputs/responses
+        if (processedIndices.has(i)) {
+            continue;
+        }
+        // Skip command_output and mcp_server_response messages
+        if (msg.ask === "command_output" || msg.say === "command_output" || msg.say === "mcp_server_response") {
+            continue;
+        }
+        // Use combined version if available
+        if (combinedMessages.has(msg.ts)) {
+            result.push(combinedMessages.get(msg.ts));
+        }
+        else {
+            result.push(msg);
+        }
+    }
+    return result;
 }
 //# sourceMappingURL=combineCommandSequences.js.map

@@ -1,12 +1,12 @@
-import { TelemetryService } from "@roo-code/telemetry"
-import { t } from "../../i18n"
-import { maybeRemoveImageBlocks } from "../../api/transform/image-cleaning"
-import { ManualReviewManager } from "./manual-review"
-import { ContextFileManager } from "./context-file-manager"
-import { FileWatcher } from "./file-watcher"
-export const N_MESSAGES_TO_KEEP = 3
-export const MIN_CONDENSE_THRESHOLD = 5 // Minimum percentage of context window to trigger condensing
-export const MAX_CONDENSE_THRESHOLD = 100 // Maximum percentage of context window to trigger condensing
+import { TelemetryService } from "@roo-code/telemetry";
+import { t } from "../../i18n";
+import { maybeRemoveImageBlocks } from "../../api/transform/image-cleaning";
+import { ManualReviewManager } from "./manual-review";
+import { ContextFileManager } from "./context-file-manager";
+import { FileWatcher } from "./file-watcher";
+export const N_MESSAGES_TO_KEEP = 3;
+export const MIN_CONDENSE_THRESHOLD = 5; // Minimum percentage of context window to trigger condensing
+export const MAX_CONDENSE_THRESHOLD = 100; // Maximum percentage of context window to trigger condensing
 const SUMMARY_PROMPT = `\
 Your task is to create a detailed summary of the conversation so far, paying close attention to the user's explicit requests and your previous actions.
 This summary should be thorough in capturing technical details, code patterns, and architectural decisions that would be essential for continuing with the conversation and supporting any continuing tasks.
@@ -45,7 +45,7 @@ Example summary structure:
   - [...]
 
 Output only the summary of the conversation so far, without any additional commentary or explanation.
-`
+`;
 /**
  * Summarizes the conversation messages using an LLM call
  *
@@ -69,139 +69,120 @@ Output only the summary of the conversation so far, without any additional comme
  * @param {ApiHandler} condensingApiHandler - Optional specific API handler to use for condensing
  * @returns {SummarizeResponse} - The result of the summarization operation (see above)
  */
-export async function summarizeConversation(
-	messages,
-	apiHandler,
-	systemPrompt,
-	taskId,
-	prevContextTokens,
-	isAutomaticTrigger,
-	customCondensingPrompt,
-	condensingApiHandler,
-) {
-	TelemetryService.instance.captureContextCondensed(
-		taskId,
-		isAutomaticTrigger ?? false,
-		!!customCondensingPrompt?.trim(),
-		!!condensingApiHandler,
-	)
-	const response = { messages, cost: 0, summary: "" }
-	// Always preserve the first message (which may contain slash command content)
-	const firstMessage = messages[0]
-	// Get messages to summarize, including the first message and excluding the last N messages
-	const messagesToSummarize = getMessagesSinceLastSummary(messages.slice(0, -N_MESSAGES_TO_KEEP))
-	if (messagesToSummarize.length <= 1) {
-		const error =
-			messages.length <= N_MESSAGES_TO_KEEP + 1
-				? t("common:errors.condense_not_enough_messages")
-				: t("common:errors.condensed_recently")
-		return { ...response, error }
-	}
-	const keepMessages = messages.slice(-N_MESSAGES_TO_KEEP)
-	// Check if there's a recent summary in the messages we're keeping
-	const recentSummaryExists = keepMessages.some((message) => message.isSummary)
-	if (recentSummaryExists) {
-		const error = t("common:errors.condensed_recently")
-		return { ...response, error }
-	}
-	const finalRequestMessage = {
-		role: "user",
-		content: "Summarize the conversation so far, as described in the prompt instructions.",
-	}
-	const requestMessages = maybeRemoveImageBlocks([...messagesToSummarize, finalRequestMessage], apiHandler).map(
-		({ role, content }) => ({ role, content }),
-	)
-	// Note: this doesn't need to be a stream, consider using something like apiHandler.completePrompt
-	// Use custom prompt if provided and non-empty, otherwise use the default SUMMARY_PROMPT
-	const promptToUse = customCondensingPrompt?.trim() ? customCondensingPrompt.trim() : SUMMARY_PROMPT
-	// Use condensing API handler if provided, otherwise use main API handler
-	let handlerToUse = condensingApiHandler || apiHandler
-	// Check if the chosen handler supports the required functionality
-	if (!handlerToUse || typeof handlerToUse.createMessage !== "function") {
-		console.warn(
-			"Chosen API handler for condensing does not support message creation or is invalid, falling back to main apiHandler.",
-		)
-		handlerToUse = apiHandler // Fallback to the main, presumably valid, apiHandler
-		// Ensure the main apiHandler itself is valid before this point or add another check.
-		if (!handlerToUse || typeof handlerToUse.createMessage !== "function") {
-			// This case should ideally not happen if main apiHandler is always valid.
-			// Consider throwing an error or returning a specific error response.
-			console.error("Main API handler is also invalid for condensing. Cannot proceed.")
-			// Return an appropriate error structure for SummarizeResponse
-			const error = t("common:errors.condense_handler_invalid")
-			return { ...response, error }
-		}
-	}
-	const stream = handlerToUse.createMessage(promptToUse, requestMessages)
-	let summary = ""
-	let cost = 0
-	let outputTokens = 0
-	for await (const chunk of stream) {
-		if (chunk.type === "text") {
-			summary += chunk.text
-		} else if (chunk.type === "usage") {
-			// Record final usage chunk only
-			cost = chunk.totalCost ?? 0
-			outputTokens = chunk.outputTokens ?? 0
-		}
-	}
-	summary = summary.trim()
-	if (summary.length === 0) {
-		const error = t("common:errors.condense_failed")
-		return { ...response, cost, error }
-	}
-	const summaryMessage = {
-		role: "assistant",
-		content: summary,
-		ts: keepMessages[0].ts,
-		isSummary: true,
-	}
-	// Reconstruct messages: [first message, summary, last N messages]
-	const newMessages = [firstMessage, summaryMessage, ...keepMessages]
-	// Count the tokens in the context for the next API request
-	// We only estimate the tokens in summaryMesage if outputTokens is 0, otherwise we use outputTokens
-	const systemPromptMessage = { role: "user", content: systemPrompt }
-	const contextMessages = outputTokens
-		? [systemPromptMessage, ...keepMessages]
-		: [systemPromptMessage, summaryMessage, ...keepMessages]
-	const contextBlocks = contextMessages.flatMap((message) =>
-		typeof message.content === "string" ? [{ text: message.content, type: "text" }] : message.content,
-	)
-	const newContextTokens = outputTokens + (await apiHandler.countTokens(contextBlocks))
-	if (newContextTokens >= prevContextTokens) {
-		const error = t("common:errors.condense_context_grew")
-		return { ...response, cost, error }
-	}
-	return { messages: newMessages, summary, cost, newContextTokens }
+export async function summarizeConversation(messages, apiHandler, systemPrompt, taskId, prevContextTokens, isAutomaticTrigger, customCondensingPrompt, condensingApiHandler) {
+    TelemetryService.instance.captureContextCondensed(taskId, isAutomaticTrigger ?? false, !!customCondensingPrompt?.trim(), !!condensingApiHandler);
+    const response = { messages, cost: 0, summary: "" };
+    // Always preserve the first message (which may contain slash command content)
+    const firstMessage = messages[0];
+    // Get messages to summarize, including the first message and excluding the last N messages
+    const messagesToSummarize = getMessagesSinceLastSummary(messages.slice(0, -N_MESSAGES_TO_KEEP));
+    if (messagesToSummarize.length <= 1) {
+        const error = messages.length <= N_MESSAGES_TO_KEEP + 1
+            ? t("common:errors.condense_not_enough_messages")
+            : t("common:errors.condensed_recently");
+        return { ...response, error };
+    }
+    const keepMessages = messages.slice(-N_MESSAGES_TO_KEEP);
+    // Check if there's a recent summary in the messages we're keeping
+    const recentSummaryExists = keepMessages.some((message) => message.isSummary);
+    if (recentSummaryExists) {
+        const error = t("common:errors.condensed_recently");
+        return { ...response, error };
+    }
+    const finalRequestMessage = {
+        role: "user",
+        content: "Summarize the conversation so far, as described in the prompt instructions.",
+    };
+    const requestMessages = maybeRemoveImageBlocks([...messagesToSummarize, finalRequestMessage], apiHandler).map(({ role, content }) => ({ role, content }));
+    // Note: this doesn't need to be a stream, consider using something like apiHandler.completePrompt
+    // Use custom prompt if provided and non-empty, otherwise use the default SUMMARY_PROMPT
+    const promptToUse = customCondensingPrompt?.trim() ? customCondensingPrompt.trim() : SUMMARY_PROMPT;
+    // Use condensing API handler if provided, otherwise use main API handler
+    let handlerToUse = condensingApiHandler || apiHandler;
+    // Check if the chosen handler supports the required functionality
+    if (!handlerToUse || typeof handlerToUse.createMessage !== "function") {
+        console.warn("Chosen API handler for condensing does not support message creation or is invalid, falling back to main apiHandler.");
+        handlerToUse = apiHandler; // Fallback to the main, presumably valid, apiHandler
+        // Ensure the main apiHandler itself is valid before this point or add another check.
+        if (!handlerToUse || typeof handlerToUse.createMessage !== "function") {
+            // This case should ideally not happen if main apiHandler is always valid.
+            // Consider throwing an error or returning a specific error response.
+            console.error("Main API handler is also invalid for condensing. Cannot proceed.");
+            // Return an appropriate error structure for SummarizeResponse
+            const error = t("common:errors.condense_handler_invalid");
+            return { ...response, error };
+        }
+    }
+    const stream = handlerToUse.createMessage(promptToUse, requestMessages);
+    let summary = "";
+    let cost = 0;
+    let outputTokens = 0;
+    for await (const chunk of stream) {
+        if (chunk.type === "text") {
+            summary += chunk.text;
+        }
+        else if (chunk.type === "usage") {
+            // Record final usage chunk only
+            cost = chunk.totalCost ?? 0;
+            outputTokens = chunk.outputTokens ?? 0;
+        }
+    }
+    summary = summary.trim();
+    if (summary.length === 0) {
+        const error = t("common:errors.condense_failed");
+        return { ...response, cost, error };
+    }
+    const summaryMessage = {
+        role: "assistant",
+        content: summary,
+        ts: keepMessages[0].ts,
+        isSummary: true,
+    };
+    // Reconstruct messages: [first message, summary, last N messages]
+    const newMessages = [firstMessage, summaryMessage, ...keepMessages];
+    // Count the tokens in the context for the next API request
+    // We only estimate the tokens in summaryMesage if outputTokens is 0, otherwise we use outputTokens
+    const systemPromptMessage = { role: "user", content: systemPrompt };
+    const contextMessages = outputTokens
+        ? [systemPromptMessage, ...keepMessages]
+        : [systemPromptMessage, summaryMessage, ...keepMessages];
+    const contextBlocks = contextMessages.flatMap((message) => typeof message.content === "string" ? [{ text: message.content, type: "text" }] : message.content);
+    const newContextTokens = outputTokens + (await apiHandler.countTokens(contextBlocks));
+    if (newContextTokens >= prevContextTokens) {
+        const error = t("common:errors.condense_context_grew");
+        return { ...response, cost, error };
+    }
+    return { messages: newMessages, summary, cost, newContextTokens };
 }
 /* Returns the list of all messages since the last summary message, including the summary. Returns all messages if there is no summary. */
 export function getMessagesSinceLastSummary(messages) {
-	let lastSummaryIndexReverse = [...messages].reverse().findIndex((message) => message.isSummary)
-	if (lastSummaryIndexReverse === -1) {
-		return messages
-	}
-	const lastSummaryIndex = messages.length - lastSummaryIndexReverse - 1
-	const messagesSinceSummary = messages.slice(lastSummaryIndex)
-	// Bedrock requires the first message to be a user message.
-	// We preserve the original first message to maintain context.
-	// See https://github.com/RooCodeInc/Roo-Code/issues/4147
-	if (messagesSinceSummary.length > 0 && messagesSinceSummary[0].role !== "user") {
-		// Get the original first message (should always be a user message with the task)
-		const originalFirstMessage = messages[0]
-		if (originalFirstMessage && originalFirstMessage.role === "user") {
-			// Use the original first message unchanged to maintain full context
-			return [originalFirstMessage, ...messagesSinceSummary]
-		} else {
-			// Fallback to generic message if no original first message exists (shouldn't happen)
-			const userMessage = {
-				role: "user",
-				content: "Please continue from the following summary:",
-				ts: messages[0]?.ts ? messages[0].ts - 1 : Date.now(),
-			}
-			return [userMessage, ...messagesSinceSummary]
-		}
-	}
-	return messagesSinceSummary
+    let lastSummaryIndexReverse = [...messages].reverse().findIndex((message) => message.isSummary);
+    if (lastSummaryIndexReverse === -1) {
+        return messages;
+    }
+    const lastSummaryIndex = messages.length - lastSummaryIndexReverse - 1;
+    const messagesSinceSummary = messages.slice(lastSummaryIndex);
+    // Bedrock requires the first message to be a user message.
+    // We preserve the original first message to maintain context.
+    // See https://github.com/RooCodeInc/Roo-Code/issues/4147
+    if (messagesSinceSummary.length > 0 && messagesSinceSummary[0].role !== "user") {
+        // Get the original first message (should always be a user message with the task)
+        const originalFirstMessage = messages[0];
+        if (originalFirstMessage && originalFirstMessage.role === "user") {
+            // Use the original first message unchanged to maintain full context
+            return [originalFirstMessage, ...messagesSinceSummary];
+        }
+        else {
+            // Fallback to generic message if no original first message exists (shouldn't happen)
+            const userMessage = {
+                role: "user",
+                content: "Please continue from the following summary:",
+                ts: messages[0]?.ts ? messages[0].ts - 1 : Date.now(),
+            };
+            return [userMessage, ...messagesSinceSummary];
+        }
+    }
+    return messagesSinceSummary;
 }
 /**
  * Manually review context with user intervention
@@ -215,94 +196,82 @@ export function getMessagesSinceLastSummary(messages) {
  * @param {boolean} enableManualReview - Whether manual review is enabled
  * @returns {Promise<SummarizeResponse>} - The result of the manual review operation
  */
-export async function manualReviewContext(
-	messages,
-	apiHandler,
-	systemPrompt,
-	taskId,
-	prevContextTokens,
-	workspaceRoot,
-	enableManualReview,
-) {
-	TelemetryService.instance.captureContextCondensed(
-		taskId,
-		false, // Manual trigger
-		false, // No custom prompt
-		false,
-	)
-	const response = { messages, cost: 0, summary: "" }
-	if (!enableManualReview) {
-		const error = "Manual review is not enabled"
-		return { ...response, error }
-	}
-	// Create manual review manager and components
-	const contextFileManager = new ContextFileManager(workspaceRoot)
-	const fileWatcher = new FileWatcher(contextFileManager.getContextReviewDir())
-	const manualReviewManager = new ManualReviewManager(
-		5 * 60 * 1000, // 5 minutes timeout
-		contextFileManager,
-		fileWatcher,
-	)
-	try {
-		// Start file watcher
-		await fileWatcher.start()
-		// Create context file and start manual review
-		const contextFile = await manualReviewManager.startManualReview(messages, {
-			contextSize: prevContextTokens,
-			triggerReason: "manual",
-			timestamp: Date.now(),
-			taskId,
-		})
-		// Wait for manual review to complete or timeout
-		return new Promise((resolve, reject) => {
-			const handleReviewComplete = ({ reason, contextFile, duration }) => {
-				console.log(`Manual review completed: ${reason} (duration: ${duration}ms)`)
-				// Clean up
-				manualReviewManager.dispose()
-				fileWatcher.dispose()
-				if (reason === "completed") {
-					// User completed the review, use the modified context
-					resolve({
-						messages,
-						summary: `Manual review completed successfully. Context file: ${contextFile}`,
-						cost: 0,
-					})
-				} else {
-					// Timeout or fallback - use intelligent compression
-					resolve({
-						messages,
-						summary: `Manual review ${reason}. Using intelligent compression instead.`,
-						cost: 0,
-					})
-				}
-			}
-			manualReviewManager.on("reviewComplete", handleReviewComplete)
-			manualReviewManager.on("statusChange", (status) => {
-				console.log(`Manual review status: ${status.state}`)
-			})
-			// Handle timeout
-			manualReviewManager.on("timeout", () => {
-				console.log("Manual review timed out")
-				handleReviewComplete({
-					reason: "timeout",
-					contextFile: manualReviewManager.getStatus().contextFile,
-					duration: 5 * 60 * 1000,
-				})
-			})
-			// Handle fallback
-			manualReviewManager.on("fallback", () => {
-				console.log("Manual review fallback triggered")
-				handleReviewComplete({
-					reason: "fallback",
-					contextFile: manualReviewManager.getStatus().contextFile,
-					duration: 0,
-				})
-			})
-		})
-	} catch (error) {
-		console.error("Manual review failed:", error)
-		const errorResponse = t("common:errors.condense_failed")
-		return { ...response, error: errorResponse }
-	}
+export async function manualReviewContext(messages, apiHandler, systemPrompt, taskId, prevContextTokens, workspaceRoot, enableManualReview) {
+    TelemetryService.instance.captureContextCondensed(taskId, false, // Manual trigger
+    false, // No custom prompt
+    false);
+    const response = { messages, cost: 0, summary: "" };
+    if (!enableManualReview) {
+        const error = "Manual review is not enabled";
+        return { ...response, error };
+    }
+    // Create manual review manager and components
+    const contextFileManager = new ContextFileManager(workspaceRoot);
+    const fileWatcher = new FileWatcher(contextFileManager.getContextReviewDir());
+    const manualReviewManager = new ManualReviewManager(5 * 60 * 1000, // 5 minutes timeout
+    contextFileManager, fileWatcher);
+    try {
+        // Start file watcher
+        await fileWatcher.start();
+        // Create context file and start manual review
+        const contextFile = await manualReviewManager.startManualReview(messages, {
+            contextSize: prevContextTokens,
+            triggerReason: "manual",
+            timestamp: Date.now(),
+            taskId,
+        });
+        // Wait for manual review to complete or timeout
+        return new Promise((resolve, reject) => {
+            const handleReviewComplete = ({ reason, contextFile, duration, }) => {
+                console.log(`Manual review completed: ${reason} (duration: ${duration}ms)`);
+                // Clean up
+                manualReviewManager.dispose();
+                fileWatcher.dispose();
+                if (reason === "completed") {
+                    // User completed the review, use the modified context
+                    resolve({
+                        messages,
+                        summary: `Manual review completed successfully. Context file: ${contextFile}`,
+                        cost: 0,
+                    });
+                }
+                else {
+                    // Timeout or fallback - use intelligent compression
+                    resolve({
+                        messages,
+                        summary: `Manual review ${reason}. Using intelligent compression instead.`,
+                        cost: 0,
+                    });
+                }
+            };
+            manualReviewManager.on("reviewComplete", handleReviewComplete);
+            manualReviewManager.on("statusChange", (status) => {
+                console.log(`Manual review status: ${status.state}`);
+            });
+            // Handle timeout
+            manualReviewManager.on("timeout", () => {
+                console.log("Manual review timed out");
+                handleReviewComplete({
+                    reason: "timeout",
+                    contextFile: manualReviewManager.getStatus().contextFile,
+                    duration: 5 * 60 * 1000,
+                });
+            });
+            // Handle fallback
+            manualReviewManager.on("fallback", () => {
+                console.log("Manual review fallback triggered");
+                handleReviewComplete({
+                    reason: "fallback",
+                    contextFile: manualReviewManager.getStatus().contextFile,
+                    duration: 0,
+                });
+            });
+        });
+    }
+    catch (error) {
+        console.error("Manual review failed:", error);
+        const errorResponse = t("common:errors.condense_failed");
+        return { ...response, error: errorResponse };
+    }
 }
 //# sourceMappingURL=index.js.map

@@ -5,17 +5,17 @@
  * @returns The matching template or undefined if no match is found
  */
 export function findMatchingTemplate(uri, templates = []) {
-	return templates.find((template) => {
-		// Convert template to regex pattern
-		const pattern = String(template.uriTemplate)
-			// First escape special regex characters
-			.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-			// Then replace {param} with ([^/]+) to match any non-slash characters
-			// We need to use \{ and \} because we just escaped them
-			.replace(/\\\{([^}]+)\\\}/g, "([^/]+)")
-		const regex = new RegExp(`^${pattern}$`)
-		return regex.test(uri)
-	})
+    return templates.find((template) => {
+        // Convert template to regex pattern
+        const pattern = String(template.uriTemplate)
+            // First escape special regex characters
+            .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+            // Then replace {param} with ([^/]+) to match any non-slash characters
+            // We need to use \{ and \} because we just escaped them
+            .replace(/\\\{([^}]+)\\\}/g, "([^/]+)");
+        const regex = new RegExp(`^${pattern}$`);
+        return regex.test(uri);
+    });
 }
 /**
  * Finds either an exact resource match or a matching template for a given URI
@@ -25,10 +25,11 @@ export function findMatchingTemplate(uri, templates = []) {
  * @returns The matching resource, template, or undefined
  */
 export function findMatchingResourceOrTemplate(uri, resources = [], templates = []) {
-	// First try to find an exact resource match
-	const exactMatch = resources.find((resource) => resource.uri === uri)
-	if (exactMatch) return exactMatch
-	// If no exact match, try to find a matching template
-	return findMatchingTemplate(uri, templates)
+    // First try to find an exact resource match
+    const exactMatch = resources.find((resource) => resource.uri === uri);
+    if (exactMatch)
+        return exactMatch;
+    // If no exact match, try to find a matching template
+    return findMatchingTemplate(uri, templates);
 }
 //# sourceMappingURL=mcp.js.map

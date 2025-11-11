@@ -35,10 +35,9 @@ export const UseMcpToolSchema = z
 			),
 		arguments: z
 			.string()
-			.optional()
 			.max(50_000, "Arguments are too large (max 50KB)")
 			.refine(
-				(args) => {
+				(args: any) => {
 					if (!args) return true
 					// Check for null bytes
 					return !args.includes("\u0000")
@@ -46,7 +45,8 @@ export const UseMcpToolSchema = z
 				{
 					message: "Arguments contain invalid null characters",
 				},
-			),
+			)
+			.optional(),
 	})
 	.describe("Use MCP (Model Context Protocol) tools with validation")
 
@@ -120,10 +120,9 @@ export const ToolNameValidation = z.object({
 export const ArgumentsValidation = z.object({
 	arguments: z
 		.string()
-		.optional()
 		.max(50_000, "Arguments are too large (max 50KB)")
 		.refine(
-			(args) => {
+			(args: any) => {
 				if (!args) return true
 				// Check for null bytes
 				return !args.includes("\u0000")
@@ -133,7 +132,7 @@ export const ArgumentsValidation = z.object({
 			},
 		)
 		.refine(
-			(args) => {
+			(args: any) => {
 				if (!args) return true
 				// Try to parse as JSON to validate format
 				try {
@@ -147,7 +146,8 @@ export const ArgumentsValidation = z.object({
 			{
 				message: "Arguments should be valid JSON format",
 			},
-		),
+		)
+		.optional(),
 })
 
 /**

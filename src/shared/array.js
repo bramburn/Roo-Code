@@ -7,16 +7,16 @@
  * findLastIndex immediately returns that element index. Otherwise, findLastIndex returns -1.
  */
 export function findLastIndex(array, predicate) {
-	let l = array.length
-	while (l--) {
-		if (predicate(array[l], l, array)) {
-			return l
-		}
-	}
-	return -1
+    let l = array.length;
+    while (l--) {
+        if (predicate(array[l], l, array)) {
+            return l;
+        }
+    }
+    return -1;
 }
 export function findLast(array, predicate) {
-	const index = findLastIndex(array, predicate)
-	return index === -1 ? undefined : array[index]
+    const index = findLastIndex(array, predicate);
+    return index === -1 ? undefined : array[index];
 }
 //# sourceMappingURL=array.js.map

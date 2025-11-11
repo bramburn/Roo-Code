@@ -73,6 +73,7 @@ export class TaskLoopBridge {
 		if (aiMessage.tool_calls && aiMessage.tool_calls.length > 0) {
 			try {
 				const toolResults = await this.transitionalExecutor.executeToolCalls(aiMessage, context)
+				let lastToolMessage: TaskLoopMessage | undefined
 
 				for (const result of toolResults) {
 					const toolMessage: TaskLoopMessage = {
@@ -90,6 +91,7 @@ export class TaskLoopBridge {
 							step: taskState.currentStep,
 						},
 					}
+					lastToolMessage = toolMessage
 					messages.push(toolMessage)
 					taskState.messages.push(toolMessage)
 
@@ -99,7 +101,9 @@ export class TaskLoopBridge {
 				}
 
 				// Notify message handlers
-				this.notifyHandlers(toolMessage)
+				if (lastToolMessage) {
+					this.notifyHandlers(lastToolMessage)
+				}
 			} catch (error) {
 				const errorMessage: TaskLoopMessage = {
 					id: this.generateMessageId(),

@@ -60,27 +60,26 @@ Mention regex:
   - `mentionRegexGlobal`: Creates a global version of the `mentionRegex` to find all matches within a given string.
 
 */
-export const mentionRegex =
-	/(?:^|(?<=\s))(?<!\\)@((?:\/|\w+:\/\/)(?:[^\s\\]|\\ )+?|[a-f0-9]{7,40}\b|problems\b|git-changes\b|terminal\b)(?=[.,;:!?]?(?=[\s\r\n]|$))/
-export const mentionRegexGlobal = new RegExp(mentionRegex.source, "g")
+export const mentionRegex = /(?:^|(?<=\s))(?<!\\)@((?:\/|\w+:\/\/)(?:[^\s\\]|\\ )+?|[a-f0-9]{7,40}\b|problems\b|git-changes\b|terminal\b)(?=[.,;:!?]?(?=[\s\r\n]|$))/;
+export const mentionRegexGlobal = new RegExp(mentionRegex.source, "g");
 // Regex to match command mentions like /command-name anywhere in text
-export const commandRegexGlobal = /(?:^|\s)\/([a-zA-Z0-9_\.-]+)(?=\s|$)/g
+export const commandRegexGlobal = /(?:^|\s)\/([a-zA-Z0-9_\.-]+)(?=\s|$)/g;
 export function formatGitSuggestion(commit) {
-	return {
-		type: "git",
-		label: commit.subject,
-		description: `${commit.shortHash} by ${commit.author} on ${commit.date}`,
-		value: commit.hash,
-		icon: "$(git-commit)", // VSCode git commit icon
-		hash: commit.hash,
-		shortHash: commit.shortHash,
-		subject: commit.subject,
-		author: commit.author,
-		date: commit.date,
-	}
+    return {
+        type: "git",
+        label: commit.subject,
+        description: `${commit.shortHash} by ${commit.author} on ${commit.date}`,
+        value: commit.hash,
+        icon: "$(git-commit)", // VSCode git commit icon
+        hash: commit.hash,
+        shortHash: commit.shortHash,
+        subject: commit.subject,
+        author: commit.author,
+        date: commit.date,
+    };
 }
 // Helper function to unescape paths with backslash-escaped spaces
 export function unescapeSpaces(path) {
-	return path.replace(/\\ /g, " ")
+    return path.replace(/\\ /g, " ");
 }
 //# sourceMappingURL=context-mentions.js.map

@@ -8,10 +8,10 @@
  * @returns The updated images array
  */
 export function appendImages(currentImages, newImages, maxImages) {
-	const imagesToAdd = newImages ?? []
-	if (imagesToAdd.length === 0) {
-		return currentImages
-	}
-	return [...currentImages, ...imagesToAdd].slice(0, maxImages)
+    const imagesToAdd = newImages ?? [];
+    if (imagesToAdd.length === 0) {
+        return currentImages;
+    }
+    return [...currentImages, ...imagesToAdd].slice(0, maxImages);
 }
 //# sourceMappingURL=imageUtils.js.map

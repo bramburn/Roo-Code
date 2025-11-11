@@ -1,6 +1,6 @@
-import styled from "styled-components"
+import styled from "styled-components";
 // Keep StyledMarkdown as it's used by ModelDescriptionMarkdown.tsx
-export const StyledMarkdown = styled.div`
+export const StyledMarkdown = styled.div `
 	font-family:
 		var(--vscode-font-family),
 		system-ui,
@@ -68,5 +68,5 @@ export const StyledMarkdown = styled.div`
 			text-decoration: underline;
 		}
 	}
-`
+`;
 //# sourceMappingURL=styles.js.map

@@ -1,15 +1,15 @@
-import { jsx as _jsx } from "react/jsx-runtime"
-import { memo, useMemo } from "react"
-import ReactMarkdown from "react-markdown"
-import styled from "styled-components"
-import { visit } from "unist-util-visit"
-import rehypeKatex from "rehype-katex"
-import remarkMath from "remark-math"
-import remarkGfm from "remark-gfm"
-import { vscode } from "@src/utils/vscode"
-import CodeBlock from "./CodeBlock"
-import MermaidBlock from "./MermaidBlock"
-const StyledMarkdown = styled.div`
+import { jsx as _jsx } from "react/jsx-runtime";
+import { memo, useMemo } from "react";
+import ReactMarkdown from "react-markdown";
+import styled from "styled-components";
+import { visit } from "unist-util-visit";
+import rehypeKatex from "rehype-katex";
+import remarkMath from "remark-math";
+import remarkGfm from "remark-gfm";
+import { vscode } from "@src/utils/vscode";
+import CodeBlock from "./CodeBlock";
+import MermaidBlock from "./MermaidBlock";
+const StyledMarkdown = styled.div `
 	* {
 		font-weight: 400;
 	}
@@ -195,104 +195,87 @@ const StyledMarkdown = styled.div`
 	tr:hover {
 		background-color: var(--vscode-list-hoverBackground);
 	}
-`
+`;
 const MarkdownBlock = memo(({ markdown }) => {
-	const components = useMemo(
-		() => ({
-			table: ({ children, ...props }) => {
-				return _jsx("div", {
-					className: "table-wrapper",
-					children: _jsx("table", { ...props, children: children }),
-				})
-			},
-			a: ({ href, children, ...props }) => {
-				const handleClick = (e) => {
-					// Only process file:// protocol or local file paths
-					const isLocalPath = href?.startsWith("file://") || href?.startsWith("/") || !href?.includes("://")
-					if (!isLocalPath) {
-						return
-					}
-					e.preventDefault()
-					// Handle absolute vs project-relative paths
-					let filePath = href.replace("file://", "")
-					// Extract line number if present
-					const match = filePath.match(/(.*):(\d+)(-\d+)?$/)
-					let values = undefined
-					if (match) {
-						filePath = match[1]
-						values = { line: parseInt(match[2]) }
-					}
-					// Add ./ prefix if needed
-					if (!filePath.startsWith("/") && !filePath.startsWith("./")) {
-						filePath = "./" + filePath
-					}
-					vscode.postMessage({
-						type: "openFile",
-						text: filePath,
-						values,
-					})
-				}
-				return _jsx("a", { ...props, href: href, onClick: handleClick, children: children })
-			},
-			pre: ({ children, ..._props }) => {
-				// The structure from react-markdown v9 is: pre > code > text
-				const codeEl = children
-				if (!codeEl || !codeEl.props) {
-					return _jsx("pre", { children: children })
-				}
-				const { className = "", children: codeChildren } = codeEl.props
-				// Get the actual code text
-				let codeString = ""
-				if (typeof codeChildren === "string") {
-					codeString = codeChildren
-				} else if (Array.isArray(codeChildren)) {
-					codeString = codeChildren.filter((child) => typeof child === "string").join("")
-				}
-				// Handle mermaid diagrams
-				if (className.includes("language-mermaid")) {
-					return _jsx("div", {
-						style: { margin: "1em 0" },
-						children: _jsx(MermaidBlock, { code: codeString }),
-					})
-				}
-				// Extract language from className
-				const match = /language-(\w+)/.exec(className)
-				const language = match ? match[1] : "text"
-				// Wrap CodeBlock in a div to ensure proper separation
-				return _jsx("div", {
-					style: { margin: "1em 0" },
-					children: _jsx(CodeBlock, { source: codeString, language: language }),
-				})
-			},
-			code: ({ children, className, ...props }) => {
-				// This handles inline code
-				return _jsx("code", { className: className, ...props, children: children })
-			},
-		}),
-		[],
-	)
-	return _jsx(StyledMarkdown, {
-		children: _jsx(ReactMarkdown, {
-			remarkPlugins: [
-				remarkGfm,
-				remarkMath,
-				() => {
-					return (tree) => {
-						visit(tree, "code", (node) => {
-							if (!node.lang) {
-								node.lang = "text"
-							} else if (node.lang.includes(".")) {
-								node.lang = node.lang.split(".").slice(-1)[0]
-							}
-						})
-					}
-				},
-			],
-			rehypePlugins: [rehypeKatex],
-			components: components,
-			children: markdown || "",
-		}),
-	})
-})
-export default MarkdownBlock
+    const components = useMemo(() => ({
+        table: ({ children, ...props }) => {
+            return (_jsx("div", { className: "table-wrapper", children: _jsx("table", { ...props, children: children }) }));
+        },
+        a: ({ href, children, ...props }) => {
+            const handleClick = (e) => {
+                // Only process file:// protocol or local file paths
+                const isLocalPath = href?.startsWith("file://") || href?.startsWith("/") || !href?.includes("://");
+                if (!isLocalPath) {
+                    return;
+                }
+                e.preventDefault();
+                // Handle absolute vs project-relative paths
+                let filePath = href.replace("file://", "");
+                // Extract line number if present
+                const match = filePath.match(/(.*):(\d+)(-\d+)?$/);
+                let values = undefined;
+                if (match) {
+                    filePath = match[1];
+                    values = { line: parseInt(match[2]) };
+                }
+                // Add ./ prefix if needed
+                if (!filePath.startsWith("/") && !filePath.startsWith("./")) {
+                    filePath = "./" + filePath;
+                }
+                vscode.postMessage({
+                    type: "openFile",
+                    text: filePath,
+                    values,
+                });
+            };
+            return (_jsx("a", { ...props, href: href, onClick: handleClick, children: children }));
+        },
+        pre: ({ children, ..._props }) => {
+            // The structure from react-markdown v9 is: pre > code > text
+            const codeEl = children;
+            if (!codeEl || !codeEl.props) {
+                return _jsx("pre", { children: children });
+            }
+            const { className = "", children: codeChildren } = codeEl.props;
+            // Get the actual code text
+            let codeString = "";
+            if (typeof codeChildren === "string") {
+                codeString = codeChildren;
+            }
+            else if (Array.isArray(codeChildren)) {
+                codeString = codeChildren.filter((child) => typeof child === "string").join("");
+            }
+            // Handle mermaid diagrams
+            if (className.includes("language-mermaid")) {
+                return (_jsx("div", { style: { margin: "1em 0" }, children: _jsx(MermaidBlock, { code: codeString }) }));
+            }
+            // Extract language from className
+            const match = /language-(\w+)/.exec(className);
+            const language = match ? match[1] : "text";
+            // Wrap CodeBlock in a div to ensure proper separation
+            return (_jsx("div", { style: { margin: "1em 0" }, children: _jsx(CodeBlock, { source: codeString, language: language }) }));
+        },
+        code: ({ children, className, ...props }) => {
+            // This handles inline code
+            return (_jsx("code", { className: className, ...props, children: children }));
+        },
+    }), []);
+    return (_jsx(StyledMarkdown, { children: _jsx(ReactMarkdown, { remarkPlugins: [
+                remarkGfm,
+                remarkMath,
+                () => {
+                    return (tree) => {
+                        visit(tree, "code", (node) => {
+                            if (!node.lang) {
+                                node.lang = "text";
+                            }
+                            else if (node.lang.includes(".")) {
+                                node.lang = node.lang.split(".").slice(-1)[0];
+                            }
+                        });
+                    };
+                },
+            ], rehypePlugins: [rehypeKatex], components: components, children: markdown || "" }) }));
+});
+export default MarkdownBlock;
 //# sourceMappingURL=MarkdownBlock.js.map

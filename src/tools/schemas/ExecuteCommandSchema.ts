@@ -262,7 +262,7 @@ export const CommandClassification = {
 			return CommandCategory.NETWORK
 		}
 
-		if (/^(git|npm|pnpm|yarn|pip|python|node|java|go|rust|cargo|make|cmake|gcc|g++)\b/.test(cmd)) {
+		if (/^(git|npm|pnpm|yarn|pip|python|node|java|go|rust|cargo|make|cmake|gcc|g\+\+)\b/.test(cmd)) {
 			return CommandCategory.DEVELOPMENT
 		}
 
