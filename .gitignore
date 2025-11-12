@@ -7,6 +7,10 @@ package-lock.json
 coverage/
 mock/
 
+#repomix
+repomix-output*.md
+repomix-output*.xml
+
 .DS_Store
 
 # IDEs

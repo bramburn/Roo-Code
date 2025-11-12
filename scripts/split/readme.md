@@ -1,0 +1,1 @@
+ts-node --project scripts/split/tsconfig.json scripts/split/split-file-by-tags.ts .\repomix-output.xml 
