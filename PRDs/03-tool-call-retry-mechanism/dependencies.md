@@ -352,6 +352,28 @@ interface ErrorClassification {
 - **Conflict Risk**: Low - Different error domains with shared infrastructure
 - **Implementation Strategy**: Independent development with infrastructure coordination
 
+#### PRD 07: Context-Based Instantiation for Tool Wrapper Classes
+
+- **Location**: `../07-context-based-instantiation/`
+- **Relationship**: Tool Execution Context Management
+- **Shared Dependencies**:
+    - Error Handling Framework (`src/core/error-handling/`)
+    - Performance Monitoring (`src/core/monitoring/`)
+    - Tool Execution Patterns (`src/core/tools/`)
+    - Settings Infrastructure (experimental settings framework)
+- **Integration Points**:
+    - Tool execution context injection for retry scenarios
+    - Factory pattern integration with retry mechanisms
+    - Error handling for factory-based tool instantiation
+    - Performance monitoring for context-based instantiation overhead
+- **Coordination Opportunities**:
+    - Shared tool execution patterns for retry and factory scenarios
+    - Coordinated error handling for tool instantiation failures
+    - Joint performance monitoring for tool execution overhead
+    - Common testing patterns for tool wrapper scenarios
+- **Conflict Risk**: Low - Complementary features with shared infrastructure
+- **Implementation Strategy**: Independent development with tool execution coordination
+
 ### Infrastructure Coordination
 
 #### Shared Error Handling Framework
