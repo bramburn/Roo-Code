@@ -1,10 +1,10 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest"
 import { AIMessage } from "@langchain/core/messages"
-import { TransitionalExecutor, ToolExecutionContext } from "../../../transitional/TransitionalExecutor"
-import { ToolWrapperRegistry } from "../../../tools/registry/ToolWrapperRegistry"
-import { globalToolWrapperRegistry } from "../../../tools/registry/ToolWrapperRegistry"
-import { Task } from "../../../core/task/Task"
-import { AskApproval, HandleError, PushToolResult, RemoveClosingTag } from "../../../shared/tools"
+import { TransitionalExecutor, ToolExecutionContext } from "../../transitional/TransitionalExecutor"
+import { ToolWrapperRegistry } from "../../tools/registry/ToolWrapperRegistry"
+import { globalToolWrapperRegistry } from "../../tools/registry/ToolWrapperRegistry"
+import { Task } from "../../core/task/Task"
+import { AskApproval, HandleError, PushToolResult, RemoveClosingTag } from "../../shared/tools"
 
 // Mock DynamicStructuredTool
 vi.mock("@langchain/core/tools", () => ({
