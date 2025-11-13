@@ -116,8 +116,8 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 				codebaseIndexQdrantUrl: "http://localhost:6333",
 				codebaseIndexEmbedderProvider: "openai",
 				codebaseIndexEmbedderModelId: "text-embedding-3-small",
-			}),
-		}
+			}) as any,
+		} as any
 
 		manager = CodeIndexManager.getInstance(mockContext, testWorkspacePath)!
 	})

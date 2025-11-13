@@ -208,6 +208,8 @@ describe("codebaseSearchTool Integration Tests", () => {
 		it("should perform successful codebase search", async () => {
 			// Arrange
 			const block = {
+				type: "tool_use" as const,
+				name: "search_files" as const,
 				params: {
 					query: "test function",
 				},
@@ -220,7 +222,7 @@ describe("codebaseSearchTool Integration Tests", () => {
 			const removeClosingTag = vi.fn((tag, value) => value)
 
 			// Act
-			await codebaseSearchTool(mockTask, block, askApproval, handleError, pushToolResult, removeClosingTag)
+			await codebaseSearchTool(mockTask as any, block, askApproval, handleError, pushToolResult, removeClosingTag)
 
 			// Assert
 			expect(askApproval).toHaveBeenCalledWith(
@@ -238,6 +240,8 @@ describe("codebaseSearchTool Integration Tests", () => {
 		it("should handle search with directory prefix", async () => {
 			// Arrange
 			const block = {
+				type: "tool_use" as const,
+				name: "search_files" as const,
 				params: {
 					query: "utility function",
 					path: "/src",
@@ -251,7 +255,7 @@ describe("codebaseSearchTool Integration Tests", () => {
 			const removeClosingTag = vi.fn((tag, value) => value)
 
 			// Act
-			await codebaseSearchTool(mockTask, block, askApproval, handleError, pushToolResult, removeClosingTag)
+			await codebaseSearchTool(mockTask as any, block, askApproval, handleError, pushToolResult, removeClosingTag)
 
 			// Assert
 			expect(askApproval).toHaveBeenCalledWith(
@@ -268,6 +272,8 @@ describe("codebaseSearchTool Integration Tests", () => {
 		it("should handle no results scenario", async () => {
 			// Arrange
 			const block = {
+				type: "tool_use" as const,
+				name: "search_files" as const,
 				params: {
 					query: "nonexistent function",
 					path: "/nonexistent",
@@ -281,7 +287,7 @@ describe("codebaseSearchTool Integration Tests", () => {
 			const removeClosingTag = vi.fn((tag, value) => value)
 
 			// Act
-			await codebaseSearchTool(mockTask, block, askApproval, handleError, pushToolResult, removeClosingTag)
+			await codebaseSearchTool(mockTask as any, block, askApproval, handleError, pushToolResult, removeClosingTag)
 
 			// Assert
 			expect(pushToolResult).toHaveBeenCalledWith(
@@ -294,6 +300,8 @@ describe("codebaseSearchTool Integration Tests", () => {
 		it("should handle missing query parameter", async () => {
 			// Arrange
 			const block = {
+				type: "tool_use" as const,
+				name: "search_files" as const,
 				params: {},
 				partial: false,
 			}
@@ -304,7 +312,7 @@ describe("codebaseSearchTool Integration Tests", () => {
 			const removeClosingTag = vi.fn((tag, value) => value)
 
 			// Act
-			await codebaseSearchTool(mockTask, block, askApproval, handleError, pushToolResult, removeClosingTag)
+			await codebaseSearchTool(mockTask as any, block, askApproval, handleError, pushToolResult, removeClosingTag)
 
 			// Assert
 			expect(mockTask.consecutiveMistakeCount).toBe(1)
@@ -324,6 +332,8 @@ describe("codebaseSearchTool Integration Tests", () => {
 			}
 
 			const block = {
+				type: "tool_use" as const,
+				name: "search_files" as const,
 				params: {
 					query: "test",
 				},
@@ -336,7 +346,14 @@ describe("codebaseSearchTool Integration Tests", () => {
 			const removeClosingTag = vi.fn((tag, value) => value)
 
 			// Act
-			await codebaseSearchTool(noWorkspaceTask, block, askApproval, handleError, pushToolResult, removeClosingTag)
+			await codebaseSearchTool(
+				noWorkspaceTask as any,
+				block,
+				askApproval,
+				handleError,
+				pushToolResult,
+				removeClosingTag,
+			)
 
 			// Assert
 			expect(handleError).toHaveBeenCalledWith("codebase_search", expect.any(Error))
@@ -352,6 +369,8 @@ describe("codebaseSearchTool Integration Tests", () => {
 			}
 
 			const block = {
+				type: "tool_use" as const,
+				name: "search_files" as const,
 				params: {
 					query: "test",
 				},
@@ -364,7 +383,14 @@ describe("codebaseSearchTool Integration Tests", () => {
 			const removeClosingTag = vi.fn((tag, value) => value)
 
 			// Act
-			await codebaseSearchTool(noContextTask, block, askApproval, handleError, pushToolResult, removeClosingTag)
+			await codebaseSearchTool(
+				noContextTask as any,
+				block,
+				askApproval,
+				handleError,
+				pushToolResult,
+				removeClosingTag,
+			)
 
 			// Assert
 			expect(handleError).toHaveBeenCalledWith("codebase_search", expect.any(Error))
@@ -375,6 +401,8 @@ describe("codebaseSearchTool Integration Tests", () => {
 			CodeIndexManager.disposeAll()
 
 			const block = {
+				type: "tool_use" as const,
+				name: "search_files" as const,
 				params: {
 					query: "test",
 				},
@@ -387,7 +415,7 @@ describe("codebaseSearchTool Integration Tests", () => {
 			const removeClosingTag = vi.fn((tag, value) => value)
 
 			// Act
-			await codebaseSearchTool(mockTask, block, askApproval, handleError, pushToolResult, removeClosingTag)
+			await codebaseSearchTool(mockTask as any, block, askApproval, handleError, pushToolResult, removeClosingTag)
 
 			// Assert
 			expect(handleError).toHaveBeenCalledWith("codebase_search", expect.any(Error))
@@ -403,6 +431,8 @@ describe("codebaseSearchTool Integration Tests", () => {
 			await manager.initialize(mockContextProxy)
 
 			const block = {
+				type: "tool_use" as const,
+				name: "search_files" as const,
 				params: {
 					query: "test",
 				},
@@ -415,7 +445,7 @@ describe("codebaseSearchTool Integration Tests", () => {
 			const removeClosingTag = vi.fn((tag, value) => value)
 
 			// Act
-			await codebaseSearchTool(mockTask, block, askApproval, handleError, pushToolResult, removeClosingTag)
+			await codebaseSearchTool(mockTask as any, block, askApproval, handleError, pushToolResult, removeClosingTag)
 
 			// Assert
 			expect(handleError).toHaveBeenCalledWith("codebase_search", expect.any(Error))
@@ -434,6 +464,8 @@ describe("codebaseSearchTool Integration Tests", () => {
 			await manager.initialize(mockContextProxy)
 
 			const block = {
+				type: "tool_use" as const,
+				name: "search_files" as const,
 				params: {
 					query: "test",
 				},
@@ -446,7 +478,7 @@ describe("codebaseSearchTool Integration Tests", () => {
 			const removeClosingTag = vi.fn((tag, value) => value)
 
 			// Act
-			await codebaseSearchTool(mockTask, block, askApproval, handleError, pushToolResult, removeClosingTag)
+			await codebaseSearchTool(mockTask as any, block, askApproval, handleError, pushToolResult, removeClosingTag)
 
 			// Assert
 			expect(handleError).toHaveBeenCalledWith("codebase_search", expect.any(Error))
@@ -480,6 +512,8 @@ describe("codebaseSearchTool Integration Tests", () => {
 			await manager.initialize(mockContextProxy)
 
 			const block = {
+				type: "tool_use" as const,
+				name: "search_files" as const,
 				params: {
 					query: "test",
 				},
@@ -492,7 +526,7 @@ describe("codebaseSearchTool Integration Tests", () => {
 			const removeClosingTag = vi.fn((tag, value) => value)
 
 			// Act
-			await codebaseSearchTool(mockTask, block, askApproval, handleError, pushToolResult, removeClosingTag)
+			await codebaseSearchTool(mockTask as any, block, askApproval, handleError, pushToolResult, removeClosingTag)
 
 			// Assert
 			expect(handleError).toHaveBeenCalledWith("codebase_search", expect.any(Error))
@@ -526,6 +560,8 @@ describe("codebaseSearchTool Integration Tests", () => {
 			await manager.initialize(mockContextProxy)
 
 			const block = {
+				type: "tool_use" as const,
+				name: "search_files" as const,
 				params: {
 					query: "test",
 				},
@@ -538,7 +574,7 @@ describe("codebaseSearchTool Integration Tests", () => {
 			const removeClosingTag = vi.fn((tag, value) => value)
 
 			// Act
-			await codebaseSearchTool(mockTask, block, askApproval, handleError, pushToolResult, removeClosingTag)
+			await codebaseSearchTool(mockTask as any, block, askApproval, handleError, pushToolResult, removeClosingTag)
 
 			// Assert
 			expect(handleError).toHaveBeenCalledWith("codebase_search", expect.any(Error))
@@ -549,6 +585,8 @@ describe("codebaseSearchTool Integration Tests", () => {
 		it("should format search results correctly", async () => {
 			// Arrange
 			const block = {
+				type: "tool_use" as const,
+				name: "search_files" as const,
 				params: {
 					query: "test function",
 				},
@@ -561,7 +599,7 @@ describe("codebaseSearchTool Integration Tests", () => {
 			const removeClosingTag = vi.fn((tag, value) => value)
 
 			// Act
-			await codebaseSearchTool(mockTask, block, askApproval, handleError, pushToolResult, removeClosingTag)
+			await codebaseSearchTool(mockTask as any, block, askApproval, handleError, pushToolResult, removeClosingTag)
 
 			// Assert
 			expect(mockTask.say).toHaveBeenCalledWith(
@@ -581,6 +619,8 @@ describe("codebaseSearchTool Integration Tests", () => {
 		it("should handle path normalization correctly", async () => {
 			// Arrange
 			const block = {
+				type: "tool_use" as const,
+				name: "search_files" as const,
 				params: {
 					query: "test",
 					path: "src\\utils", // Windows-style path
@@ -594,7 +634,7 @@ describe("codebaseSearchTool Integration Tests", () => {
 			const removeClosingTag = vi.fn((tag, value) => value)
 
 			// Act
-			await codebaseSearchTool(mockTask, block, askApproval, handleError, pushToolResult, removeClosingTag)
+			await codebaseSearchTool(mockTask as any, block, askApproval, handleError, pushToolResult, removeClosingTag)
 
 			// Assert
 			expect(askApproval).toHaveBeenCalledWith(
@@ -608,6 +648,8 @@ describe("codebaseSearchTool Integration Tests", () => {
 		it("should handle approval denial", async () => {
 			// Arrange
 			const block = {
+				type: "tool_use" as const,
+				name: "search_files" as const,
 				params: {
 					query: "test",
 				},
@@ -620,7 +662,7 @@ describe("codebaseSearchTool Integration Tests", () => {
 			const removeClosingTag = vi.fn((tag, value) => value)
 
 			// Act
-			await codebaseSearchTool(mockTask, block, askApproval, handleError, pushToolResult, removeClosingTag)
+			await codebaseSearchTool(mockTask as any, block, askApproval, handleError, pushToolResult, removeClosingTag)
 
 			// Assert
 			expect(askApproval).toHaveBeenCalled()
@@ -630,6 +672,8 @@ describe("codebaseSearchTool Integration Tests", () => {
 		it("should handle partial blocks correctly", async () => {
 			// Arrange
 			const block = {
+				type: "tool_use" as const,
+				name: "search_files" as const,
 				params: {
 					query: "test",
 				},
@@ -642,7 +686,7 @@ describe("codebaseSearchTool Integration Tests", () => {
 			const removeClosingTag = vi.fn((tag, value) => value)
 
 			// Act
-			await codebaseSearchTool(mockTask, block, askApproval, handleError, pushToolResult, removeClosingTag)
+			await codebaseSearchTool(mockTask as any, block, askApproval, handleError, pushToolResult, removeClosingTag)
 
 			// Assert
 			expect(mockTask.ask).toHaveBeenCalledWith(
@@ -664,9 +708,24 @@ describe("codebaseSearchTool Integration Tests", () => {
 		it("should handle concurrent search requests", async () => {
 			// Arrange
 			const blocks = [
-				{ params: { query: "test1" }, partial: false },
-				{ params: { query: "test2" }, partial: false },
-				{ params: { query: "test3" }, partial: false },
+				{
+					type: "tool_use" as const,
+					name: "search_files" as const,
+					params: { query: "test1" },
+					partial: false,
+				},
+				{
+					type: "tool_use" as const,
+					name: "search_files" as const,
+					params: { query: "test2" },
+					partial: false,
+				},
+				{
+					type: "tool_use" as const,
+					name: "search_files" as const,
+					params: { query: "test3" },
+					partial: false,
+				},
 			]
 
 			const askApproval = vi.fn().mockResolvedValue(true)
@@ -676,7 +735,7 @@ describe("codebaseSearchTool Integration Tests", () => {
 
 			// Act - concurrent searches
 			const promises = blocks.map((block) =>
-				codebaseSearchTool(mockTask, block, askApproval, handleError, pushToolResult, removeClosingTag),
+				codebaseSearchTool(mockTask as any, block, askApproval, handleError, pushToolResult, removeClosingTag),
 			)
 
 			// Assert - all should complete
@@ -714,6 +773,8 @@ describe("codebaseSearchTool Integration Tests", () => {
 			await manager.initialize(mockContextProxy)
 
 			const block = {
+				type: "tool_use" as const,
+				name: "search_files" as const,
 				params: {
 					query: "test",
 				},
@@ -726,7 +787,7 @@ describe("codebaseSearchTool Integration Tests", () => {
 			const removeClosingTag = vi.fn((tag, value) => value)
 
 			// Act
-			await codebaseSearchTool(mockTask, block, askApproval, handleError, pushToolResult, removeClosingTag)
+			await codebaseSearchTool(mockTask as any, block, askApproval, handleError, pushToolResult, removeClosingTag)
 
 			// Assert
 			expect(handleError).toHaveBeenCalledWith("codebase_search", expect.any(Error))
