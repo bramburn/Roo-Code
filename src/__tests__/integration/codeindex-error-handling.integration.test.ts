@@ -130,7 +130,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 	describe("Initialization Failures and Recovery", () => {
 		it("should handle configuration loading failures", async () => {
 			// Arrange - mock config manager to fail
-			mockContextProxy.getGlobalState.mockImplementation(() => {
+			;(mockContextProxy.getGlobalState as any).mockImplementation(() => {
 				throw new Error("Configuration loading failed")
 			})
 
@@ -141,7 +141,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 
 		it("should handle service factory creation failures", async () => {
 			// Arrange
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			// Mock service factory to throw
 			const { CodeIndexServiceFactory } = await import("../../services/code-index/service-factory")
@@ -158,7 +158,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 
 		it("should handle embedder validation failures", async () => {
 			// Arrange
-			mockContextProxy.getSecret.mockReturnValue("invalid-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("invalid-api-key")
 
 			// Mock service factory to return invalid embedder
 			const { CodeIndexServiceFactory } = await import("../../services/code-index/service-factory")
@@ -184,7 +184,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 
 		it("should handle cache manager initialization failures", async () => {
 			// Arrange
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			// Mock cache to fail during initialization
 			const mockFs = vi.mocked(fs)
@@ -198,11 +198,14 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 
 		it("should recover from initialization failures", async () => {
 			// Arrange - fail first initialization
-			mockContextProxy.getSecret.mockReturnValue(undefined) // No API key
-			await expect(manager.initialize(mockContextProxy)).resolves.toEqual({ requiresRestart: false })
-
-			// Fix configuration and retry
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue(undefined) // No API key
+			await expect(manager.initialize(mockContextProxy))
+				.resolves.toEqual({ requiresRestart: false })
+				(
+					// Fix configuration and retry
+					mockContextProxy.getSecret as any,
+				)
+				.mockReturnValue("test-api-key")
 
 			// Mock successful services
 			const { CodeIndexServiceFactory } = await import("../../services/code-index/service-factory")
@@ -233,7 +236,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 	describe("Service Unavailability During Initialization", () => {
 		it("should handle Qdrant connection failures", async () => {
 			// Arrange
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			// Mock vector store to fail connection
 			const { CodeIndexServiceFactory } = await import("../../services/code-index/service-factory")
@@ -258,7 +261,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 
 		it("should handle embedder service unavailability", async () => {
 			// Arrange
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			// Mock embedder to fail
 			const { CodeIndexServiceFactory } = await import("../../services/code-index/service-factory")
@@ -289,7 +292,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 
 		it("should handle file watcher initialization failures", async () => {
 			// Arrange
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			// Mock file watcher to fail
 			const { CodeIndexServiceFactory } = await import("../../services/code-index/service-factory")
@@ -319,13 +322,14 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 	describe("Configuration Errors and Restart Scenarios", () => {
 		it("should handle invalid configuration values", async () => {
 			// Arrange - invalid configuration
-			mockContextProxy.getGlobalState.mockReturnValue({
-				codebaseIndexEnabled: true,
-				codebaseIndexQdrantUrl: "invalid-url", // Invalid URL
-				codebaseIndexEmbedderProvider: "openai",
-				codebaseIndexEmbedderModelId: "text-embedding-3-small",
-			})
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getGlobalState as any)
+				.mockReturnValue({
+					codebaseIndexEnabled: true,
+					codebaseIndexQdrantUrl: "invalid-url", // Invalid URL
+					codebaseIndexEmbedderProvider: "openai",
+					codebaseIndexEmbedderModelId: "text-embedding-3-small",
+				})(mockContextProxy.getSecret as any)
+				.mockReturnValue("test-api-key")
 
 			// Act & Assert - should handle gracefully
 			const result = await manager.initialize(mockContextProxy)
@@ -335,13 +339,14 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 
 		it("should handle missing required configuration", async () => {
 			// Arrange - missing Qdrant URL
-			mockContextProxy.getGlobalState.mockReturnValue({
-				codebaseIndexEnabled: true,
-				codebaseIndexQdrantUrl: undefined, // Missing
-				codebaseIndexEmbedderProvider: "openai",
-				codebaseIndexEmbedderModelId: "text-embedding-3-small",
-			})
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getGlobalState as any)
+				.mockReturnValue({
+					codebaseIndexEnabled: true,
+					codebaseIndexQdrantUrl: undefined, // Missing
+					codebaseIndexEmbedderProvider: "openai",
+					codebaseIndexEmbedderModelId: "text-embedding-3-small",
+				})(mockContextProxy.getSecret as any)
+				.mockReturnValue("test-api-key")
 
 			// Act
 			const result = await manager.initialize(mockContextProxy)
@@ -353,7 +358,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 
 		it("should handle configuration changes during indexing", async () => {
 			// Arrange
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			// Mock successful services
 			const { CodeIndexServiceFactory } = await import("../../services/code-index/service-factory")
@@ -373,15 +378,18 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 			}
 			MockedServiceFactory.mockImplementation(() => mockServices)
 
-			await manager.initialize(mockContextProxy)
-
-			// Act - change configuration during indexing
-			mockContextProxy.getGlobalState.mockReturnValue({
-				codebaseIndexEnabled: true,
-				codebaseIndexQdrantUrl: "http://localhost:6334", // Different URL
-				codebaseIndexEmbedderProvider: "openai",
-				codebaseIndexEmbedderModelId: "text-embedding-3-small",
-			})
+			await manager
+				.initialize(mockContextProxy)
+				(
+					// Act - change configuration during indexing
+					mockContextProxy.getGlobalState as any,
+				)
+				.mockReturnValue({
+					codebaseIndexEnabled: true,
+					codebaseIndexQdrantUrl: "http://localhost:6334", // Different URL
+					codebaseIndexEmbedderProvider: "openai",
+					codebaseIndexEmbedderModelId: "text-embedding-3-small",
+				})
 
 			// Should handle configuration change gracefully
 			await expect(manager.handleSettingsChange()).resolves.not.toThrow()
@@ -391,7 +399,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 	describe("Network Timeouts and Connection Issues", () => {
 		it("should handle network timeouts during embedding", async () => {
 			// Arrange
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			// Mock embedder to timeout
 			const { CodeIndexServiceFactory } = await import("../../services/code-index/service-factory")
@@ -426,7 +434,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 
 		it("should handle connection refused errors", async () => {
 			// Arrange
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			// Mock vector store to refuse connection
 			const { CodeIndexServiceFactory } = await import("../../services/code-index/service-factory")
@@ -451,7 +459,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 
 		it("should handle rate limiting from embedder service", async () => {
 			// Arrange
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			// Mock embedder to rate limit
 			const { CodeIndexServiceFactory } = await import("../../services/code-index/service-factory")
@@ -484,7 +492,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 	describe("Memory Constraints and Resource Exhaustion", () => {
 		it("should handle out of memory errors during indexing", async () => {
 			// Arrange
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			// Mock scanner to run out of memory
 			const { CodeIndexServiceFactory } = await import("../../services/code-index/service-factory")
@@ -511,7 +519,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 
 		it("should handle file system space exhaustion", async () => {
 			// Arrange
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			// Mock cache write to fail due to disk space
 			const mockFs = vi.mocked(fs)
@@ -524,7 +532,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 
 		it("should handle too many open files error", async () => {
 			// Arrange
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			// Mock file operations to fail
 			const mockFs = vi.mocked(fs)
@@ -539,7 +547,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 	describe("Concurrent Access Conflicts", () => {
 		it("should handle concurrent initialization attempts", async () => {
 			// Arrange
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			// Mock slow initialization
 			const { CodeIndexServiceFactory } = await import("../../services/code-index/service-factory")
@@ -578,7 +586,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 
 		it("should handle concurrent search operations", async () => {
 			// Arrange
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			// Mock successful services
 			const { CodeIndexServiceFactory } = await import("../../services/code-index/service-factory")
@@ -618,7 +626,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 
 		it("should handle race conditions during error recovery", async () => {
 			// Arrange
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			// Act - concurrent recovery attempts
 			const promises = [manager.recoverFromError(), manager.recoverFromError(), manager.recoverFromError()]
@@ -632,7 +640,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 	describe("Partial Initialization States", () => {
 		it("should handle partial service initialization", async () => {
 			// Arrange
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			// Mock partial service failure
 			const { CodeIndexServiceFactory } = await import("../../services/code-index/service-factory")
@@ -660,7 +668,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 
 		it("should handle inconsistent state recovery", async () => {
 			// Arrange - create inconsistent state
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			// Mock services with inconsistent state
 			const { CodeIndexServiceFactory } = await import("../../services/code-index/service-factory")
@@ -692,7 +700,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 	describe("Error Recovery Mechanisms", () => {
 		it("should recover from error state and reinitialize", async () => {
 			// Arrange - put manager in error state
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			// Mock services to fail initially
 			const { CodeIndexServiceFactory } = await import("../../services/code-index/service-factory")
@@ -732,13 +740,14 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 
 		it("should handle graceful degradation scenarios", async () => {
 			// Arrange - feature enabled but not fully configured
-			mockContextProxy.getGlobalState.mockReturnValue({
-				codebaseIndexEnabled: true,
-				codebaseIndexQdrantUrl: "http://localhost:6333",
-				codebaseIndexEmbedderProvider: "openai",
-				codebaseIndexEmbedderModelId: "text-embedding-3-small",
-			})
-			mockContextProxy.getSecret.mockReturnValue(undefined) // No API key
+			;(mockContextProxy.getGlobalState as any)
+				.mockReturnValue({
+					codebaseIndexEnabled: true,
+					codebaseIndexQdrantUrl: "http://localhost:6333",
+					codebaseIndexEmbedderProvider: "openai",
+					codebaseIndexEmbedderModelId: "text-embedding-3-small",
+				})(mockContextProxy.getSecret as any)
+				.mockReturnValue(undefined) // No API key
 
 			// Act
 			const result = await manager.initialize(mockContextProxy)
@@ -755,7 +764,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 
 		it("should maintain error state consistency", async () => {
 			// Arrange
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			// Mock services to fail consistently
 			const { CodeIndexServiceFactory } = await import("../../services/code-index/service-factory")
@@ -787,7 +796,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 	describe("Telemetry and Error Reporting", () => {
 		it("should capture telemetry for initialization errors", async () => {
 			// Arrange
-			mockContextProxy.getGlobalState.mockImplementation(() => {
+			;(mockContextProxy.getGlobalState as any).mockImplementation(() => {
 				throw new Error("Configuration error")
 			})
 
@@ -803,7 +812,7 @@ describe("CodeIndexManager Error Handling and Recovery Integration Tests", () =>
 
 		it("should capture telemetry for service errors", async () => {
 			// Arrange
-			mockContextProxy.getSecret.mockReturnValue("test-api-key")
+			;(mockContextProxy.getSecret as any).mockReturnValue("test-api-key")
 
 			const { TelemetryService } = await import("@roo-code/telemetry")
 			const mockTelemetry = TelemetryService.instance

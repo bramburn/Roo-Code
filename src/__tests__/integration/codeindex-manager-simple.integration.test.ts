@@ -154,7 +154,7 @@ describe("CodeIndexManager Simple Integration Tests", () => {
 				codebaseIndexSearchMinScore: 0.7,
 				codebaseIndexSearchMaxResults: 10,
 			}),
-		}
+		} as any
 
 		manager = CodeIndexManager.getInstance(mockContext, testWorkspacePath)!
 	})
@@ -183,7 +183,7 @@ describe("CodeIndexManager Simple Integration Tests", () => {
 				getGlobalState: vi.fn().mockReturnValue({
 					codebaseIndexEnabled: false,
 				}),
-			}
+			} as any
 
 			// Act
 			const result = await manager.initialize(disabledContextProxy)
@@ -244,7 +244,7 @@ describe("CodeIndexManager Simple Integration Tests", () => {
 				getGlobalState: vi.fn().mockReturnValue({
 					codebaseIndexEnabled: false,
 				}),
-			}
+			} as any
 
 			await manager.initialize(disabledContextProxy)
 
@@ -356,7 +356,7 @@ describe("CodeIndexManager Simple Integration Tests", () => {
 				getGlobalState: vi.fn().mockReturnValue({
 					codebaseIndexEnabled: false,
 				}),
-			}
+			} as any
 
 			// Act
 			await manager.handleSettingsChange()
