@@ -1,0 +1,686 @@
+# Repository-Agnostic PRD Code Context Integrator Configuration Template
+# Version: 2.0.0
+# Framework: Repository-Agnostic Agent System
+
+# =============================================================================
+# AGENT METADATA AND CAPABILITIES
+# =============================================================================
+agent:
+  name: PRDCodeContextIntegratorV2
+  version: 2.0.0
+  description: Repository-agnostic PRD code context integration agent with plugin-based architecture
+  framework: repository-agnostic
+  type: integration-agent
+  
+capabilities:
+  primary:
+    - repository-agnostic-discovery
+    - technology-stack-detection
+    - pattern-recognition
+    - cross-referencing
+    - bidirectional-linking
+    - relationship-mapping
+    - dependency-tracking
+    - status-monitoring
+  
+  secondary:
+    - multi-repository-support
+    - cross-project-knowledge
+    - memory-graph-integration
+    - mcp-tool-integration
+    - sequential-thinking-protocol
+  
+  plugins:
+    - repository-discovery
+    - prd-integration
+    - memory-graph
+    - mcp-tools
+    - workflow-engine
+
+# =============================================================================
+# REPOSITORY-AGNOSTIC CONFIGURATION
+# =============================================================================
+repository_agnostic:
+  enabled: true
+  template_based_discovery: true
+  configurable_patterns: true
+  multi_repository_support: true
+  cross_project_knowledge: true
+  
+  # Repository Templates Configuration
+  templates:
+    # Standard Monorepo Template
+    standard_monorepo:
+      name: "Standard Monorepo"
+      description: "JavaScript/TypeScript monorepo with standard structure"
+      patterns:
+        - "src/"
+        - "lib/"
+        - "components/"
+        - "services/"
+        - "utils/"
+        - "tests/"
+        - "docs/"
+      indicators:
+        - "package.json"
+        - "yarn.lock"
+        - "package-lock.json"
+        - "tsconfig.json"
+        - "webpack.config.js"
+        - "vite.config.js"
+      technologies:
+        - "javascript"
+        - "typescript"
+        - "react"
+        - "angular"
+        - "vue"
+        - "node.js"
+      analysis_rules:
+        - "component-based-architecture"
+        - "module-system"
+        - "dependency-injection"
+        - "state-management"
+      file_extensions:
+        - ".js"
+        - ".ts"
+        - ".jsx"
+        - ".tsx"
+        - ".json"
+    
+    # .NET Backend Template
+    dotnet_backend:
+      name: ".NET Backend"
+      description: "C# .NET backend with clean architecture"
+      patterns:
+        - "src/"
+        - "Controllers/"
+        - "Services/"
+        - "Models/"
+        - "Data/"
+        - "Tests/"
+        - "Properties/"
+      indicators:
+        - "*.csproj"
+        - "appsettings.json"
+        - "Program.cs"
+        - "Startup.cs"
+        - "appsettings.Development.json"
+      technologies:
+        - "csharp"
+        - "dotnet"
+        - "aspnet-core"
+        - "entity-framework"
+        - "dependency-injection"
+      analysis_rules:
+        - "clean-architecture"
+        - "repository-pattern"
+        - "service-layer"
+        - "dependency-injection"
+      file_extensions:
+        - ".cs"
+        - ".csproj"
+        - ".json"
+    
+    # Python Project Template
+    python_project:
+      name: "Python Project"
+      description: "Python project with standard structure"
+      patterns:
+        - "src/"
+        - "lib/"
+        - "tests/"
+        - "docs/"
+      indicators:
+        - "requirements.txt"
+        - "setup.py"
+        - "pyproject.toml"
+        - "Pipfile"
+        - "__init__.py"
+        - "manage.py"
+      technologies:
+        - "python"
+        - "django"
+        - "flask"
+        - "fastapi"
+        - "pytest"
+      analysis_rules:
+        - "mvc-pattern"
+        - "package-management"
+        - "virtual-environment"
+        - "test-driven-development"
+      file_extensions:
+        - ".py"
+        - ".txt"
+        - ".toml"
+    
+    # Mobile App Template
+    mobile_app:
+      name: "Mobile Application"
+      description: "Mobile app with cross-platform support"
+      patterns:
+        - "android/"
+        - "ios/"
+        - "lib/"
+        - "shared/"
+        - "src/"
+      indicators:
+        - "build.gradle"
+        - "Podfile"
+        - "pubspec.yaml"
+        - "package.json"
+      technologies:
+        - "kotlin"
+        - "swift"
+        - "react-native"
+        - "flutter"
+        - "dart"
+      analysis_rules:
+        - "mobile-architecture"
+        - "platform-specific-code"
+        - "shared-components"
+        - "navigation-patterns"
+      file_extensions:
+        - ".kt"
+        - ".swift"
+        - ".dart"
+        - ".js"
+        - ".ts"
+    
+    # Generic Template
+    generic:
+      name: "Generic Repository"
+      description: "Generic repository structure for unknown types"
+      patterns:
+        - "src/"
+        - "lib/"
+        - "source/"
+        - "code/"
+      indicators:
+        - "README.md"
+        - "LICENSE"
+        - ".gitignore"
+      technologies:
+        - "unknown"
+      analysis_rules:
+        - "basic-structure"
+        - "file-organization"
+        - "documentation"
+      file_extensions:
+        - ".*"
+
+# =============================================================================
+# PLUGIN-BASED ARCHITECTURE CONFIGURATION
+# =============================================================================
+plugin_architecture:
+  enabled: true
+  plugin_discovery: auto
+  plugin_loading: lazy
+  plugin_validation: strict
+  
+  plugins:
+    repository_discovery:
+      name: "Repository Discovery Plugin"
+      version: "1.0.0"
+      enabled: true
+      capabilities:
+        - "structure-analysis"
+        - "pattern-detection"
+        - "technology-stack"
+        - "file-scanning"
+      configuration:
+        deep_scan: true
+        parallel_processing: true
+        cache_results: true
+        max_depth: 10
+        exclude_patterns:
+          - "node_modules/"
+          - ".git/"
+          - "dist/"
+          - "build/"
+          - "*.min.js"
+    
+    prd_integration:
+      name: "PRD Integration Plugin"
+      version: "1.0.0"
+      enabled: true
+      capabilities:
+        - "requirement-mapping"
+        - "cross-referencing"
+        - "bidirectional-linking"
+        - "context-enrichment"
+      configuration:
+        mapping_algorithm: "semantic-similarity"
+        cross_reference_depth: 3
+        bidirectional_linking: true
+        context_enrichment: true
+        validation_rules: "strict"
+    
+    memory_graph:
+      name: "Memory Graph Plugin"
+      version: "1.0.0"
+      enabled: true
+      capabilities:
+        - "entity-creation"
+        - "relationship-mapping"
+        - "observation-tracking"
+        - "knowledge-retrieval"
+      configuration:
+        entity_types:
+          - "Repository"
+          - "Technology"
+          - "Pattern"
+          - "Component"
+          - "Requirement"
+          - "Implementation"
+          - "Dependency"
+        relationship_types:
+          - "contains"
+          - "uses"
+          - "implements"
+          - "follows"
+          - "depends_on"
+          - "integrates_with"
+          - "similar_to"
+        cache_enabled: true
+        persistence: true
+    
+    mcp_tools:
+      name: "MCP Tools Plugin"
+      version: "1.0.0"
+      enabled: true
+      capabilities:
+        - "semantic-search"
+        - "ast-analysis"
+        - "github-integration"
+        - "code-analysis"
+      configuration:
+        semantic_search:
+          enabled: true
+          provider: "codebase-search"
+          max_results: 50
+          relevance_threshold: 0.7
+        ast_analysis:
+          enabled: true
+          provider: "ast-grep-mcp"
+          pattern_matching: true
+          structure_analysis: true
+        github_integration:
+          enabled: true
+          search_repositories: true
+          best_practices: true
+          trend_analysis: true
+    
+    workflow_engine:
+      name: "Workflow Engine Plugin"
+      version: "1.0.0"
+      enabled: true
+      capabilities:
+        - "sequential-thinking"
+        - "checkpoint-management"
+        - "error-handling"
+        - "progress-tracking"
+      configuration:
+        sequential_thinking:
+          enabled: true
+          stages: 6
+          validation_required: true
+        checkpoint_management:
+          enabled: true
+          auto_save: true
+          rollback_support: true
+        error_handling:
+          strategy: "graceful-degradation"
+          retry_attempts: 3
+          fallback_enabled: true
+
+# =============================================================================
+# SEQUENTIAL THINKING PROTOCOL CONFIGURATION
+# =============================================================================
+sequential_thinking:
+  enabled: true
+  stages: 6
+  validation_required: true
+  documentation_required: true
+  
+  stages:
+    problem_definition:
+      name: "Problem Definition"
+      description: "Define what needs to be analyzed and integrated"
+      required_outputs:
+        - "repository_scope"
+        - "integration_requirements"
+        - "analysis_objectives"
+    
+    context_research:
+      name: "Context Research"
+      description: "Gather repository and PRD context information"
+      required_outputs:
+        - "repository_structure"
+        - "technology_stack"
+        - "prd_requirements"
+        - "existing_patterns"
+    
+    analysis:
+      name: "Analysis"
+      description: "Analyze code patterns, dependencies, and relationships"
+      required_outputs:
+        - "pattern_analysis"
+        - "dependency_mapping"
+        - "technology_assessment"
+        - "gap_analysis"
+    
+    synthesis:
+      name: "Synthesis"
+      description: "Create repository model and requirement mappings"
+      required_outputs:
+        - "repository_model"
+        - "requirement_mappings"
+        - "integration_strategy"
+        - "knowledge_extraction"
+    
+    validation:
+      name: "Validation"
+      description: "Verify mapping accuracy and pattern consistency"
+      required_outputs:
+        - "mapping_validation"
+        - "pattern_consistency"
+        - "technology_validation"
+        - "coverage_analysis"
+    
+    conclusion:
+      name: "Conclusion"
+      description: "Finalize context integration and generate reports"
+      required_outputs:
+        - "context_integration"
+        - "memory_graph_updates"
+        - "analysis_reports"
+        - "workflow_completion"
+
+# =============================================================================
+# CONFIGURABLE BEHAVIOR SETTINGS
+# =============================================================================
+configurable_behavior:
+  analysis_depth:
+    shallow:
+      description: "Basic file scanning and simple pattern detection"
+      features:
+        - "file-scan"
+        - "basic-patterns"
+        - "surface-level-dependencies"
+      performance: "fast"
+      accuracy: "low"
+    
+    medium:
+      description: "Comprehensive analysis with AST parsing"
+      features:
+        - "file-scan"
+        - "ast-analysis"
+        - "dependency-mapping"
+        - "pattern-recognition"
+      performance: "medium"
+      accuracy: "medium"
+    
+    deep:
+      description: "Deep semantic analysis with cross-referencing"
+      features:
+        - "file-scan"
+        - "ast-analysis"
+        - "semantic-analysis"
+        - "cross-reference"
+        - "pattern-matching"
+        - "knowledge-integration"
+      performance: "slow"
+      accuracy: "high"
+  
+  mapping_rules:
+    strict:
+      description: "Exact matches with type validation"
+      algorithm: "exact-matching"
+      validation: "type-check"
+      tolerance: "none"
+    
+    flexible:
+      description: "Pattern matching with semantic similarity"
+      algorithm: "pattern-matching"
+      validation: "semantic-similarity"
+      tolerance: "medium"
+    
+    adaptive:
+      description: "ML-based matching with learning system"
+      algorithm: "ml-based"
+      validation: "adaptive-learning"
+      tolerance: "dynamic"
+  
+  validation_thresholds:
+    conservative:
+      description: "High precision, low recall"
+      precision: 0.95
+      recall: 0.70
+      f1_score: 0.81
+    
+    balanced:
+      description: "Equal precision and recall"
+      precision: 0.85
+      recall: 0.85
+      f1_score: 0.85
+    
+    aggressive:
+      description: "High recall, moderate precision"
+      precision: 0.75
+      recall: 0.95
+      f1_score: 0.84
+
+# =============================================================================
+# WORKFLOW DEFINITIONS
+# =============================================================================
+workflows:
+  comprehensive_analysis:
+    name: "Comprehensive Repository Analysis"
+    description: "Complete repository analysis with deep integration"
+    stages:
+      - "repository_discovery"
+      - "technology_detection"
+      - "pattern_analysis"
+      - "requirement_mapping"
+      - "context_integration"
+      - "validation"
+    checkpoints:
+      - after_discovery: "Validate repository structure"
+      - after_detection: "Verify technology stack"
+      - after_analysis: "Check pattern consistency"
+      - after_mapping: "Validate requirement mappings"
+      - after_integration: "Verify integration completeness"
+    estimated_time: "30-45 minutes"
+  
+  quick_integration:
+    name: "Quick PRD Integration"
+    description: "Fast integration with basic analysis"
+    stages:
+      - "repository_discovery"
+      - "requirement_mapping"
+      - "context_integration"
+    checkpoints:
+      - after_discovery: "Basic structure validation"
+      - after_mapping: "Mapping completeness check"
+    estimated_time: "10-15 minutes"
+  
+  multi_repository:
+    name: "Multi-Repository Analysis"
+    description: "Cross-repository analysis and knowledge integration"
+    stages:
+      - "parallel_discovery"
+      - "cross_repository_analysis"
+      - "knowledge_integration"
+      - "unified_mapping"
+      - "context_integration"
+    checkpoints:
+      - after_discovery: "All repositories discovered"
+      - after_analysis: "Cross-repository patterns identified"
+      - after_integration: "Knowledge integrated across repos"
+    estimated_time: "60-90 minutes"
+
+# =============================================================================
+# INTEGRATION POINTS CONFIGURATION
+# =============================================================================
+integration_points:
+  memory_graph:
+    enabled: true
+    auto_sync: true
+    entity_creation: true
+    relationship_mapping: true
+    observation_tracking: true
+    cache_enabled: true
+  
+  mcp_tools:
+    semantic_search:
+      enabled: true
+      provider: "codebase-search"
+      max_results: 50
+      relevance_threshold: 0.7
+    
+    ast_analysis:
+      enabled: true
+      provider: "ast-grep-mcp"
+      pattern_matching: true
+      structure_analysis: true
+    
+    github_integration:
+      enabled: true
+      search_repositories: true
+      best_practices: true
+      trend_analysis: true
+  
+  workflow_engine:
+    sequential_thinking: true
+    checkpoint_management: true
+    error_handling: true
+    progress_tracking: true
+
+# =============================================================================
+# TESTING AND VALIDATION CONFIGURATION
+# =============================================================================
+testing:
+  unit_tests:
+    enabled: true
+    coverage_target: 0.85
+    test_types:
+      - "repository_analysis"
+      - "technology_detection"
+      - "pattern_recognition"
+      - "memory_graph_operations"
+  
+  integration_tests:
+    enabled: true
+    test_scenarios:
+      - "end_to_end_workflow"
+      - "multi_repository_analysis"
+      - "prd_integration"
+      - "mcp_tool_integration"
+  
+  repository_compatibility:
+    enabled: true
+    test_repositories:
+      - "standard_monorepo"
+      - "dotnet_backend"
+      - "python_project"
+      - "mobile_app"
+      - "generic"
+  
+  backward_compatibility:
+    enabled: true
+    supported_formats:
+      - "prd_v1"
+      - "prd_v2"
+      - "legacy_formats"
+    migration_support: true
+
+# =============================================================================
+# PERFORMANCE AND MONITORING
+# =============================================================================
+performance:
+  caching:
+    enabled: true
+    cache_ttl: 3600
+    max_cache_size: "100MB"
+    cache_strategy: "lru"
+  
+  parallel_processing:
+    enabled: true
+    max_workers: 4
+    chunk_size: 100
+  
+  monitoring:
+    enabled: true
+    metrics:
+      - "analysis_time"
+      - "memory_usage"
+      - "cache_hit_rate"
+      - "error_rate"
+    alerting:
+      enabled: true
+      thresholds:
+        analysis_time: 300
+        memory_usage: "512MB"
+        error_rate: 0.05
+
+# =============================================================================
+# ERROR HANDLING AND RECOVERY
+# =============================================================================
+error_handling:
+  strategy: "graceful_degradation"
+  retry_attempts: 3
+  retry_delay: 1000
+  fallback_enabled: true
+  
+  recovery_mechanisms:
+    repository_not_found:
+      action: "skip_analysis"
+      log_level: "warning"
+      fallback: "use_generic_template"
+    
+    pattern_recognition_failure:
+      action: "fallback_to_basic_analysis"
+      log_level: "info"
+      fallback: "use_file_structure_analysis"
+    
+    technology_detection_failure:
+      action: "default_to_generic_analysis"
+      log_level: "warning"
+      fallback: "use_file_extension_analysis"
+    
+    memory_graph_unavailable:
+      action: "continue_with_local_analysis"
+      log_level: "warning"
+      fallback: "store_results_locally"
+    
+    mcp_tools_unavailable:
+      action: "use_builtin_capabilities"
+      log_level: "info"
+      fallback: "basic_pattern_matching"
+
+# =============================================================================
+# VERSION AND COMPATIBILITY
+# =============================================================================
+version:
+  current: "2.0.0"
+  framework: "repository-agnostic"
+  compatibility:
+    min_framework_version: "1.0.0"
+    supported_prd_formats:
+      - "v1.0"
+      - "v2.0"
+      - "legacy"
+    migration_support: true
+  
+  changelog:
+    "2.0.0":
+      - "Repository-agnostic framework implementation"
+      - "Plugin-based architecture"
+      - "Sequential Thinking Protocol integration"
+      - "Multi-repository support"
+      - "Enhanced error handling"
+    
+    "1.0.0":
+      - "Initial PRD code context integration"
+      - "Basic repository analysis"
+      - "Simple requirement mapping"

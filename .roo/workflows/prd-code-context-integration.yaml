@@ -1,0 +1,794 @@
+# PRD Code Context Integration Workflows
+# Repository-Agnostic Framework Implementation
+# Version: 2.0.0
+
+# =============================================================================
+# WORKFLOW DEFINITIONS FOR PRD CODE CONTEXT INTEGRATION
+# =============================================================================
+workflows:
+  # =============================================================================
+  # COMPREHENSIVE REPOSITORY ANALYSIS WORKFLOW
+  # =============================================================================
+  comprehensive_repository_analysis:
+    name: "Comprehensive Repository Analysis"
+    description: "Complete repository analysis with deep integration and cross-referencing"
+    version: "2.0.0"
+    type: "analysis"
+    complexity: "high"
+    estimated_duration: "30-45 minutes"
+    
+    # Sequential Thinking Protocol Integration
+    sequential_thinking:
+      enabled: true
+      stages: 6
+      validation_required: true
+      
+    # Workflow Stages
+    stages:
+      stage_1_problem_definition:
+        name: "Problem Definition"
+        description: "Define repository scope and analysis objectives"
+        actions:
+          - "REPO_ANALYZE_STRUCTURE IN [repository_path] USING [auto_detect] OUTPUTTING initial_analysis"
+          - "REPO_DETECT_TECHNOLOGY IN [repository_path] SCANNING [all_indicators] IDENTIFYING [tech_stack]"
+          - "DEFINE_ANALYSIS_OBJECTIVES FOR [repository_path] WITH [comprehensive_analysis]"
+        expected_outputs:
+          - "repository_scope"
+          - "analysis_objectives"
+          - "initial_technology_assessment"
+        validation_criteria:
+          - "repository_path_accessible"
+          - "analysis_objectives_defined"
+          - "technology_detection_initiated"
+      
+      stage_2_context_research:
+        name: "Context Research"
+        description: "Gather repository structure, technology stack, and PRD requirements"
+        actions:
+          - "REPO_ANALYZE_STRUCTURE IN [repository_path] USING [detected_template] OUTPUTTING detailed_structure"
+          - "REPO_DETECT_TECHNOLOGY IN [repository_path] SCANNING [deep_scan] IDENTIFYING [complete_tech_stack]"
+          - "READ_PRD_REQUIREMENTS FROM [prd_path] EXTRACTING [user_stories, acceptance_criteria]"
+          - "MEMORY_SEARCH FOR [similar_repositories, existing_patterns] RETRIEVING [knowledge_base]"
+        expected_outputs:
+          - "detailed_repository_structure"
+          - "complete_technology_stack"
+          - "prd_requirements_extracted"
+          - "existing_patterns_identified"
+        validation_criteria:
+          - "repository_structure_analyzed"
+          - "technology_stack_detected"
+          - "prd_requirements_extracted"
+          - "existing_patterns_found"
+      
+      stage_3_analysis:
+        name: "Analysis"
+        description: "Analyze code patterns, dependencies, and architectural decisions"
+        actions:
+          - "REPO_DISCOVER_PATTERNS IN [repository_path] ANALYZING [architectural, coding, structural] IDENTIFYING [all_patterns]"
+          - "REPO_TRACK_DEPENDENCIES IN [repository_path] MAPPING [code, data, control] CREATING [dependency_graph]"
+          - "REPO_ANALYZE_TECHNOLOGY IN [repository_path] ASSESSING [compatibility, best_practices] OUTPUTTING [tech_assessment]"
+          - "IDENTIFY_IMPLEMENTATION_GAPS IN [repository_path] COMPARING [prd_requirements] VS [current_state]"
+        expected_outputs:
+          - "pattern_analysis_results"
+          - "dependency_mapping_graph"
+          - "technology_assessment_report"
+          - "gap_analysis_report"
+        validation_criteria:
+          - "patterns_discovered"
+          - "dependencies_mapped"
+          - "technology_assessed"
+          - "gaps_identified"
+      
+      stage_4_synthesis:
+        name: "Synthesis"
+        description: "Create repository model and requirement-to-code mappings"
+        actions:
+          - "CREATE_REPOSITORY_MODEL FROM [structure_analysis, pattern_analysis, dependency_analysis] OUTPUTTING [repository_model]"
+          - "REPO_MAP_REQUIREMENTS FROM [prd_requirements] TO [code_files] CREATING [detailed_mappings]"
+          - "REPO_CROSS_REFERENCE BETWEEN [prd_requirements] AND [code_implementation] CREATING [bidirectional_links]"
+          - "EXTRACT_REUSABLE_KNOWLEDGE FROM [analysis_results] OUTPUTTING [knowledge_base_updates]"
+        expected_outputs:
+          - "comprehensive_repository_model"
+          - "requirement_to_code_mappings"
+          - "bidirectional_cross_references"
+          - "reusable_knowledge_extracted"
+        validation_criteria:
+          - "repository_model_created"
+          - "requirement_mappings_complete"
+          - "cross_references_established"
+          - "knowledge_extracted"
+      
+      stage_5_validation:
+        name: "Validation"
+        description: "Verify mapping accuracy, pattern consistency, and integration completeness"
+        actions:
+          - "REPO_VALIDATE_CONSISTENCY OF [mappings] CHECKING [accuracy, completeness, consistency] REPORTING [validation_results]"
+          - "VALIDATE_PATTERN_CONSISTENCY IN [discovered_patterns] AGAINST [best_practices] OUTPUTTING [pattern_validation]"
+          - "VERIFY_TECHNOLOGY_COMPATIBILITY OF [tech_stack] WITH [requirements] REPORTING [compatibility_report]"
+          - "CHECK_COVERAGE_ANALYSIS FOR [repository] ENSURING [comprehensive_analysis] REPORTING [coverage_gaps]"
+        expected_outputs:
+          - "mapping_validation_report"
+          - "pattern_consistency_report"
+          - "technology_compatibility_report"
+          - "coverage_analysis_report"
+        validation_criteria:
+          - "mappings_validated"
+          - "patterns_consistent"
+          - "technology_compatible"
+          - "coverage_complete"
+      
+      stage_6_conclusion:
+        name: "Conclusion"
+        description: "Finalize context integration and generate comprehensive reports"
+        actions:
+          - "REPO_INTEGRATE_CONTEXT INTO [prd_path] FROM [analysis_results] UPDATING [implementation_context, code_patterns]"
+          - "REPO_CREATE_ENTITIES FROM [analysis_results] IN [memory_graph] CREATING [entity_relationships]"
+          - "REPO_SYNC_MEMORY_GRAPH WITH [new_knowledge] UPDATING [existing_entities]"
+          - "GENERATE_ANALYSIS_REPORTS FOR [comprehensive_analysis] OUTPUTTING [final_reports]"
+        expected_outputs:
+          - "prd_context_integrated"
+          - "memory_graph_updated"
+          - "analysis_reports_generated"
+          - "workflow_completed"
+        validation_criteria:
+          - "context_integration_complete"
+          - "memory_graph_synced"
+          - "reports_generated"
+          - "workflow_success"
+    
+    # Checkpoints
+    checkpoints:
+      after_stage_1:
+        name: "After Problem Definition"
+        validation:
+          - "repository_accessible"
+          - "objectives_defined"
+          - "technology_scan_initiated"
+        rollback_action: "redefine_objectives"
+      
+      after_stage_2:
+        name: "After Context Research"
+        validation:
+          - "structure_analyzed"
+          - "technology_detected"
+          - "requirements_extracted"
+          - "patterns_found"
+        rollback_action: "restart_context_research"
+      
+      after_stage_3:
+        name: "After Analysis"
+        validation:
+          - "patterns_discovered"
+          - "dependencies_mapped"
+          - "technology_assessed"
+          - "gaps_identified"
+        rollback_action: "refine_analysis_approach"
+      
+      after_stage_4:
+        name: "After Synthesis"
+        validation:
+          - "model_created"
+          - "mappings_complete"
+          - "cross_references_established"
+          - "knowledge_extracted"
+        rollback_action: "refine_synthesis_approach"
+      
+      after_stage_5:
+        name: "After Validation"
+        validation:
+          - "all_validations_passed"
+          - "issues_resolved"
+          - "quality_assured"
+        rollback_action: "address_validation_issues"
+
+  # =============================================================================
+  # QUICK PRD INTEGRATION WORKFLOW
+  # =============================================================================
+  quick_prd_integration:
+    name: "Quick PRD Integration"
+    description: "Fast PRD-code integration with basic analysis and mapping"
+    version: "2.0.0"
+    type: "integration"
+    complexity: "medium"
+    estimated_duration: "10-15 minutes"
+    
+    # Sequential Thinking Protocol Integration
+    sequential_thinking:
+      enabled: true
+      stages: 6
+      validation_required: true
+      simplified_stages: true
+    
+    # Workflow Stages
+    stages:
+      stage_1_problem_definition:
+        name: "Problem Definition"
+        description: "Define integration scope and objectives"
+        actions:
+          - "DEFINE_INTEGRATION_SCOPE FOR [prd_path] WITH [quick_integration]"
+          - "IDENTIFY_KEY_REQUIREMENTS FROM [prd_path] EXTRACTING [primary_features]"
+        expected_outputs:
+          - "integration_scope"
+          - "key_requirements_identified"
+        validation_criteria:
+          - "scope_defined"
+          - "requirements_identified"
+      
+      stage_2_context_research:
+        name: "Context Research"
+        description: "Basic repository analysis and requirement extraction"
+        actions:
+          - "REPO_ANALYZE_STRUCTURE IN [repository_path] USING [quick_scan] OUTPUTTING basic_structure"
+          - "EXTRACT_PRD_REQUIREMENTS FROM [prd_path] FILTERING [key_requirements]"
+        expected_outputs:
+          - "basic_repository_structure"
+          - "key_requirements_extracted"
+        validation_criteria:
+          - "structure_analyzed"
+          - "requirements_extracted"
+      
+      stage_3_analysis:
+        name: "Analysis"
+        description: "Quick pattern detection and basic dependency mapping"
+        actions:
+          - "REPO_DISCOVER_PATTERNS IN [repository_path] ANALYZING [key_patterns] IDENTIFYING [primary_patterns]"
+          - "REPO_TRACK_DEPENDENCIES IN [repository_path] MAPPING [surface_dependencies] CREATING [basic_dependency_map]"
+        expected_outputs:
+          - "primary_patterns_identified"
+          - "basic_dependency_map_created"
+        validation_criteria:
+          - "patterns_identified"
+          - "dependencies_mapped"
+      
+      stage_4_synthesis:
+        name: "Synthesis"
+        description: "Create basic requirement-to-code mappings"
+        actions:
+          - "REPO_MAP_REQUIREMENTS FROM [key_requirements] TO [code_files] CREATING [basic_mappings]"
+          - "REPO_CROSS_REFERENCE BETWEEN [key_requirements] AND [code_implementation] CREATING [essential_links]"
+        expected_outputs:
+          - "basic_requirement_mappings"
+          - "essential_cross_references"
+        validation_criteria:
+          - "mappings_created"
+          - "cross_references_established"
+      
+      stage_5_validation:
+        name: "Validation"
+        description: "Validate basic mappings and cross-references"
+        actions:
+          - "REPO_VALIDATE_CONSISTENCY OF [basic_mappings] CHECKING [basic_accuracy] REPORTING [quick_validation]"
+        expected_outputs:
+          - "quick_validation_report"
+        validation_criteria:
+          - "basic_validation_passed"
+      
+      stage_6_conclusion:
+        name: "Conclusion"
+        description: "Complete quick integration and generate summary"
+        actions:
+          - "REPO_INTEGRATE_CONTEXT INTO [prd_path] FROM [basic_analysis] UPDATING [quick_context]"
+          - "GENERATE_QUICK_REPORT FOR [integration] OUTPUTTING [summary_report]"
+        expected_outputs:
+          - "quick_context_integrated"
+          - "summary_report_generated"
+        validation_criteria:
+          - "integration_complete"
+          - "report_generated"
+    
+    # Checkpoints
+    checkpoints:
+      after_stage_1:
+        name: "After Problem Definition"
+        validation:
+          - "scope_clearly_defined"
+          - "requirements_identified"
+        rollback_action: "refine_scope"
+      
+      after_stage_2:
+        name: "After Context Research"
+        validation:
+          - "basic_structure_analyzed"
+          - "requirements_extracted"
+        rollback_action: "restart_research"
+      
+      after_stage_3:
+        name: "After Analysis"
+        validation:
+          - "patterns_identified"
+          - "dependencies_mapped"
+        rollback_action: "refine_analysis"
+      
+      after_stage_4:
+        name: "After Synthesis"
+        validation:
+          - "mappings_created"
+          - "cross_references_established"
+        rollback_action: "refine_mappings"
+      
+      after_stage_5:
+        name: "After Validation"
+        validation:
+          - "validation_passed"
+          - "issues_resolved"
+        rollback_action: "address_validation_issues"
+
+  # =============================================================================
+  # MULTI-REPOSITORY ANALYSIS WORKFLOW
+  # =============================================================================
+  multi_repository_analysis:
+    name: "Multi-Repository Analysis"
+    description: "Cross-repository analysis with knowledge integration and unified mapping"
+    version: "2.0.0"
+    type: "cross_repository"
+    complexity: "high"
+    estimated_duration: "60-90 minutes"
+    
+    # Sequential Thinking Protocol Integration
+    sequential_thinking:
+      enabled: true
+      stages: 6
+      validation_required: true
+      parallel_processing: true
+    
+    # Workflow Stages
+    stages:
+      stage_1_problem_definition:
+        name: "Problem Definition"
+        description: "Define multi-repository scope and cross-repository objectives"
+        actions:
+          - "IDENTIFY_REPOSITORY_LIST FROM [repository_config] EXTRACTING [all_repositories]"
+          - "DEFINE_CROSS_REPOSITORY_OBJECTIVES FOR [repository_list] WITH [unified_analysis]"
+          - "PLAN_PARALLEL_ANALYSIS FOR [repository_list] OPTIMIZING [resource_usage]"
+        expected_outputs:
+          - "repository_list_defined"
+          - "cross_repository_objectives"
+          - "parallel_analysis_plan"
+        validation_criteria:
+          - "repositories_identified"
+          - "objectives_defined"
+          - "parallel_plan_created"
+      
+      stage_2_context_research:
+        name: "Context Research"
+        description: "Parallel repository discovery and technology stack detection"
+        actions:
+          - "REPO_ANALYZE_STRUCTURE IN [all_repositories] USING [parallel_scan] OUTPUTTING [multi_structure_analysis]"
+          - "REPO_DETECT_TECHNOLOGY IN [all_repositories] SCANNING [comprehensive] IDENTIFYING [cross_repo_tech_stack]"
+          - "IDENTIFY_CROSS_REPO_PATTERNS ACROSS [repository_list] ANALYZING [shared_patterns]"
+        expected_outputs:
+          - "multi_repository_structure"
+          - "cross_repository_tech_stack"
+          - "shared_patterns_identified"
+        validation_criteria:
+          - "all_repositories_analyzed"
+          - "technology_stacks_detected"
+          - "shared_patterns_found"
+      
+      stage_3_analysis:
+        name: "Analysis"
+        description: "Cross-repository pattern analysis and dependency mapping"
+        actions:
+          - "ANALYZE_CROSS_REPO_DEPENDENCIES ACROSS [repository_list] MAPPING [inter_repo_dependencies] CREATING [cross_dependency_graph]"
+          - "COMPARE_ARCHITECTURAL_PATTERNS ACROSS [repository_list] IDENTIFYING [similarities, differences]"
+          - "IDENTIFY_INTEGRATION_OPPORTUNITIES BETWEEN [repository_list] ANALYZING [potential_integrations]"
+        expected_outputs:
+          - "cross_dependency_graph"
+          - "architectural_comparison"
+          - "integration_opportunities"
+        validation_criteria:
+          - "cross_dependencies_mapped"
+          - "architectures_compared"
+          - "opportunities_identified"
+      
+      stage_4_synthesis:
+        name: "Synthesis"
+        description: "Create unified repository model and cross-repository knowledge integration"
+        actions:
+          - "CREATE_UNIFIED_REPOSITORY_MODEL FROM [multi_analysis_results] OUTPUTTING [unified_model]"
+          - "INTEGRATE_CROSS_REPO_KNOWLEDGE FROM [analysis_results] CREATING [knowledge_base]"
+          - "REPO_MAP_REQUIREMENTS FROM [cross_repo_requirements] TO [multi_repo_code] CREATING [unified_mappings]"
+        expected_outputs:
+          - "unified_repository_model"
+          - "cross_repo_knowledge_integrated"
+          - "unified_requirement_mappings"
+        validation_criteria:
+          - "unified_model_created"
+          - "knowledge_integrated"
+          - "unified_mappings_created"
+      
+      stage_5_validation:
+        name: "Validation"
+        description: "Validate cross-repository consistency and integration feasibility"
+        actions:
+          - "VALIDATE_CROSS_REPO_CONSISTENCY ACROSS [repository_list] CHECKING [compatibility, conflicts] REPORTING [cross_validation]"
+          - "VERIFY_INTEGRATION_FEASIBILITY FOR [unified_mappings] ASSESSING [technical_feasibility]"
+          - "CHECK_KNOWLEDGE_INTEGRITY OF [integrated_knowledge] VALIDATING [consistency, completeness]"
+        expected_outputs:
+          - "cross_consistency_validation"
+          - "integration_feasibility_report"
+          - "knowledge_integrity_report"
+        validation_criteria:
+          - "cross_consistency_validated"
+          - "integration_feasible"
+          - "knowledge_integrity_verified"
+      
+      stage_6_conclusion:
+        name: "Conclusion"
+        description: "Finalize multi-repository analysis and generate comprehensive reports"
+        actions:
+          - "REPO_INTEGRATE_CONTEXT INTO [multiple_prds] FROM [unified_analysis] UPDATING [cross_repo_context]"
+          - "REPO_SYNC_MEMORY_GRAPH WITH [cross_repo_knowledge] UPDATING [unified_entities]"
+          - "GENERATE_MULTI_REPO_REPORTS FOR [cross_analysis] OUTPUTTING [comprehensive_reports]"
+        expected_outputs:
+          - "cross_repo_context_integrated"
+          - "unified_memory_graph_updated"
+          - "multi_repo_reports_generated"
+        validation_criteria:
+          - "cross_integration_complete"
+          - "memory_graph_unified"
+          - "reports_generated"
+    
+    # Checkpoints
+    checkpoints:
+      after_stage_1:
+        name: "After Problem Definition"
+        validation:
+          - "all_repositories_accessible"
+          - "cross_objectives_defined"
+          - "parallel_plan_valid"
+        rollback_action: "redefine_cross_objectives"
+      
+      after_stage_2:
+        name: "After Context Research"
+        validation:
+          - "all_repositories_scanned"
+          - "technology_stacks_compared"
+          - "shared_patterns_identified"
+        rollback_action: "restart_parallel_research"
+      
+      after_stage_3:
+        name: "After Analysis"
+        validation:
+          - "cross_dependencies_mapped"
+          - "architectures_compared"
+          - "opportunities_identified"
+        rollback_action: "refine_cross_analysis"
+      
+      after_stage_4:
+        name: "After Synthesis"
+        validation:
+          - "unified_model_created"
+          - "knowledge_integrated"
+          - "unified_mappings_complete"
+        rollback_action: "refine_unified_synthesis"
+      
+      after_stage_5:
+        name: "After Validation"
+        validation:
+          - "cross_consistency_validated"
+          - "integration_feasible"
+          - "knowledge_integrity_verified"
+        rollback_action: "address_cross_validation_issues"
+
+  # =============================================================================
+  # CONTINUOUS MONITORING WORKFLOW
+  # =============================================================================
+  continuous_monitoring:
+    name: "Continuous Implementation Monitoring"
+    description: "Ongoing monitoring of implementation status and quality metrics"
+    version: "2.0.0"
+    type: "monitoring"
+    complexity: "medium"
+    estimated_duration: "5-10 minutes per cycle"
+    frequency: "continuous"
+    
+    # Sequential Thinking Protocol Integration
+    sequential_thinking:
+      enabled: true
+      stages: 6
+      validation_required: true
+      cyclic_execution: true
+    
+    # Workflow Stages
+    stages:
+      stage_1_problem_definition:
+        name: "Problem Definition"
+        description: "Define monitoring scope and objectives for current cycle"
+        actions:
+          - "DEFINE_MONITORING_SCOPE FOR [current_cycle] WITH [target_repositories, target_prds]"
+          - "IDENTIFY_MONITORING_OBJECTIVES FOR [scope] WITH [status_tracking, quality_metrics]"
+        expected_outputs:
+          - "monitoring_scope_defined"
+          - "monitoring_objectives_identified"
+        validation_criteria:
+          - "scope_clear"
+          - "objectives_defined"
+      
+      stage_2_context_research:
+        name: "Context Research"
+        description: "Gather current implementation status and baseline metrics"
+        actions:
+          - "REPO_MONITOR_STATUS FOR [target_repositories] TRACKING [current_status] UPDATING [status_dashboard]"
+          - "RETRIEVE_BASELINE_METRICS FROM [memory_graph] FOR [quality_metrics]"
+          - "IDENTIFY_RECENT_CHANGES IN [target_repositories] ANALYZING [impact_assessment]"
+        expected_outputs:
+          - "current_status_retrieved"
+          - "baseline_metrics_gathered"
+          - "recent_changes_identified"
+        validation_criteria:
+          - "status_retrieved"
+          - "metrics_gathered"
+          - "changes_analyzed"
+      
+      stage_3_analysis:
+        name: "Analysis"
+        description: "Analyze implementation progress and quality trends"
+        actions:
+          - "ANALYZE_PROGRESS_TRENDS FOR [implementation_tasks] CALCULATING [velocity, burndown]"
+          - "ASSESS_QUALITY_METRICS FOR [current_state] COMPARING [baseline_vs_current]"
+          - "IDENTIFY_BLOCKERS_AND_RISKS IN [implementation] ANALYZING [impact, probability]"
+        expected_outputs:
+          - "progress_trend_analysis"
+          - "quality_assessment_report"
+          - "blocker_risk_analysis"
+        validation_criteria:
+          - "progress_analyzed"
+          - "quality_assessed"
+          - "risks_identified"
+      
+      stage_4_synthesis:
+        name: "Synthesis"
+        description: "Create monitoring insights and recommendations"
+        actions:
+          - "GENERATE_MONITORING_INSIGHTS FROM [analysis_results] CREATING [actionable_insights]"
+          - "CREATE_QUALITY_IMPROVEMENT_RECOMMENDATIONS BASED_ON [quality_assessment]"
+          - "UPDATE_IMPLEMENTATION_ROADMAP WITH [progress_updates, schedule_adjustments]"
+        expected_outputs:
+          - "monitoring_insights_generated"
+          - "improvement_recommendations_created"
+          - "roadmap_updated"
+        validation_criteria:
+          - "insights_generated"
+          - "recommendations_created"
+          - "roadmap_adjusted"
+      
+      stage_5_validation:
+        name: "Validation"
+        description: "Validate monitoring accuracy and recommendation relevance"
+        actions:
+          - "VALIDATE_MONITORING_ACCURACY OF [status_tracking] CHECKING [data_integrity]"
+          - "VERIFY_RECOMMENDATION_RELEVANCE FOR [improvement_suggestions] ASSESSING [applicability]"
+        expected_outputs:
+          - "monitoring_accuracy_report"
+          - "recommendation_relevance_report"
+        validation_criteria:
+          - "monitoring_validated"
+          - "recommendations_verified"
+      
+      stage_6_conclusion:
+        name: "Conclusion"
+        description: "Finalize monitoring cycle and update knowledge base"
+        actions:
+          - "UPDATE_STATUS_DASHBOARD WITH [latest_status, quality_metrics]"
+          - "REPO_SYNC_MEMORY_GRAPH WITH [monitoring_insights] UPDATING [implementation_knowledge]"
+          - "GENERATE_MONITORING_REPORT FOR [cycle] OUTPUTTING [cycle_summary]"
+        expected_outputs:
+          - "dashboard_updated"
+          - "memory_graph_synced"
+          - "cycle_report_generated"
+        validation_criteria:
+          - "dashboard_current"
+          - "knowledge_updated"
+          - "report_complete"
+    
+    # Checkpoints
+    checkpoints:
+      after_stage_1:
+        name: "After Problem Definition"
+        validation:
+          - "monitoring_scope_appropriate"
+          - "objectives_achievable"
+        rollback_action: "adjust_monitoring_scope"
+      
+      after_stage_2:
+        name: "After Context Research"
+        validation:
+          - "status_data_current"
+          - "metrics_accurate"
+          - "changes_assessed"
+        rollback_action: "refresh_data_sources"
+      
+      after_stage_3:
+        name: "After Analysis"
+        validation:
+          - "progress_calculated_correctly"
+          - "quality_assessment_accurate"
+          - "risks_properly_identified"
+        rollback_action: "refine_analysis_methods"
+      
+      after_stage_4:
+        name: "After Synthesis"
+        validation:
+          - "insights_actionable"
+          - "recommendations_relevant"
+          - "roadmap_adjustments_realistic"
+        rollback_action: "refine_synthesis_approach"
+      
+      after_stage_5:
+        name: "After Validation"
+        validation:
+          - "monitoring_reliable"
+          - "recommendations_validated"
+        rollback_action: "improve_monitoring_methods"
+
+# =============================================================================
+# WORKFLOW EXECUTION CONFIGURATION
+# =============================================================================
+workflow_execution:
+  # General Execution Settings
+  general_settings:
+    default_workflow: "comprehensive_repository_analysis"
+    auto_select_workflow: true
+    parallel_execution: true
+    checkpoint_validation: true
+    rollback_support: true
+    progress_tracking: true
+  
+  # Performance Optimization
+  performance_optimization:
+    caching_enabled: true
+    parallel_stages: true
+    resource_management: true
+    timeout_handling: true
+    graceful_degradation: true
+  
+  # Error Handling
+  error_handling:
+    retry_attempts: 3
+    retry_delay: 1000
+    circuit_breaker: true
+    fallback_workflows: true
+    error_logging: true
+  
+  # Integration Points
+  integration_points:
+    memory_graph:
+      auto_sync: true
+      entity_creation: true
+      relationship_mapping: true
+      observation_tracking: true
+    
+    mcp_tools:
+      semantic_search: true
+      ast_analysis: true
+      github_integration: true
+    
+    prd_system:
+      auto_integration: true
+      context_updates: true
+      cross_referencing: true
+      status_tracking: true
+
+# =============================================================================
+# WORKFLOW TEMPLATES AND CUSTOMIZATION
+# =============================================================================
+workflow_templates:
+  # Custom Workflow Template
+  custom_workflow:
+    name: "Custom Analysis Workflow"
+    description: "Template for creating custom analysis workflows"
+    template:
+      stages:
+        - name: "Custom Stage 1"
+          description: "Custom stage description"
+          actions: []
+          expected_outputs: []
+          validation_criteria: []
+      
+      checkpoints:
+        - name: "Custom Checkpoint"
+          validation: []
+          rollback_action: ""
+      
+      configuration:
+        sequential_thinking: true
+        parallel_execution: false
+        estimated_duration: "custom"
+    
+    customization_options:
+      - "add_custom_stages"
+      - "modify_validation_criteria"
+      - "configure_parallel_execution"
+      - "set_custom_timeouts"
+      - "define_custom_integrations"
+
+# =============================================================================
+# WORKFLOW MONITORING AND METRICS
+# =============================================================================
+workflow_monitoring:
+  # Performance Metrics
+  performance_metrics:
+    workflow_execution_time:
+      enabled: true
+      unit: "seconds"
+      alert_threshold: 3600
+    
+    stage_execution_time:
+      enabled: true
+      unit: "seconds"
+      alert_threshold: 1800
+    
+    success_rate:
+      enabled: true
+      unit: "percentage"
+      alert_threshold: 0.95
+    
+    error_rate:
+      enabled: true
+      unit: "percentage"
+      alert_threshold: 0.05
+  
+  # Quality Metrics
+  quality_metrics:
+    validation_success_rate:
+      enabled: true
+      unit: "percentage"
+      target: 1.0
+    
+    rollback_frequency:
+      enabled: true
+      unit: "count_per_workflow"
+      target: 0
+    
+    checkpoint_success_rate:
+      enabled: true
+      unit: "percentage"
+      target: 1.0
+  
+  # Usage Metrics
+  usage_metrics:
+    workflow_execution_count:
+      enabled: true
+      unit: "count"
+      period: "daily"
+    
+    repository_analysis_count:
+      enabled: true
+      unit: "count"
+      period: "daily"
+    
+    prd_integration_count:
+      enabled: true
+      unit: "count"
+      period: "daily"
+
+# =============================================================================
+# WORKFLOW VERSIONING AND COMPATIBILITY
+# =============================================================================
+versioning:
+  current_version: "2.0.0"
+  compatibility:
+    min_compatible_version: "1.5.0"
+    migration_support: true
+    backward_compatibility: true
+  
+  version_history:
+    "2.0.0":
+      - "Repository-agnostic framework implementation"
+      - "Multi-repository support"
+      - "Enhanced Sequential Thinking Protocol"
+      - "Improved error handling and recovery"
+      - "Advanced monitoring and metrics"
+    
+    "1.5.0":
+      - "Basic Sequential Thinking Protocol"
+      - "Single repository analysis"
+      - "Simple checkpoint system"
+      - "Basic error handling"
+    
+    "1.0.0":
+      - "Initial workflow implementation"
+      - "Fixed stage execution"
+      - "Basic validation"
+      - "Simple reporting"

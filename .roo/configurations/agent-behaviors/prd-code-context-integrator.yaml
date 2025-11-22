@@ -1,0 +1,752 @@
+# PRD Code Context Integrator V2 - Agent Behavior Configuration
+# Repository-Agnostic Framework Implementation
+# Version: 2.0.0
+
+# =============================================================================
+# AGENT BEHAVIOR CONFIGURATION
+# =============================================================================
+agent_behavior:
+  name: "PRDCodeContextIntegratorV2"
+  version: "2.0.0"
+  framework: "repository-agnostic"
+  
+  # Core Behavior Settings
+  core_behavior:
+    repository_agnostic: true
+    plugin_based_architecture: true
+    sequential_thinking_protocol: true
+    memory_graph_integration: true
+    mcp_tool_integration: true
+    multi_repository_support: true
+    cross_project_knowledge: true
+  
+  # Analysis Configuration
+  analysis_configuration:
+    default_depth: "medium"
+    configurable_depth: true
+    parallel_processing: true
+    cache_enabled: true
+    incremental_analysis: true
+    
+    depth_settings:
+      shallow:
+        description: "Basic file scanning and simple pattern detection"
+        features:
+          - "file-scan"
+          - "basic-patterns"
+          - "surface-level-dependencies"
+        performance: "fast"
+        accuracy: "low"
+        max_files: 1000
+        timeout: 300
+      
+      medium:
+        description: "Comprehensive analysis with AST parsing"
+        features:
+          - "file-scan"
+          - "ast-analysis"
+          - "dependency-mapping"
+          - "pattern-recognition"
+        performance: "medium"
+        accuracy: "medium"
+        max_files: 5000
+        timeout: 900
+      
+      deep:
+        description: "Deep semantic analysis with cross-referencing"
+        features:
+          - "file-scan"
+          - "ast-analysis"
+          - "semantic-analysis"
+          - "cross-reference"
+          - "pattern-matching"
+          - "knowledge-integration"
+        performance: "slow"
+        accuracy: "high"
+        max_files: 10000
+        timeout: 1800
+
+# =============================================================================
+# REPOSITORY-AGNOSTIC DISCOVERY CONFIGURATION
+# =============================================================================
+repository_discovery:
+  enabled: true
+  template_based: true
+  auto_detection: true
+  configurable_patterns: true
+  
+  # Discovery Strategy
+  discovery_strategy:
+    primary_method: "template_matching"
+    fallback_method: "heuristic_analysis"
+    confidence_threshold: 0.7
+    max_templates_to_test: 10
+  
+  # Template Matching Rules
+  template_matching:
+    pattern_matching:
+      enabled: true
+      algorithm: "weighted_similarity"
+      min_confidence: 0.6
+      weights:
+        directory_structure: 0.4
+        file_patterns: 0.3
+        indicator_files: 0.2
+        technology_indicators: 0.1
+    
+    heuristic_analysis:
+      enabled: true
+      fallback_confidence: 0.5
+      analysis_methods:
+        - "file_extension_analysis"
+        - "directory_structure_inference"
+        - "content_pattern_detection"
+        - "dependency_file_analysis"
+
+# =============================================================================
+# TECHNOLOGY STACK DETECTION CONFIGURATION
+# =============================================================================
+technology_detection:
+  enabled: true
+  configurable: true
+  version_detection: true
+  dependency_analysis: true
+  
+  # Detection Methods
+  detection_methods:
+    file_based:
+      enabled: true
+      indicators:
+        - "package.json"
+        - "requirements.txt"
+        - "setup.py"
+        - "*.csproj"
+        - "go.mod"
+        - "Cargo.toml"
+        - "pom.xml"
+        - "build.gradle"
+    
+    content_based:
+      enabled: true
+      patterns:
+        - "import statements"
+        - "require statements"
+        - "using statements"
+        - "include statements"
+        - "function definitions"
+        - "class definitions"
+    
+    dependency_based:
+      enabled: true
+      sources:
+        - "package_lock_files"
+        - "dependency_files"
+        - "import_statements"
+        - "build_files"
+  
+  # Technology Categories
+  technology_categories:
+    languages:
+      - "javascript"
+      - "typescript"
+      - "python"
+      - "csharp"
+      - "java"
+      - "go"
+      - "rust"
+      - "kotlin"
+      - "swift"
+    
+    frameworks:
+      - "react"
+      - "angular"
+      - "vue"
+      - "django"
+      - "flask"
+      - "fastapi"
+      - "aspnet-core"
+      - "spring"
+      - "express"
+    
+    databases:
+      - "postgresql"
+      - "mysql"
+      - "mongodb"
+      - "sqlite"
+      - "redis"
+    
+    tools:
+      - "webpack"
+      - "vite"
+      - "babel"
+      - "eslint"
+      - "prettier"
+      - "docker"
+      - "kubernetes"
+
+# =============================================================================
+# PATTERN RECOGNITION CONFIGURATION
+# =============================================================================
+pattern_recognition:
+  enabled: true
+  configurable: true
+  learning_enabled: true
+  
+  # Pattern Types
+  pattern_types:
+    architectural:
+      enabled: true
+      patterns:
+        - "mvc_pattern"
+        - "repository_pattern"
+        - "service_layer_pattern"
+        - "dependency_injection_pattern"
+        - "observer_pattern"
+        - "factory_pattern"
+        - "strategy_pattern"
+    
+    coding:
+      enabled: true
+      patterns:
+        - "naming_conventions"
+        - "error_handling_patterns"
+        - "logging_patterns"
+        - "testing_patterns"
+        - "documentation_patterns"
+        - "configuration_patterns"
+    
+    structural:
+      enabled: true
+      patterns:
+        - "module_organization"
+        - "file_structure"
+        - "directory_layout"
+        - "separation_of_concerns"
+        - "layered_architecture"
+  
+  # Recognition Methods
+  recognition_methods:
+    ast_analysis:
+      enabled: true
+      depth: "medium"
+      pattern_matching: true
+      structure_analysis: true
+    
+    semantic_analysis:
+      enabled: true
+      similarity_threshold: 0.8
+      context_aware: true
+      cross_reference: true
+    
+    statistical_analysis:
+      enabled: true
+      frequency_analysis: true
+      distribution_analysis: true
+      outlier_detection: true
+
+# =============================================================================
+# CROSS-REFERENCING CONFIGURATION
+# =============================================================================
+cross_referencing:
+  enabled: true
+  bidirectional: true
+  automated: true
+  configurable: true
+  
+  # Cross-Reference Types
+  cross_reference_types:
+    requirement_to_code:
+      enabled: true
+      method: "semantic_similarity"
+      confidence_threshold: 0.7
+      max_matches: 10
+    
+    code_to_requirement:
+      enabled: true
+      method: "pattern_matching"
+      confidence_threshold: 0.6
+      max_matches: 5
+    
+    prd_to_prd:
+      enabled: true
+      method: "dependency_analysis"
+      confidence_threshold: 0.8
+      max_matches: 20
+    
+    code_to_code:
+      enabled: true
+      method: "dependency_analysis"
+      confidence_threshold: 0.9
+      max_matches: 50
+  
+  # Link Management
+  link_management:
+    automatic_creation: true
+    validation_enabled: true
+    maintenance_enabled: true
+    broken_link_detection: true
+
+# =============================================================================
+# DEPENDENCY TRACKING CONFIGURATION
+# =============================================================================
+dependency_tracking:
+  enabled: true
+  automated: true
+  real_time: false
+  configurable: true
+  
+  # Dependency Types
+  dependency_types:
+    code_dependencies:
+      enabled: true
+      analysis_method: "ast_analysis"
+      include_transitive: true
+      max_depth: 5
+    
+    prd_dependencies:
+      enabled: true
+      analysis_method: "content_analysis"
+      include_implicit: true
+      validation_enabled: true
+    
+    technology_dependencies:
+      enabled: true
+      analysis_method: "version_analysis"
+      conflict_detection: true
+      compatibility_check: true
+  
+  # Tracking Configuration
+  tracking_configuration:
+    update_frequency: "on_change"
+    validation_frequency: "daily"
+    notification_enabled: true
+    alert_threshold: 10
+
+# =============================================================================
+# IMPLEMENTATION STATUS MONITORING
+# =============================================================================
+implementation_monitoring:
+  enabled: true
+  automated: true
+  configurable: true
+  
+  # Monitoring Types
+  monitoring_types:
+    task_status:
+      enabled: true
+      update_frequency: "real_time"
+      status_types:
+        - "not_started"
+        - "in_progress"
+        - "completed"
+        - "blocked"
+        - "cancelled"
+    
+    progress_tracking:
+      enabled: true
+      metrics:
+        - "completion_percentage"
+        - "time_spent"
+        - "estimated_remaining"
+        - "velocity"
+    
+    quality_metrics:
+      enabled: true
+      metrics:
+        - "code_coverage"
+        - "test_pass_rate"
+        - "defect_density"
+        - "performance_metrics"
+  
+  # Alert Configuration
+  alert_configuration:
+    enabled: true
+    alert_types:
+      - "task_completion"
+      - "blocker_detected"
+      - "quality_degradation"
+      - "deadline_approaching"
+    notification_channels:
+      - "memory_graph"
+      - "log_file"
+      - "dashboard"
+
+# =============================================================================
+# MULTI-REPOSITORY SUPPORT CONFIGURATION
+# =============================================================================
+multi_repository_support:
+  enabled: true
+  configurable: true
+  parallel_analysis: true
+  
+  # Repository Management
+  repository_management:
+    max_repositories: 50
+    discovery_method: "auto_scan"
+    configuration_file: "repositories.yaml"
+    cache_enabled: true
+    
+  # Cross-Repository Analysis
+  cross_repository_analysis:
+    enabled: true
+    comparison_types:
+      - "pattern_similarity"
+      - "technology_overlap"
+      - "dependency_conflicts"
+      - "best_practice_sharing"
+    
+    knowledge_sharing:
+      enabled: true
+      sharing_types:
+        - "patterns"
+        - "best_practices"
+        - "solutions"
+        - "configurations"
+
+# =============================================================================
+# CROSS-PROJECT KNOWLEDGE INTEGRATION
+# =============================================================================
+cross_project_knowledge:
+  enabled: true
+  automated: true
+  configurable: true
+  
+  # Knowledge Types
+  knowledge_types:
+    patterns:
+      enabled: true
+      storage: "memory_graph"
+      sharing: "automatic"
+      validation: "peer_review"
+    
+    best_practices:
+      enabled: true
+      storage: "memory_graph"
+      sharing: "automatic"
+      validation: "usage_metrics"
+    
+    solutions:
+      enabled: true
+      storage: "memory_graph"
+      sharing: "on_demand"
+      validation: "success_rate"
+    
+    configurations:
+      enabled: true
+      storage: "memory_graph"
+      sharing: "manual"
+      validation: "compatibility_check"
+  
+  # Integration Strategy
+  integration_strategy:
+    learning_enabled: true
+    adaptation_enabled: true
+    feedback_loop: true
+    continuous_improvement: true
+
+# =============================================================================
+# MEMORY GRAPH INTEGRATION CONFIGURATION
+# =============================================================================
+memory_graph_integration:
+  enabled: true
+  automated: true
+  configurable: true
+  
+  # Entity Management
+  entity_management:
+    auto_creation: true
+    auto_update: true
+    validation_enabled: true
+    relationship_inference: true
+    
+  # Knowledge Storage
+  knowledge_storage:
+    entities:
+      - "Repository"
+      - "Technology"
+      - "Pattern"
+      - "Component"
+      - "Requirement"
+      - "Implementation"
+      - "Dependency"
+    
+    relationships:
+      - "contains"
+      - "uses"
+      - "implements"
+      - "follows"
+      - "depends_on"
+      - "integrates_with"
+      - "similar_to"
+    
+    observations:
+      - "analysis_results"
+      - "discovery_insights"
+      - "validation_results"
+      - "performance_metrics"
+      - "usage_statistics"
+  
+  # Synchronization
+  synchronization:
+    real_time: false
+    batch_updates: true
+    conflict_resolution: "automatic"
+    backup_enabled: true
+
+# =============================================================================
+# MCP TOOL INTEGRATION CONFIGURATION
+# =============================================================================
+mcp_tool_integration:
+  enabled: true
+  configurable: true
+  fallback_enabled: true
+  
+  # Tool Configuration
+  tool_configuration:
+    semantic_search:
+      enabled: true
+      provider: "codebase-search"
+      max_results: 50
+      relevance_threshold: 0.7
+      caching_enabled: true
+    
+    ast_analysis:
+      enabled: true
+      provider: "ast-grep-mcp"
+      pattern_matching: true
+      structure_analysis: true
+      performance_optimization: true
+    
+    github_integration:
+      enabled: true
+      search_repositories: true
+      best_practices: true
+      trend_analysis: true
+      rate_limiting: true
+  
+  # Integration Strategy
+  integration_strategy:
+    primary_tools: ["semantic_search", "ast_analysis"]
+    secondary_tools: ["github_integration"]
+    fallback_behavior: "builtin_capabilities"
+    error_handling: "graceful_degradation"
+
+# =============================================================================
+# WORKFLOW INTEGRATION CONFIGURATION
+# =============================================================================
+workflow_integration:
+  enabled: true
+  configurable: true
+  sequential_thinking: true
+  
+  # Workflow Types
+  workflow_types:
+    comprehensive_analysis:
+      name: "Comprehensive Repository Analysis"
+      stages: 6
+      checkpoints: 5
+      estimated_time: "30-45 minutes"
+      parallel_stages: false
+    
+    quick_integration:
+      name: "Quick PRD Integration"
+      stages: 3
+      checkpoints: 2
+      estimated_time: "10-15 minutes"
+      parallel_stages: false
+    
+    multi_repository:
+      name: "Multi-Repository Analysis"
+      stages: 5
+      checkpoints: 4
+      estimated_time: "60-90 minutes"
+      parallel_stages: true
+    
+    continuous_monitoring:
+      name: "Continuous Monitoring"
+      stages: 2
+      checkpoints: 1
+      estimated_time: "5-10 minutes"
+      parallel_stages: true
+  
+  # Checkpoint Management
+  checkpoint_management:
+    auto_save: true
+    rollback_support: true
+    validation_required: true
+    progress_tracking: true
+
+# =============================================================================
+# VALIDATION MECHANISMS CONFIGURATION
+# =============================================================================
+validation_mechanisms:
+  enabled: true
+  configurable: true
+  automated: true
+  
+  # Validation Types
+  validation_types:
+    code_prd_consistency:
+      enabled: true
+      checks:
+        - "requirement_coverage"
+        - "implementation_alignment"
+        - "dependency_validation"
+        - "version_compatibility"
+      threshold: 0.8
+    
+    pattern_consistency:
+      enabled: true
+      checks:
+        - "naming_convention_compliance"
+        - "architectural_pattern_adherence"
+        - "coding_standard_compliance"
+      threshold: 0.9
+    
+    integration_completeness:
+      enabled: true
+      checks:
+        - "bidirectional_linking"
+        - "cross_reference_completeness"
+        - "memory_graph_sync"
+      threshold: 0.85
+  
+  # Validation Strategy
+  validation_strategy:
+    automatic_fixes: true
+    manual_review_required: false
+    reporting_enabled: true
+    continuous_validation: true
+
+# =============================================================================
+# PERFORMANCE OPTIMIZATION CONFIGURATION
+# =============================================================================
+performance_optimization:
+  enabled: true
+  configurable: true
+  
+  # Caching Strategy
+  caching:
+    enabled: true
+    strategy: "lru"
+    max_size: "100MB"
+    ttl: 3600
+    cache_types:
+      - "analysis_results"
+      - "pattern_cache"
+      - "dependency_cache"
+      - "technology_cache"
+  
+  # Parallel Processing
+  parallel_processing:
+    enabled: true
+    max_workers: 4
+    chunk_size: 100
+    load_balancing: true
+  
+  # Resource Management
+  resource_management:
+    memory_limit: "512MB"
+    cpu_limit: "80%"
+    timeout_handling: true
+    graceful_degradation: true
+
+# =============================================================================
+# ERROR HANDLING AND RECOVERY CONFIGURATION
+# =============================================================================
+error_handling:
+  enabled: true
+  configurable: true
+  
+  # Error Categories
+  error_categories:
+    repository_errors:
+      handling: "skip_analysis"
+      fallback: "use_generic_template"
+      logging: "warning"
+    
+    analysis_errors:
+      handling: "fallback_to_basic"
+      fallback: "use_file_structure_analysis"
+      logging: "info"
+    
+    integration_errors:
+      handling: "partial_integration"
+      fallback: "manual_intervention"
+      logging: "error"
+    
+    system_errors:
+      handling: "graceful_shutdown"
+      fallback: "emergency_mode"
+      logging: "critical"
+  
+  # Recovery Mechanisms
+  recovery_mechanisms:
+    retry_attempts: 3
+    retry_delay: 1000
+    exponential_backoff: true
+    circuit_breaker: true
+    fallback_strategies: true
+
+# =============================================================================
+# MONITORING AND LOGGING CONFIGURATION
+# =============================================================================
+monitoring_logging:
+  enabled: true
+  configurable: true
+  
+  # Logging Configuration
+  logging:
+    level: "info"
+    format: "structured"
+    output: "file"
+    rotation: true
+    max_file_size: "10MB"
+    retention_days: 30
+  
+  # Metrics Collection
+  metrics:
+    enabled: true
+    collection_frequency: "real_time"
+    metrics_types:
+      - "performance_metrics"
+      - "accuracy_metrics"
+      - "usage_metrics"
+      - "error_metrics"
+    
+    storage:
+      type: "memory_graph"
+      retention_days: 90
+      aggregation_enabled: true
+
+# =============================================================================
+# CONFIGURATION VALIDATION
+# =============================================================================
+configuration_validation:
+  enabled: true
+  strict_mode: false
+  
+  # Validation Rules
+  validation_rules:
+    required_fields:
+      - "agent_behavior.name"
+      - "agent_behavior.version"
+      - "repository_discovery.enabled"
+      - "technology_detection.enabled"
+    
+    field_validation:
+      - "version_format_check"
+      - "boolean_value_check"
+      - "enumeration_value_check"
+      - "numeric_range_check"
+    
+    dependency_validation:
+      - "plugin_compatibility_check"
+      - "tool_availability_check"
+      - "framework_compatibility_check"
+  
+  # Validation Actions
+  validation_actions:
+    on_error: "log_and_continue"
+    on_warning: "log_and_proceed"
+    on_success: "proceed_with_configuration"

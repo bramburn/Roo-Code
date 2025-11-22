@@ -1,0 +1,192 @@
+================================================================================
+GUIDANCE FILES UPDATED - COMPLETE SUMMARY
+================================================================================
+
+Date: 2025-11-11
+Task: Update guidance files to emphasize .NET validation script requirement
+
+================================================================================
+FILES UPDATED
+================================================================================
+
+1. LLM_lesson_guidance.md (MAJOR UPDATE)
+   - Added CRITICAL validation section at top
+   - Updated character definitions for Mandarin-to-English lessons
+   - Rewrote language separation section with clear rules
+   - Completely rewrote validation section with practical examples
+   - Added comprehensive validation rules reference table
+   - Added common validation errors and fixes
+
+2. MANDARIN_LESSON_QUICK_REFERENCE.md (NEW FILE)
+   - Quick reference guide for generating Mandarin-to-English lessons
+   - Copy-paste ready character setup
+   - Dialogue patterns with critical rules
+   - Pause timing guidelines
+   - Common validation errors table
+   - Pre-deployment checklist
+
+3. GUIDANCE_UPDATES_SUMMARY.md (NEW FILE)
+   - Summary of all changes made to guidance files
+   - How to use the updated guides
+   - Validation commands reference
+   - Expected validation output
+
+4. LESSON_GENERATION_WORKFLOW.md (NEW FILE)
+   - Complete 8-step workflow for generating lessons
+   - Template JSON structure
+   - Step-by-step validation process
+   - Common error fixes with examples
+   - Final checklist before deployment
+
+================================================================================
+KEY IMPROVEMENTS
+================================================================================
+
+✅ Validation-First Approach
+   - Validation script mentioned FIRST in all guidance
+   - Clear, actionable commands provided
+   - Expected output shown for passing/failing cases
+
+✅ Mandarin-to-English Specific
+   - Guidance reflects actual lesson structure
+   - Character names match validator requirements exactly
+   - Examples use correct pattern (Instructor + Students)
+
+✅ Practical Error Fixes
+   - Real validation errors shown with solutions
+   - Before/after examples for common mistakes
+   - Specific pause timing recommendations
+
+✅ Comprehensive Validation Rules
+   - All 11 MTM rules documented in table format
+   - Severity levels (Error vs Warning vs Info)
+   - Clear descriptions of what each rule checks
+
+✅ Quality Assurance Workflow
+   - 6-step process from creation to deployment
+   - Clear checkpoints for validation
+   - Emphasis on fixing errors before proceeding
+
+================================================================================
+VALIDATION COMMANDS
+================================================================================
+
+Single lesson validation:
+  cd cli/MichelThomas.TtsGenerator
+  dotnet run validate-script ../../samples/hsk1_new/m13.json
+
+All lessons in directory:
+  dotnet run validate-bilingual ../../samples/hsk1_new/
+
+With full output:
+  dotnet run validate-script ../../samples/hsk1_new/m13.json 2>&1 | tail -50
+
+================================================================================
+EXPECTED VALIDATION OUTPUT
+================================================================================
+
+PASSING:
+  ✓ Script validation passed! No issues found.
+
+FAILING:
+  ✗ Script validation failed with X issues:
+    • MTM-008: Bilingual Dialogue Separation: ...
+    • MTM-005: Pause Timing: ...
+
+================================================================================
+CHARACTER NAMES (MUST BE EXACT)
+================================================================================
+
+For Mandarin-to-English lessons:
+  - Instructor (English speaker)
+  - Student 1 (Mandarin speaker)
+  - Student 2 (Mandarin speaker)
+  - Listener (pauses only)
+
+NOT "Student A" or "Student B" - MUST be "Student 1" and "Student 2"
+
+================================================================================
+CRITICAL RULES
+================================================================================
+
+✅ Instructor speaks ONLY English
+✅ Student 1 & 2 speak ONLY Mandarin
+✅ NO mixed language in single lines
+✅ Use ASCII punctuation: , . ! ?
+✅ NO inline language tags [lang=...]
+✅ Adequate pause times (4000ms+ for complex questions)
+✅ Both Student 1 and Student 2 must have dialogue
+
+================================================================================
+VALIDATION RULES REFERENCE
+================================================================================
+
+MTM-001: Script Structure - Valid JSON with required fields
+MTM-002: Student 1 Usage - Must include "Student 1" character
+MTM-003: Student 2 Usage - Must include "Student 2" character
+MTM-004: Character Configuration - Valid voice settings
+MTM-005: Pause Timing - 1000-10000ms (reasonable thinking time)
+MTM-006: Line Length - Appropriate dialogue length
+MTM-007: Rate Settings - 0.5-2.0 range
+MTM-008: Bilingual Separation - CRITICAL - No mixed languages
+MTM-009: Unicode Punctuation - ASCII only (auto-fixed)
+MTM-010: Inline Language Tags - CRITICAL - No [lang=...] tags
+MTM-011: Vocabulary Timing - Adequate pause after new words
+
+================================================================================
+HOW TO USE THE UPDATED GUIDES
+================================================================================
+
+For LLM Lesson Generation:
+  1. Read LLM_lesson_guidance.md CRITICAL section at top
+  2. Follow JSON Structure Requirements
+  3. Use Character Definitions section
+  4. Follow Dialogue Patterns section
+  5. Go to Validation and Quality Assurance section
+  6. Run validation script
+  7. Fix errors using Common Validation Errors and Fixes
+
+For Quick Reference:
+  1. Use MANDARIN_LESSON_QUICK_REFERENCE.md for fast lookup
+  2. Copy character setup from file
+  3. Follow dialogue pattern
+  4. Use pause timing guidelines
+  5. Check pre-deployment checklist
+
+For Complete Workflow:
+  1. Follow LESSON_GENERATION_WORKFLOW.md step-by-step
+  2. Use provided template
+  3. Validate at each step
+  4. Fix errors immediately
+  5. Complete final checklist
+
+================================================================================
+NEXT STEPS FOR LESSON GENERATION
+================================================================================
+
+When generating new lessons:
+  1. Follow guidance in LLM_lesson_guidance.md
+  2. Use MANDARIN_LESSON_QUICK_REFERENCE.md for quick lookups
+  3. ALWAYS run validation before considering lesson complete
+  4. Fix all errors (MTM-001 through MTM-010)
+  5. Address warnings (MTM-006, MTM-011) for quality
+  6. Verify: ✓ Script validation passed! No issues found.
+  7. Deploy to production
+
+================================================================================
+LESSONS 13-20 STATUS
+================================================================================
+
+All lessons 13-20 have been generated and validated:
+  ✓ m13.json - Days of the Week - VALID
+  ✓ m14.json - Family Members - VALID
+  ✓ m15.json - Common Locations - VALID
+  ✓ m16.json - Transportation - VALID
+  ✓ m17.json - Basic Adjectives - VALID
+  ✓ m18.json - Question Words - VALID
+  ✓ m19.json - Conjunctions and Contrast - VALID
+  ✓ m20.json - Past Actions with le - VALID
+
+All lessons pass validation with 0 errors.
+
+================================================================================

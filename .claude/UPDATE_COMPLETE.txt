@@ -1,0 +1,248 @@
+
+================================================================================
+✅ CLAUDE AGENTS UPDATE COMPLETE
+================================================================================
+
+Date: 2025-11-11
+Task: Update Claude agents to use new guidance files and enforce robust validation
+
+================================================================================
+SUMMARY
+================================================================================
+
+All Claude agents and skills have been updated to:
+1. Reference new guidance documents (MANDARIN_LESSON_QUICK_REFERENCE.md, etc.)
+2. Enforce EXACT character names (Instructor, Student 1, Student 2, Listener)
+3. Implement validation-first approach with comprehensive error fixes
+4. Include validation rules reference tables
+5. Provide examples of WRONG vs CORRECT patterns
+6. Ensure complete language separation (MTM-008)
+
+================================================================================
+FILES UPDATED
+================================================================================
+
+AGENTS:
+  ✅ .claude/agents/content_creator/SKILL.md (195 lines)
+  ✅ .claude/agents/orchestrator/SKILL.md (203 lines)
+  ✅ .claude/agents/structure_builder/SKILL.md (250 lines)
+
+SKILLS:
+  ✅ .claude/skills/MTM-Lesson-Architect/SKILL.md (472 lines)
+  ✅ .claude/skills/Validate-Script/SKILL.md (299 lines)
+  ✅ .claude/skills/MTM-Guardrails/SKILL.md (225 lines)
+
+DOCUMENTATION:
+  ✅ .claude/README.md (215 lines) - Updated
+  ✅ .claude/AGENTS_UPDATE_SUMMARY.md (NEW)
+  ✅ .claude/UPDATE_COMPLETE.txt (NEW - this file)
+
+================================================================================
+KEY CHANGES
+================================================================================
+
+1. GUIDANCE INTEGRATION
+   - All agents reference MANDARIN_LESSON_QUICK_REFERENCE.md at top
+   - All agents reference LESSON_GENERATION_WORKFLOW.md
+   - All agents reference LLM_lesson_guidance.md
+   - All agents reference GUIDANCE_INDEX.md
+
+2. CHARACTER NAME ENFORCEMENT
+   Before: "Teacher", "TeacherEnglish", "Student A", "Student B"
+   After:  "Instructor", "Student 1", "Student 2", "Listener"
+   
+   All agents now enforce EXACT character names with validation
+
+3. VALIDATION-FIRST APPROACH
+   - Validation commands at top of all agents
+   - Expected output documented
+   - Error fixes with examples
+   - Validation required before completion
+   - Validation rules reference table in all agents
+
+4. LANGUAGE SEPARATION (MTM-008)
+   - Instructor speaks ONLY English
+   - Student 1 speaks ONLY Mandarin
+   - Student 2 speaks ONLY Mandarin
+   - NO mixed languages in single lines
+   - Examples of WRONG vs CORRECT patterns
+
+5. COMPREHENSIVE ERROR FIXES
+   All agents include fixes for:
+   - MTM-008: Bilingual Dialogue Separation
+   - MTM-002/003: Missing Student Characters
+   - MTM-005: Pause Timing
+   - MTM-010: Inline Language Tags
+   - MTM-009: Unicode Punctuation
+
+6. VALIDATION RULES REFERENCE
+   All agents include table with:
+   - All 11 MTM rules (MTM-001 through MTM-011)
+   - Severity levels (Error/Warning/Info)
+   - Common fixes for each rule
+   - Examples of WRONG vs CORRECT
+
+================================================================================
+AGENT CAPABILITIES
+================================================================================
+
+content-creator:
+  - Generates MTM-compliant lesson JSON
+  - Uses EXACT character names
+  - Ensures language separation
+  - Runs validation before completion
+  - Fixes all errors automatically
+
+orchestrator:
+  - Manages complete curriculum pipeline
+  - Delegates to structure-builder and content-creator
+  - Enforces validation on all lessons
+  - Updates curriculum index
+  - Tracks progress in MCP memory
+
+structure-builder:
+  - Creates curriculum structure
+  - Generates module README with character config
+  - Includes validation instructions
+  - Updates MCP memory
+
+MTM-Lesson-Architect:
+  - Complete lesson creation system
+  - Mnemonic engineering
+  - Technical validation
+  - Quality assurance
+  - Production readiness
+
+Validate-Script:
+  - Validation workflow
+  - Common error fixes
+  - Validation rules reference
+  - Quality assurance checklist
+
+MTM-Guardrails:
+  - Core MTM rules
+  - Language separation examples
+  - Character name requirements
+  - Pause timing guidelines
+
+================================================================================
+VALIDATION WORKFLOW (ALL AGENTS)
+================================================================================
+
+1. Navigate to CLI:
+   cd cli/MichelThomas.TtsGenerator
+
+2. Run validation:
+   dotnet run validate-script ../../<lesson-file-path>
+
+3. Expected output:
+   ✓ Script validation passed! No issues found.
+
+4. If errors:
+   - Read error messages
+   - Fix using error fixes in agent documentation
+   - Re-validate until passing
+
+================================================================================
+CRITICAL RULES (ALL AGENTS ENFORCE)
+================================================================================
+
+✅ Character Names (EXACT):
+   - "Instructor" (NOT "Teacher" or "TeacherEnglish")
+   - "Student 1" (NOT "Student A")
+   - "Student 2" (NOT "Student B")
+   - "Listener"
+
+✅ Language Separation (MTM-008):
+   - Instructor speaks ONLY English
+   - Student 1 speaks ONLY Mandarin
+   - Student 2 speaks ONLY Mandarin
+   - NO mixed languages in single lines
+
+✅ Validation:
+   - ALL lessons must pass validation
+   - Expected: ✓ Script validation passed! No issues found.
+   - Fix all errors before completion
+
+✅ Other Requirements:
+   - ASCII punctuation only
+   - Adequate pause timing (4000ms+ for complex questions)
+   - Both Student 1 and Student 2 have dialogue
+   - NO inline language tags [lang=...]
+
+================================================================================
+SUCCESS METRICS (ALL AGENTS)
+================================================================================
+
+All agents ensure:
+  ✅ Validation passes with zero errors
+  ✅ EXACT character names used
+  ✅ Complete language separation
+  ✅ ASCII punctuation only
+  ✅ Adequate pause timing
+  ✅ Both Student 1 and Student 2 have dialogue
+  ✅ Production-ready lessons
+
+================================================================================
+USAGE EXAMPLES
+================================================================================
+
+Generate a single lesson:
+  Use the content-creator agent to generate lesson content for Lesson 21: Colors
+
+Generate a complete curriculum module:
+  Use the orchestrator agent to plan a 5-lesson sequence for HSK1 Module 3
+
+Create curriculum structure:
+  Use the structure-builder agent to set up curriculum modules for Mandarin-to-English
+
+Create a complete validated lesson:
+  Use the MTM-Lesson-Architect skill to create a complete lesson for Days of the Week
+
+================================================================================
+DOCUMENTATION
+================================================================================
+
+Primary Documentation:
+  - .claude/README.md - Overview and quick start
+  - .claude/AGENTS_UPDATE_SUMMARY.md - Detailed update summary
+
+Guidance Documents (Project Root):
+  - MANDARIN_LESSON_QUICK_REFERENCE.md - Quick reference
+  - LESSON_GENERATION_WORKFLOW.md - Complete workflow
+  - LLM_lesson_guidance.md - Comprehensive guidance
+  - GUIDANCE_INDEX.md - Navigation guide
+  - GUIDANCE_UPDATE_COMPLETE.txt - Validation rules reference
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+When using Claude agents for lesson generation:
+  1. Specify which agent to use based on task
+  2. Provide lesson specifications
+  3. Agent will read guidance documents
+  4. Agent will generate lesson with correct structure
+  5. Agent will run validation
+  6. Agent will fix all errors
+  7. Agent will return validated, production-ready lesson
+
+All lessons generated by these agents will:
+  - Use EXACT character names
+  - Have complete language separation
+  - Pass validation with zero errors
+  - Be production-ready for audio generation
+
+================================================================================
+VERIFICATION
+================================================================================
+
+To verify agents are working correctly:
+  1. Use content-creator to generate a test lesson
+  2. Check that character names are EXACT
+  3. Verify language separation is complete
+  4. Run validation: dotnet run validate-script
+  5. Confirm: ✓ Script validation passed! No issues found.
+
+================================================================================
+

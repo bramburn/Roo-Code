@@ -1,0 +1,148 @@
+{
+  "title": "Lesson 01: Psychological Setup & Cognates",
+  "description": "Introduction to Mandarin Chinese with psychological setup establishing teacher responsibility and stress-free learning, followed by discovering cognates and familiar patterns between English and Mandarin.",
+  "level": "HSK 1",
+  "target_language": "Chinese (Mandarin)",
+  "instruction_language": "English",
+  "voiceSettings": {
+    "rate": 1,
+    "pitch": 1,
+    "volume": 1
+  },
+  "characters": [
+    {
+      "name": "Teacher",
+      "voice": "cmn-CN-Chirp3-HD-Erinome",
+      "language": "zh-CN"
+    },
+    {
+      "name": "TeacherEnglish",
+      "voice": "en-US-Chirp3-HD-Erinome",
+      "language": "en-US"
+    },
+    {
+      "name": "Student A",
+      "voice": "cmn-CN-Chirp3-HD-Erinome",
+      "language": "zh-CN"
+    },
+    {
+      "name": "Listener",
+      "language": "en-US"
+    }
+  ],
+  "dialogue": [
+    {
+      "character": "TeacherEnglish",
+      "text": "Welcome to this Mandarin lesson. I want you to know that you don't need to memorize anything. Your only job is to relax and listen. I take 100 percent responsibility for your learning."
+    },
+    {
+      "character": "Listener",
+      "pauseAfterMs": 2000
+    },
+    {
+      "character": "TeacherEnglish",
+      "text": "There's no homework, no pressure, and no need to try hard. Just relax and let the language come to you naturally."
+    },
+    {
+      "character": "Listener",
+      "pauseAfterMs": 2000
+    },
+    {
+      "character": "TeacherEnglish",
+      "text": "Now, let's discover something interesting. Many words in Mandarin are actually familiar to English speakers. Let me show you."
+    },
+    {
+      "character": "Listener",
+      "pauseAfterMs": 1500
+    },
+    {
+      "character": "TeacherEnglish",
+      "text": "In English, we say hello. In Mandarin, we say..."
+    },
+    {
+      "character": "Teacher",
+      "text": "你好"
+    },
+    {
+      "character": "Listener",
+      "pauseAfterMs": 1000
+    },
+    {
+      "character": "TeacherEnglish",
+      "text": "你好 - it sounds like you-how. You can almost hear the English in it."
+    },
+    {
+      "character": "Listener",
+      "pauseAfterMs": 2000
+    },
+    {
+      "character": "TeacherEnglish",
+      "text": "Let's try it together. How would you say hello in Mandarin?"
+    },
+    {
+      "character": "Listener",
+      "pauseAfterMs": 4000
+    },
+    {
+      "character": "Student A",
+      "text": "你好"
+    },
+    {
+      "character": "Listener",
+      "pauseAfterMs": 1500
+    },
+    {
+      "character": "TeacherEnglish",
+      "text": "Perfect! You've just said your first word in Mandarin. That's excellent."
+    },
+    {
+      "character": "Listener",
+      "pauseAfterMs": 2000
+    },
+    {
+      "character": "TeacherEnglish",
+      "text": "Now, when we want to say goodbye, we say..."
+    },
+    {
+      "character": "Teacher",
+      "text": "再见"
+    },
+    {
+      "character": "Listener",
+      "pauseAfterMs": 1000
+    },
+    {
+      "character": "TeacherEnglish",
+      "text": "再见 - it sounds like zai-jee-en. Again, you can hear the pattern."
+    },
+    {
+      "character": "Listener",
+      "pauseAfterMs": 2000
+    },
+    {
+      "character": "TeacherEnglish",
+      "text": "How would you say goodbye?"
+    },
+    {
+      "character": "Listener",
+      "pauseAfterMs": 4000
+    },
+    {
+      "character": "Student A",
+      "text": "再见"
+    },
+    {
+      "character": "Listener",
+      "pauseAfterMs": 1500
+    },
+    {
+      "character": "TeacherEnglish",
+      "text": "Wonderful! You're already speaking Mandarin. This is how easy it can be when you understand the patterns."
+    },
+    {
+      "character": "Listener",
+      "pauseAfterMs": 2000
+    }
+  ]
+}
+
